@@ -79,3 +79,7 @@
       (let [let-binding (second parse-result)
             body-expressions (drop 2 let-binding)]
         (is (= 2 (count body-expressions)))))))
+
+(deftest test-programs
+  (testing "let binding should return valid structures (filter, filterchain, filtergraph)"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^DSL programs" (compile-dsl "(let [x 1] x)")))))

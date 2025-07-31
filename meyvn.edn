@@ -14,4 +14,5 @@
                :reload-on-save true
                :repl-port :auto
                :repl-host "127.0.0.1"
-               :repl-unix-socket "nrepl.socket"}}
+               :repl-unix-socket "nrepl.socket"}
+ :testing {:enabled true}}
