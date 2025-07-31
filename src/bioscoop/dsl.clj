@@ -55,10 +55,10 @@
   (->FilterGraph (vec chains)))
 
 (defn make-input-labels [labels]
-  {:type :input-labels :labels (vec labels)})
+  (vec labels))  ; Just return a vector of strings
 
 (defn make-output-labels [labels]
-  {:type :output-labels :labels (vec labels)})
+  (vec labels))  ; Just return a vector of strings
 
 ;; Corrected AST transformation functions
 (declare resolve-function)
@@ -172,15 +172,14 @@
       (transform-ast ast (make-env)))))
 
 ;; Add these for debugging parse trees and transformation
-(defn debug-parse [dsl-code]
-  "Parse and print the AST for debugging"
-  (let [ast (dsl-parser dsl-code)]
+(defn debug-parse [input]
+  (println "Input:" input)
+  (let [ast (dsl-parser input)]
     (if (insta/failure? ast)
-      (println "Parse error:" ast)
-      (do
-        (println "Parse tree:")
-        (clojure.pprint/pprint ast)
-        ast))))
+      (do (println "Parse error:")
+          (clojure.pprint/pprint ast))
+      (do (println "Parse tree:")
+          (clojure.pprint/pprint ast)))))
 
 (defn debug-transform [dsl-code]
   "Parse, transform, and print each step for debugging"
@@ -199,11 +198,4 @@
 ;; (debug-parse "(filter \"scale\" \"1920:1080\")")
 ;; (debug-transform "(filter \"scale\" \"1920:1080\")")
 
-(defn debug-binding-parse [input]
-  (println "Input:" input)
-  (let [ast (dsl-parser input)]
-    (if (insta/failure? ast)
-      (do (println "Parse error:")
-          (clojure.pprint/pprint ast))
-      (do (println "Parse tree:")
-          (clojure.pprint/pprint ast)))))
+

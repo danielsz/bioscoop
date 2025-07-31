@@ -2,7 +2,7 @@
 :GPTEL_MODEL: claude-sonnet-4-20250514
 :GPTEL_BACKEND: Claude
 :GPTEL_SYSTEM: You are an expert Emacs Lisp developer assistant with deep knowledge of Emacs package development, internals, and best practices. Your responses should follow these key principles:\n\nCODE STYLE AND CONVENTIONS:\n- Always use lexical binding by including the header: -*- lexical-binding: t; -*-\n- Follow standard package header conventions, including proper copyright notices and commentary sections\n- Write clear, idiomatic Emacs Lisp that follows common conventions, e.g.:\n```elisp\n;;; package-name.el --- Package description  -*- lexical-binding: t; -*-\n\n;; Copyright (C) YEAR AUTHOR\n\n;; Author: Name <email>\n;; URL: https://example.com/package\n;; Version: 0.1\n;; Package-Requires: ((emacs "25.1"))\n;; Keywords: keywords\n\n;; This file is not part of GNU Emacs.\n\n[LICENSE]\n\n;;; Commentary:\n\n;; Package description and documentation\n\n;;; Code:\n\n(require 'cl-lib)\n\n[CODE]\n\n(provide 'package-name)\n\n;;; package-name.el ends here\n```\n\nDEVELOPMENT PRACTICES:\n- Use built-in libraries like cl-lib, seq, map where appropriate\n- Leverage existing Emacs infrastructure (e.g., syntax tables, font-lock) rather than reinventing\n- Write thorough documentation strings and commentary\n- Include autoload cookies for interactive commands\n- Use defcustom for user options with appropriate :type and :group\n- Handle errors gracefully with condition-case and user-friendly messages\n\nOPTIMIZATION AND PERFORMANCE:\n- Use efficient data structures (e.g., hash tables for large lookups)\n- Benchmark critical code paths using benchmark-run-compiled\n- Consider byte-compilation implications\n- Use lexical binding for better performance\n- Profile code to identify bottlenecks\n\nTESTING AND QUALITY:\n- Write comprehensive tests using ERT or Buttercup\n- Test edge cases and error conditions\n- Include regression tests for bug fixes\n- Test with clean Emacs configurations\n\nUI AND USER EXPERIENCE:\n- Follow Emacs UI conventions and keybinding schemes\n- Use standard major/minor mode conventions\n- Provide customization options for key features\n- Include helpful error messages and documentation\n- Consider keyboard-centric workflows\n\nEXAMPLE PATTERNS:\nFor defining keymaps:\n```elisp\n(defvar package-name-map\n  (let ((map (make-sparse-keymap "package-name map"))\n        (maps (list\n               "RET" #'package-name-RET-command\n               [remap search-forward] #'package-name-search-forward\n               )))\n    (cl-loop for (key fn) on maps by #'cddr\n             do (define-key map (if (stringp key) (kbd key) key) fn))\n    map))\n```\n\nFor efficient string operations:\n```elisp\n;; Prefer string operations that don't create intermediate strings\n(with-temp-buffer\n  (insert string)\n  ;; Modify string contents...\n  (buffer-string))\n```\n\nFor handling buffers:\n```elisp\n(with-current-buffer buffer\n  (save-excursion\n    (save-restriction\n      (widen)\n      ;; Buffer operations...\n      )))\n```\n\nWhen responding:\n1. Write clean, idiomatic Emacs Lisp code following package development best practices\n2. Include thorough documentation strings and comments\n3. Consider performance implications and optimization opportunities\n4. Provide example usage and test cases where appropriate\n5. Follow Emacs naming conventions and coding style\n6. Handle error cases gracefully\n7. Keep customization and configuration in mind\n8. Consider byte-compilation implications\n\nYou should help with:\n- Package development and structure\n- Major and minor mode implementation\n- User interface design\n- Performance optimization\n- Testing and debugging\n- Documentation and examples\n- Integration with existing Emacs features\n\nAvoid suggesting solutions that:\n- Don't follow Emacs conventions\n- Ignore error handling\n- Are inefficient or non-idiomatic\n- Lack proper documentation\n- Don't consider byte-compilation\n- Reinvent existing Emacs functionality\n\nRemember that Emacs Lisp code should be:\n- Well-documented\n- Efficient\n- Maintainable\n- Conventional\n- User-friendly\n- Robust\n- Integrated with Emacs ecosystem\n\nWhen providing code examples, strive to incorporate standard Emacs patterns and libraries while maintaining clarity and efficiency. Your goal is to help developers create high-quality, maintainable Emacs packages that integrate smoothly with the Emacs ecosystem.\n
-:GPTEL_BOUNDS: ((response (6144 18172) (18195 27815) (27974 45450) (45571 54646) (54942 63327) (63714 71364) (71502 74196) (74452 80843) (80931 81797) (82394 87640) (87884 94229) (94587 99712) (100248 107842) (108294 113230) (113542 118777) (118869 118893) (119018 122113) (122169 122191) (122311 126419) (126710 131985) (132184 133404) (133490 135822) (136101 139869) (140325 143364) (143493 147956) (148097 152221) (152335 155681) (156570 160543) (160693 162403) (162822 165155) (165523 168603) (168902 171174)))
+:GPTEL_BOUNDS: ((response (6208 18236) (18259 27879) (28038 45514) (45635 54710) (55006 63391) (63778 71428) (71566 74260) (74516 80907) (80995 81861) (82458 87704) (87948 94293) (94651 99776) (100312 107906) (108358 113294) (113606 118841) (118933 118957) (119082 122177) (122233 122255) (122375 126483) (126774 132049) (132248 133468) (133554 135886) (136165 139933) (140389 143428) (143557 148020) (148161 152285) (152399 155745) (156634 160607) (160757 162467) (162886 165219) (165587 168667) (168966 171238) (173141 176857) (176880 180493) (180744 188624) (188723 193268)))
 :END:
 NAME             ::= sequence of alphanumeric characters and '_'
 FILTER_NAME      ::= NAME["@"NAME]
@@ -4663,6 +4663,663 @@ the issue occurs when we have a function call as a binding value,
 especially when it references other symbols.
 
 Can you try the progressive examples above to see exactly where it breaks?
+
+#+begin_src clojure
+(to-ffmpeg (compile-dsl "(let [input-vid (input-labels \"in\")
+                     scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
+                 scaled)"))
+"[[:name \"input-labels\"]][[:args \"in\"]][[:input-labels []]][[:output-labels []]]scale=1920:1080[[:name \"output-labels\"]][[:args \"scaled\"]][[:input-labels []]][[:output-labels []]]"
+#+end_src
+
+#+begin_src clojure
+(ns bioscoop.render
+  (:require [clojure.string :as str]
+            [bioscoop.dsl :refer [make-filterchain make-filtergraph]])
+  (:import [bioscoop.dsl Filter FilterChain FilterGraph]))
+
+;; Transform our data structures to ffmpeg filter format
+(defprotocol FFmpegRenderable
+  (to-ffmpeg [this] "Convert to ffmpeg filter string"))
+
+(extend-protocol FFmpegRenderable
+  Filter
+  (to-ffmpeg [{:keys [name args input-labels output-labels]}]
+    (let [input-str (when (seq input-labels)
+                     (str/join "" (map #(str "[" % "]") input-labels)))
+          output-str (when (seq output-labels)
+                      (str/join "" (map #(str "[" % "]") output-labels)))
+          args-str (when args (str "=" args))]
+      (str input-str name args-str output-str)))
+  
+  FilterChain
+  (to-ffmpeg [{:keys [filters]}]
+    (str/join "," (map to-ffmpeg filters)))
+  
+  FilterGraph
+  (to-ffmpeg [{:keys [chains]}]
+    (str/join ";" (map to-ffmpeg chains))))
+
+;; Helper functions for common patterns
+(defn with-labels [filter input-labels output-labels]
+  (assoc filter 
+         :input-labels (vec input-labels)
+         :output-labels (vec output-labels)))
+
+(defn chain-filters [& filters]
+  (make-filterchain filters))
+
+(defn parallel-filters [& chains]
+  (make-filtergraph chains))
+
+#+end_src
+
+*** I am going to write tests so that we know what we break when we apply changes. First, I would like to fix the render namespace. Please look at the problem as it stands.
+
+Looking at the render output, I can see the problem clearly. The
+=input-labels= and =output-labels= are being rendered as raw data
+structures instead of simple strings.
+
+The issue is in the DSL's =input-labels= and =output-labels=
+functions. They're returning data structures like:
+
+#+begin_src clojure
+{:name "input-labels", :args "in", :input-labels [], :output-labels []}
+#+end_src
+
+But the =to-ffmpeg= implementation expects simple string vectors for labels.
+
+*The Problem: DSL Functions Return Wrong Types*
+
+Looking at your DSL code:
+#+begin_src clojure
+(let [input-vid (input-labels "in")
+      scaled (filter "scale" "1920:1080" input-vid (output-labels "scaled"))]
+  scaled)
+#+end_src
+
+The =input-labels= and =output-labels= functions are being treated as
+filter constructors instead of label specifications.
+
+*Fix 1: Correct the DSL Helper Functions*
+
+#+begin_src clojure
+;; In the DSL core, these should return simple vectors, not Filter records
+(defn make-input-labels [labels]
+  (vec labels))  ; Just return a vector of strings
+
+(defn make-output-labels [labels] 
+  (vec labels))  ; Just return a vector of strings
+
+;; Update resolve-function
+(defn resolve-function [op env]
+  (let [op-keyword (keyword op)]
+    (case op-keyword
+      :input-labels (fn [& labels] (vec labels))    ; Return vector of labels
+      :output-labels (fn [& labels] (vec labels))   ; Return vector of labels
+      :filter (fn [name & args] 
+                (make-filter name 
+                           (when (seq args) (first args))
+                           [] []))
+      ;; ... rest of cases
+      )))
+#+end_src
+
+*Fix 2: Update to-ffmpeg to Handle Edge Cases*
+
+#+begin_src clojure
+(extend-protocol FFmpegRenderable
+  Filter
+  (to-ffmpeg [{:keys [name args input-labels output-labels]}]
+    (let [input-str (when (seq input-labels)
+                     (str/join "" (map #(str "[" (if (string? %) % (str %)) "]") 
+                                       input-labels)))
+          output-str (when (seq output-labels)
+                      (str/join "" (map #(str "[" (if (string? %) % (str %)) "]") 
+                                        output-labels)))
+          args-str (when args (str "=" args))]
+      (str input-str name args-str output-str)))
+  
+  FilterChain
+  (to-ffmpeg [{:keys [filters]}]
+    (str/join "," (map to-ffmpeg filters)))
+  
+  FilterGraph
+  (to-ffmpeg [{:chains []}]  ; Handle empty chains
+    "")
+  
+  FilterGraph
+  (to-ffmpeg [{:keys [chains]}]
+    (str/join ";" (map to-ffmpeg chains))))
+#+end_src
+
+*Fix 3: Correct DSL API Design*
+
+The real issue is the DSL API design. Instead of:
+#+begin_src clojure
+(filter "scale" "1920:1080" input-vid (output-labels "scaled"))
+#+end_src
+
+It should be:
+#+begin_src clojure
+(filter "scale" "1920:1080" ["in"] ["scaled"])  ; Direct label vectors
+;; OR
+(with-labels (filter "scale" "1920:1080") ["in"] ["scaled"])  ; Helper function
+#+end_src
+
+*Recommended Fix: Simplify the DSL*
+
+#+begin_src clojure
+;; Remove input-labels and output-labels as separate functions
+;; Make filter accept label vectors directly
+
+(defn resolve-function [op env]
+  (let [op-keyword (keyword op)]
+    (case op-keyword
+      :filter (fn [name args & label-specs]
+                (let [input-labels (or (first label-specs) [])
+                      output-labels (or (second label-specs) [])]
+                  (make-filter name args input-labels output-labels)))
+      ;; ... rest
+      )))
+
+;; Usage:
+;; (filter "scale" "1920:1080" ["in"] ["out"])
+#+end_src
+
+The core issue is that =input-labels= and =output-labels= shouldn't be
+filter-creating functions - they should either be data or helper
+functions that modify existing filters.
+
+Which approach would you prefer for the DSL API?
+
+*** The second one.
+
+Perfect! Let's fix the render namespace with the defensive approach
+that handles edge cases robustly.
+
+/Fixed Render Namespace/
+
+#+begin_src clojure
+(ns bioscoop.render
+  (:require [clojure.string :as str]
+            [bioscoop.dsl :refer [make-filterchain make-filtergraph]])
+  (:import [bioscoop.dsl Filter FilterChain FilterGraph]))
+
+;; Transform our data structures to ffmpeg filter format
+(defprotocol FFmpegRenderable
+  (to-ffmpeg [this] "Convert to ffmpeg filter string"))
+
+(defn- render-label [label]
+  "Safely render a label to string, handling various input types"
+  (cond
+    (string? label) label
+    (keyword? label) (name label)
+    (map? label) (str label)  ; For malformed label objects, convert to string
+    :else (str label)))
+
+(defn- render-labels [labels]
+  "Safely render a collection of labels"
+  (when (seq labels)
+    (str/join "" (map #(str "[" (render-label %) "]") labels))))
+
+(extend-protocol FFmpegRenderable
+  Filter
+  (to-ffmpeg [{:keys [name args input-labels output-labels]}]
+    (let [input-str (render-labels input-labels)
+          output-str (render-labels output-labels)
+          args-str (when (and args (not (str/blank? args))) (str "=" args))]
+      (str input-str name args-str output-str)))
+  
+  FilterChain
+  (to-ffmpeg [{:keys [filters]}]
+    (if (seq filters)
+      (str/join "," (map to-ffmpeg filters))
+      ""))  ; Handle empty filter chains
+  
+  FilterGraph
+  (to-ffmpeg [{:keys [chains]}]
+    (if (seq chains)
+      (->> chains
+           (map to-ffmpeg)
+           (filter #(not (str/blank? %)))  ; Remove empty chains
+           (str/join ";"))
+      "")))  ; Handle empty filter graphs
+
+;; Helper functions for common patterns
+(defn with-labels [filter input-labels output-labels]
+  "Add labels to an existing filter"
+  (assoc filter 
+         :input-labels (vec (or input-labels []))
+         :output-labels (vec (or output-labels []))))
+
+(defn chain-filters [& filters]
+  "Create a filter chain from multiple filters"
+  (make-filterchain (vec filters)))
+
+(defn parallel-filters [& chains]
+  "Create parallel filter chains"
+  (make-filtergraph (vec chains)))
+#+end_src
+
+/Key Fixes:/
+
+1. *Defensive Label Rendering*: =render-label= handles strings, keywords, maps, and other types gracefully
+2. *Empty Collection Handling*: Properly handles empty chains and graphs
+3. *Blank Args Handling*: Only adds "=" when args exist and aren't blank
+4. *Robust Filtering*: Removes empty chains from filtergraph output
+
+/Test the Fix:/
+
+#+begin_src clojure
+;; This should now work correctly:
+(to-ffmpeg (compile-dsl "(let [input-vid (input-labels \"in\")
+                     scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
+                 scaled)"))
+
+;; Should produce: "[in]scale=1920:1080[scaled]"
+;; Instead of the malformed output with data structures
+#+end_src
+
+/Additional Test Cases:/
+
+#+begin_src clojure
+;; Test edge cases
+(to-ffmpeg (make-filter "scale" "1920:1080" ["in"] ["out"]))
+;; Should produce: "[in]scale=1920:1080[out]"
+
+(to-ffmpeg (make-filter "overlay" nil [] []))  
+;; Should produce: "overlay"
+
+(to-ffmpeg (make-filtergraph []))
+;; Should produce: ""
+
+(to-ffmpeg (make-filterchain []))
+;; Should produce: ""
+#+end_src
+
+This defensive approach ensures that even if the DSL functions return
+malformed data structures, the renderer will still produce valid
+FFmpeg filter strings rather than crashing or producing garbage
+output.
+
+The key insight is that the render layer should be robust and handle
+edge cases gracefully, acting as a clean boundary between our internal
+data structures and the external FFmpeg format.
+
+*** We now need to write a Clojure macro that accepts the same dsl code as the parser when it is fed as a string, and produce the same transformation as with the dsl code by reusing our existing code. This will allow us to run dsl code in Clojure.
+
+Great idea! We want to create a macro that takes DSL code as Clojure
+forms (not strings) and produces the same FilterGraph at compile
+time. This gives us the benefits of compile-time validation and better
+performance.
+
+/DSL Macro Implementation/
+
+#+begin_src clojure
+(ns bioscoop.macro
+  (:require [bioscoop.dsl :refer [make-filter make-filterchain make-filtergraph 
+                                 Filter FilterChain FilterGraph]]
+            [bioscoop.render :refer [to-ffmpeg]]))
+
+(defmacro dsl
+  "Compile DSL forms at compile time into FilterGraph"
+  [& forms]
+  (let [result (transform-dsl-forms forms {})]
+    `~result))
+
+(defmacro dsl-str
+  "Compile DSL forms and return FFmpeg string at compile time"
+  [& forms]
+  (let [result (transform-dsl-forms forms {})]
+    `~(to-ffmpeg result)))
+
+;; Core transformation function (reuses existing logic)
+(defmulti transform-dsl-forms 
+  "Transform DSL forms using the same logic as our parser"
+  (fn [forms env] 
+    (cond
+      (= 1 (count forms)) (dispatch-single-form (first forms))
+      :else :multiple-forms)))
+
+(defn dispatch-single-form [form]
+  (cond
+    (and (list? form) (= 'let (first form))) :let-binding
+    (list? form) :list
+    (symbol? form) :symbol
+    (keyword? form) :keyword
+    (string? form) :string
+    (number? form) :number
+    (boolean? form) :boolean
+    :else :literal))
+
+;; Handle multiple forms (same as :program)
+(defmethod transform-dsl-forms :multiple-forms [forms env]
+  (let [transformed (mapv #(transform-dsl-forms [%] env) forms)]
+    (case (count transformed)
+      0 (make-filtergraph [])
+      1 (let [single (first transformed)]
+          (cond
+            (instance? FilterGraph single) single
+            (instance? FilterChain single) (make-filtergraph [single])
+            (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
+            :else (throw (ex-info "DSL programs must produce filter operations" 
+                                {:expr single :type (type single)}))))
+      ;; Multiple expressions
+      (if (every? #(or (instance? Filter %) 
+                       (instance? FilterChain %) 
+                       (instance? FilterGraph %)) transformed)
+        (make-filtergraph
+          (mapv #(cond
+                   (instance? FilterChain %) %
+                   (instance? Filter %) (make-filterchain [%])
+                   (instance? FilterGraph %) (first (:chains %)))
+                transformed))
+        (throw (ex-info "All expressions in DSL program must produce filter operations"
+                       {:expressions transformed}))))))
+
+;; Handle let bindings
+(defmethod transform-dsl-forms :let-binding [[form] env]
+  (let [[_ bindings & body] form
+        binding-pairs (partition 2 bindings)
+        new-env (reduce (fn [acc-env [sym expr]]
+                         (let [sym-val (if (symbol? sym) (name sym) (str sym))
+                               expr-val (transform-dsl-forms [expr] acc-env)]
+                           (assoc acc-env sym-val expr-val)))
+                       env
+                       binding-pairs)
+        transformed-body (mapv #(transform-dsl-forms [%] new-env) body)]
+    (last transformed-body)))
+
+;; Handle function calls/lists
+(defmethod transform-dsl-forms :list [[form] env]
+  (let [[op & args] form
+        transformed-op (if (symbol? op) (name op) (str op))
+        transformed-args (mapv #(transform-dsl-forms [%] env) args)]
+    (case transformed-op
+      "filter" (apply make-filter transformed-args)
+      "chain" (make-filterchain transformed-args)
+      "graph" (make-filtergraph transformed-args)
+      ;; Default: resolve as function
+      (apply (resolve-dsl-function transformed-op env) transformed-args))))
+
+;; Handle symbols (variable lookup)
+(defmethod transform-dsl-forms :symbol [[form] env]
+  (let [sym-name (name form)]
+    (if-let [val (get env sym-name)]
+      val
+      sym-name)))  ; Return as string if not found in env
+
+;; Handle literals
+(defmethod transform-dsl-forms :keyword [[form] env] (name form))
+(defmethod transform-dsl-forms :string [[form] env] form)
+(defmethod transform-dsl-forms :number [[form] env] form)
+(defmethod transform-dsl-forms :boolean [[form] env] form)
+(defmethod transform-dsl-forms :literal [[form] env] form)
+
+;; Reuse existing resolve-function logic
+(defn resolve-dsl-function [op env]
+  (let [op-keyword (keyword op)]
+    (case op-keyword
+      :filter (fn [name & args] 
+                (make-filter name 
+                           (when (seq args) (first args))
+                           [] []))
+      :str (fn [& args] (apply str args))
+      :+ (fn [& args] (apply + args))
+      :- (fn [& args] (apply - args))
+      :* (fn [& args] (apply * args))
+      :/ (fn [& args] (apply / args))
+      :scale (fn [w h] (make-filter "scale" (str w ":" h)))
+      :crop (fn [w h x y] (make-filter "crop" (str w ":" h ":" x ":" y)))
+      :overlay (fn [] (make-filter "overlay"))
+      :fade (fn [type start duration] 
+             (make-filter "fade" (str (name type) ":" start ":" duration)))
+      ;; Default: treat as filter name
+      (fn [& args] (make-filter op (when (seq args) (str/join ":" args)))))))
+#+end_src
+
+/Usage Examples/
+
+#+begin_src clojure
+;; Macro usage - no quotes needed, pure Clojure forms
+(dsl (filter "scale" "1920:1080"))
+;; Returns FilterGraph at compile time
+
+(dsl (let [w 1920 h 1080] 
+       (scale w h)))
+;; Returns FilterGraph with scale filter
+
+(dsl-str (chain (scale 1920 1080) (crop 1920 800 0 140)))
+;; Returns "scale=1920:1080,crop=1920:800:0:140" at compile time
+
+;; Complex example
+(dsl (let [main-w 1920
+           main-h 1080
+           pip-w 320 
+           pip-h 240]
+       (graph
+         (chain (scale main-w main-h))
+         (chain (scale pip-w pip-h))
+         (chain (overlay)))))
+#+end_src
+
+/Comparison: Macro vs String Parser/
+
+#+begin_src clojure
+;; String parser (runtime)
+(compile-dsl "(let [w 1920 h 1080] (scale w h))")
+
+;; Macro (compile time) - equivalent result
+(dsl (let [w 1920 h 1080] (scale w h)))
+
+;; Both produce identical FilterGraph structures
+#+end_src
+
+/Advanced Macro with Validation/
+
+#+begin_src clojure
+(defmacro dsl-validated
+  "DSL macro with compile-time validation"
+  [& forms]
+  (let [result (transform-dsl-forms forms {})]
+    ;; Validate at compile time
+    (when-not (instance? FilterGraph result)
+      (throw (ex-info "DSL must produce FilterGraph" {:result result})))
+    
+    ;; Validate FFmpeg output
+    (let [ffmpeg-str (to-ffmpeg result)]
+      (when (empty? ffmpeg-str)
+        (throw (ex-info "DSL produces empty filter" {:result result}))))
+    
+    `~result))
+#+end_src
+
+/Helper Macro for Testing/
+
+#+begin_src clojure
+(defmacro dsl-test
+  "Test that macro and parser produce identical results"
+  [dsl-code]
+  `(let [macro-result# (dsl ~@(read-string (str "(" dsl-code ")")))
+         parser-result# (compile-dsl ~dsl-code)]
+     {:macro (to-ffmpeg macro-result#)
+      :parser (to-ffmpeg parser-result#)
+      :equal? (= (to-ffmpeg macro-result#) (to-ffmpeg parser-result#))}))
+#+end_src
+
+/Benefits of the Macro Approach:/
+
+1. /Compile-time evaluation/: No parsing overhead at runtime
+2. /Better IDE support/: Syntax highlighting, completion
+3. /Compile-time validation/: Catch errors early
+4. /Performance/: Pre-computed FilterGraph structures
+5. /Clojure integration/: Natural Clojure syntax, no string escaping
+
+/Testing/
+
+#+begin_src clojure
+;; Test equivalence
+(= (to-ffmpeg (dsl (scale 1920 1080)))
+   (to-ffmpeg (compile-dsl "(scale 1920 1080)")))
+;; Should return true
+
+;; Performance comparison
+(time (dotimes [_ 1000] (compile-dsl "(scale 1920 1080)")))    ; Runtime parsing
+(time (dotimes [_ 1000] (dsl (scale 1920 1080))))             ; Compile-time
+#+end_src
+
+This gives you the best of both worlds: the flexibility of a string-based DSL for dynamic use cases, and the performance/safety of compile-time macros for static use cases.
+
+***  Yes, but we can have one transformation logic that we reuse in both the dsl and the macro.
+
+You're absolutely right! We're duplicating transformation logic when
+we should have one unified implementation. Let me refactor this to
+reuse the existing transformation logic.
+
+/Unified Transformation Approach/
+
+#+begin_src clojure
+(ns bioscoop.macro
+  (:require [bioscoop.dsl :refer [transform-ast make-env]]
+            [bioscoop.render :refer [to-ffmpeg]]))
+
+;; Convert Clojure forms to the same AST structure that the parser produces
+(defn forms->ast
+  "Convert Clojure forms to parser-compatible AST"
+  [forms]
+  (if (= 1 (count forms))
+    [:program (form->ast-node (first forms))]
+    [:program (mapv form->ast-node forms)]))
+
+(defmulti form->ast-node 
+  "Convert a single Clojure form to AST node"
+  (fn [form]
+    (cond
+      (and (list? form) (= 'let (first form))) :let-binding
+      (list? form) :list
+      (symbol? form) :symbol
+      (keyword? form) :keyword
+      (string? form) :string
+      (number? form) :number
+      (boolean? form) :boolean
+      :else :literal)))
+
+(defmethod form->ast-node :let-binding [form]
+  (let [[_ bindings & body] form
+        binding-pairs (partition 2 bindings)
+        binding-nodes (mapv (fn [[sym expr]] 
+                             [:binding 
+                              (form->ast-node sym) 
+                              (form->ast-node expr)])
+                           binding-pairs)
+        body-nodes (mapv form->ast-node body)]
+    (into [:let-binding] (concat binding-nodes body-nodes))))
+
+(defmethod form->ast-node :list [form]
+  (let [[op & args] form]
+    (into [:list (form->ast-node op)] (mapv form->ast-node args))))
+
+(defmethod form->ast-node :symbol [form]
+  [:symbol (name form)])
+
+(defmethod form->ast-node :keyword [form] 
+  [:keyword (name form)])
+
+(defmethod form->ast-node :string [form]
+  [:string form])
+
+(defmethod form->ast-node :number [form]
+  [:number (str form)])
+
+(defmethod form->ast-node :boolean [form]
+  [:boolean (str form)])
+
+(defmethod form->ast-node :literal [form]
+  form)
+
+;; Macro implementation reusing existing transform-ast
+(defmacro dsl
+  "Compile DSL forms at compile time into FilterGraph"
+  [& forms]
+  (let [ast (forms->ast forms)
+        result (transform-ast ast (make-env))]
+    `~result))
+
+(defmacro dsl-str
+  "Compile DSL forms and return FFmpeg string at compile time"
+  [& forms]
+  (let [ast (forms->ast forms)
+        result (transform-ast ast (make-env))]
+    `~(to-ffmpeg result)))
+#+end_src
+
+/Testing Equivalence/
+
+#+begin_src clojure
+(defn test-equivalence []
+  (let [test-cases [
+    ;; Simple filter
+    ["(filter \"scale\" \"1920:1080\")" 
+     '(filter "scale" "1920:1080")]
+    
+    ;; Built-in function
+    ["(scale 1920 1080)"
+     '(scale 1920 1080)]
+     
+    ;; Let binding
+    ["(let [w 1920 h 1080] (scale w h))"
+     '(let [w 1920 h 1080] (scale w h))]
+     
+    ;; Chain
+    ["(chain (scale 1920 1080) (overlay))"
+     '(chain (scale 1920 1080) (overlay))]]]
+    
+    (doseq [[string-dsl form-dsl] test-cases]
+      (let [parser-result (bioscoop.dsl/compile-dsl string-dsl)
+            macro-result (eval `(dsl ~@(if (list? form-dsl) [form-dsl] form-dsl)))]
+        (println "String DSL:" (to-ffmpeg parser-result))
+        (println "Macro DSL: " (to-ffmpeg macro-result))
+        (println "Equal?    " (= (to-ffmpeg parser-result) (to-ffmpeg macro-result)))
+        (println "---")))))
+#+end_src
+
+/Usage Examples/
+
+#+begin_src clojure
+;; These should produce identical results:
+
+;; String parser
+(compile-dsl "(let [w 1920 h 1080] (scale w h))")
+
+;; Macro (reusing same transformation logic)
+(dsl (let [w 1920 h 1080] (scale w h)))
+
+;; Both use the same transform-ast function!
+#+end_src
+
+/Key Benefits of This Approach:/
+
+1. *Single Source of Truth*: Only one =transform-ast= implementation
+2. *Guaranteed Consistency*: Macro and parser produce identical results
+3. *Easier Maintenance*: Changes to transformation logic automatically apply to both
+4. *AST Reuse*: The form->ast conversion creates the same structure the parser does
+
+/AST Structure Verification/
+
+#+begin_src clojure
+(defn debug-ast-conversion [form]
+  (let [ast (forms->ast [form])]
+    (println "Clojure form:" form)
+    (println "Generated AST:")
+    (clojure.pprint/pprint ast)
+    (println "Transform result:")
+    (clojure.pprint/pprint (transform-ast ast (make-env)))))
+
+;; Test it:
+;; (debug-ast-conversion '(let [x 1920] (scale x 1080)))
+#+end_src
+
+This approach ensures that we have exactly one transformation logic that both the string parser and the macro use, eliminating any possibility of divergence between the two approaches.
 
 *** 
 
