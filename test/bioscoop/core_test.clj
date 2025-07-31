@@ -1,0 +1,2 @@
+(ns bioscoop.core-test)
+

@@ -1,0 +1,22 @@
+filtergraph = sws-flags? filterchain (semicolon filterchain)*
+sws-flags = 'sws_flags' equals flags semicolon
+filterchain = filter (<comma> filter)*
+filter = input-linklabels? filter-spec output-linklabels?
+filter-spec = filter-name (<equals> filter-arguments)?
+filter-name = name (at name)?
+filter-arguments = quoted-string | unquoted-args
+input-linklabels = linklabel+      
+output-linklabels = linklabel+     
+linklabel = <lbracket> name <rbracket>
+
+<name> = #'[a-zA-Z0-9_]+'
+flags = #'[^;]+'
+quoted-string = <'"'> #'[^"]*' <'"'>
+unquoted-args = #'[^,;\[\]]+'
+
+at = '@'
+<equals> = '='
+comma = ','
+semicolon = ';'
+<lbracket> = '['
+<rbracket> = ']'
