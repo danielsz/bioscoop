@@ -98,4 +98,21 @@
   (testing "substitution - structural equivalence"
     (let [foo (compile-dsl "(let [width 1920] (scale width 1080))")
           bar (parse-ffmpeg-filter "scale=1920:1080")]
-      (is (= foo bar)))))
+      (is (= foo bar))))
+  (testing "arithmetic in let binding expression"
+    (is (= "scale=1920:1080" (to-ffmpeg (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")))))
+  (testing "arithmetic - structural equivalence"
+    (let [foo (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")
+          bar (parse-ffmpeg-filter "scale=1920:1080")]
+      (is (= foo bar))))
+  (testing "Mathematical functions from clojure.core"
+    (is (= "scale=4:1080" (to-ffmpeg (compile-dsl "(let [width (mod 10 6)] (scale width 1080))"))))
+    (is (= "scale=1920:1920" (to-ffmpeg (compile-dsl "(let [size (max 1920 1080)] (scale size size))"))))
+    (is (= "scale=10:100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))"))))
+    (is (= "scale=1920:1080" (to-ffmpeg (compile-dsl "(let [next (inc 1919)] (scale next 1080))")))))
+  (testing "Nested expressions work"
+    (is (= "scale=5:100" (to-ffmpeg (compile-dsl "(let [result (inc (mod 10 6))] (scale result 100))")))))
+  (testing "Negative numbers work properly"
+    (is (= "scale=10:100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))")))))
+  (testing "Unknown functions still become filters"
+    (is (= "nonexistent=123:456" (to-ffmpeg (compile-dsl "(nonexistent 123 456)"))))))

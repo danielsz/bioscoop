@@ -1,14 +1,15 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
-            [clojure.string :as str]           
+            [clojure.string :as str]
             [clojure.java.io :as io]))
-
 
 (def whitespace
   (insta/parser
    "whitespace = #'\\s+'"))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace whitespace))
+
+(def dsl-parses (partial insta/parses dsl-parser))
 
 ;; Core data structures for our DSL
 (defrecord Filter [name args])
@@ -109,8 +110,8 @@
   ;; This shouldn't be called directly in normal flow
   [(transform-ast sym env) (transform-ast expr env)])
 
+
 (defmethod transform-ast :list [[_ op & args] env]
-  ;; KEY FIX: Transform the operator first
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
     (case transformed-op
@@ -158,8 +159,9 @@
 
 ;; Fixed resolve-function that expects string ops
 (defn resolve-function [op env]
-  (let [op-keyword (keyword op)] ; Convert string to keyword for case matching
+  (let [op-keyword (keyword op)]
     (case op-keyword
+      ;; Built-in DSL functions (highest priority)
       :scale (fn [w h] (make-filter "scale" (str w ":" h)))
       :crop (fn [w h x y] (make-filter "crop" (str w ":" h ":" x ":" y)))
       :overlay (fn [] (make-filter "overlay"))
@@ -170,15 +172,20 @@
       :input-labels (fn [& labels] (vec labels))
       :output-labels (fn [& labels] (vec labels))
 
-      ;; Arithmetic and utility functions
+      ;; Arithmetic and utility functions (override Clojure's if needed)
       :str str
       :+ +
       :- -
       :/ /
       :* *
 
-      ;; Default: treat as filter name
-      (fn [& args] (make-filter op (when (seq args) (str/join ":" args)))))))
+      ;; Try to resolve as Clojure function from clojure.core
+      (if-let [clj-fn (try
+                        (ns-resolve 'clojure.core (symbol op))
+                        (catch Exception _ nil))]
+        clj-fn
+        ;; Default fallback: treat as filter name
+        (fn [& args] (make-filter op (when (seq args) (str/join ":" args))))))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]

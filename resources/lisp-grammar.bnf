@@ -8,10 +8,10 @@ binding = symbol expression
 
 list = <'('> (symbol | keyword) expression* <')'>
 
-<atom> = number | string | symbol | keyword | boolean
+<atom> = number | boolean | !boolean !number symbol | string | keyword
 
 number = #'-?\d+(\.\d+)?'
 string = <'"'> #'[^"]*' <'"'>
-symbol = #'[a-zA-Z_][a-zA-Z0-9_\-]*[?!]?'
+symbol = #'[a-zA-Z_+\-*/][a-zA-Z0-9_\-]*[?!]?'
 keyword = <':'> symbol
-boolean = 'true' | 'false'
+boolean = #"^true$" | #"^false$"
