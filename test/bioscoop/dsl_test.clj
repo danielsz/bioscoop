@@ -91,3 +91,11 @@
 (deftest test-programs
   (testing "let binding should return valid structures (filter, filterchain, filtergraph)"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^DSL programs" (compile-dsl "(let [x 1] x)")))))
+
+(deftest let-bindings
+  (testing "substitution"
+    (is (= "scale=1920:1080"(to-ffmpeg (compile-dsl "(let [width 1920] (scale width 1080))")))))
+  (testing "substitution - structural equivalence"
+    (let [foo (compile-dsl "(let [width 1920] (scale width 1080))")
+          bar (parse-ffmpeg-filter "scale=1920:1080")]
+      (is (= foo bar)))))
