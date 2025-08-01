@@ -1,19 +1,8 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
-            [clojure.string :as str]
-            [clojure.spec.alpha :as s]
+            [clojure.string :as str]           
             [clojure.java.io :as io]))
 
-;; Data structure specifications
-(s/def ::name (s/and string? #(re-matches #"[a-zA-Z0-9_]+" %)))
-(s/def ::filter-name (s/and string? #(re-matches #"[a-zA-Z0-9_]+(@[a-zA-Z0-9_]+)?" %)))
-(s/def ::link-label (s/and string? #(re-matches #"[a-zA-Z0-9_]+" %)))
-(s/def ::filter-args string?)
-
-(s/def ::filter (s/keys :req-un [::filter-name]
-                       :opt-un [::input-labels ::output-labels ::args]))
-(s/def ::filterchain (s/coll-of ::filter))
-(s/def ::filtergraph (s/coll-of ::filterchain))
 
 (def whitespace
   (insta/parser
@@ -22,7 +11,7 @@
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace whitespace))
 
 ;; Core data structures for our DSL
-(defrecord Filter [name args input-labels output-labels])
+(defrecord Filter [name args])
 (defrecord FilterChain [filters])
 (defrecord FilterGraph [chains])
 
@@ -40,13 +29,10 @@
 (defn env-put [env sym val]
   (assoc env sym val))
 
-
 ;; Filter construction functions
 (defn make-filter
-  ([name] (->Filter name nil [] []))
-  ([name args] (->Filter name args [] []))
-  ([name args input-labels output-labels]
-   (->Filter name args (or input-labels []) (or output-labels []))))
+  ([name] (->Filter name nil))
+  ([name args] (->Filter name args)))
 
 (defn make-filterchain [filters]
   (->FilterChain (vec filters)))
@@ -54,18 +40,30 @@
 (defn make-filtergraph [chains]
   (->FilterGraph (vec chains)))
 
-(defn make-input-labels [labels]
-  (vec labels))  ; Just return a vector of strings
+;; Label metadata helper functions
+(defn with-input-labels [filter labels]
+  (with-meta filter (assoc (meta filter) :input-labels (vec labels))))
 
-(defn make-output-labels [labels]
-  (vec labels))  ; Just return a vector of strings
+(defn with-output-labels [filter labels]
+  (with-meta filter (assoc (meta filter) :output-labels (vec labels))))
+
+(defn with-labels [filter input-labels output-labels]
+  (-> filter
+      (with-input-labels input-labels)
+      (with-output-labels output-labels)))
+
+(defn get-input-labels [filter]
+  (:input-labels (meta filter) []))
+
+(defn get-output-labels [filter]
+  (:output-labels (meta filter) []))
 
 ;; Corrected AST transformation functions
 (declare resolve-function)
-(defmulti transform-ast (fn [node env] 
-  (if (vector? node) 
-    (first node) 
-    :literal)))
+(defmulti transform-ast (fn [node env]
+                          (if (vector? node)
+                            (first node)
+                            :literal)))
 
 (defmethod transform-ast :program [[_ & expressions] env]
   (let [transformed (mapv #(transform-ast % env) expressions)]
@@ -77,34 +75,33 @@
             (instance? FilterChain single) (make-filtergraph [single])
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
             ;; Better error for invalid programs
-            :else (throw (ex-info "DSL programs must produce filter operations, not primitive values" 
-                                {:expr single 
-                                 :type (type single)
-                                 :hint "End your program with a filter, chain, or graph operation"}))))
+            :else (throw (ex-info "DSL programs must produce filter operations, not primitive values"
+                                  {:expr single
+                                   :type (type single)
+                                   :hint "End your program with a filter, chain, or graph operation"}))))
       ;; Multiple expressions
-      (if (every? #(or (instance? Filter %) 
-                       (instance? FilterChain %) 
+      (if (every? #(or (instance? Filter %)
+                       (instance? FilterChain %)
                        (instance? FilterGraph %)) transformed)
         (make-filtergraph
-          (mapv #(cond
-                   (instance? FilterChain %) %
-                   (instance? Filter %) (make-filterchain [%])
-                   (instance? FilterGraph %) (first (:chains %)))
-                transformed))
+         (mapv #(cond
+                  (instance? FilterChain %) %
+                  (instance? Filter %) (make-filterchain [%])
+                  (instance? FilterGraph %) (first (:chains %)))
+               transformed))
         (throw (ex-info "All expressions in DSL program must produce filter operations"
-                       {:expressions transformed
-                        :hint "Each expression should create filters, chains, or graphs"}))))))
-
+                        {:expressions transformed
+                         :hint "Each expression should create filters, chains, or graphs"}))))))
 
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
         new-env (reduce (fn [acc-env [_ sym expr]]
-                         (let [sym-val (transform-ast sym env)
-                               expr-val (transform-ast expr acc-env)] ; ← Only change needed
-                           (env-put acc-env sym-val expr-val)))
-                       (make-env env)
-                       bindings)
+                          (let [sym-val (transform-ast sym env)
+                                expr-val (transform-ast expr acc-env)] ; ← Only change needed
+                            (env-put acc-env sym-val expr-val)))
+                        (make-env env)
+                        bindings)
         transformed-body (mapv #(transform-ast % new-env) body)]
     (last transformed-body)))
 
@@ -117,17 +114,32 @@
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
     (case transformed-op
-      "filter" (apply make-filter transformed-args)
+      "filter" (let [[name args-str & label-args] transformed-args
+                     base-filter (make-filter name args-str)
+                     ;; Process remaining args for labels
+                     {:keys [input-labels output-labels]}
+                     (reduce (fn [acc arg]
+                               (cond
+                                 (vector? arg) ; input-labels or output-labels return vectors
+                                 (if (:input-labels acc)
+                                   (assoc acc :output-labels arg)
+                                   (assoc acc :input-labels arg))
+                                 :else acc))
+                             {}
+                             label-args)]
+                 (cond-> base-filter
+                   input-labels (with-input-labels input-labels)
+                   output-labels (with-output-labels output-labels)))
       "chain" (make-filterchain transformed-args)
       "graph" (make-filtergraph transformed-args)
       ;; Default: resolve as function
       (apply (resolve-function transformed-op env) transformed-args))))
 
 (defmethod transform-ast :symbol [[_ sym] env]
-  (or (env-get env sym) sym))  ; Returns string, not keyword
+  (or (env-get env sym) sym)) ; Returns string, not keyword
 
 (defmethod transform-ast :keyword [[_ kw] env]
-  kw)  ; Returns string (the keyword name)
+  kw) ; Returns string (the keyword name)
 
 (defmethod transform-ast :string [[_ s] env]
   s)
@@ -146,21 +158,25 @@
 
 ;; Fixed resolve-function that expects string ops
 (defn resolve-function [op env]
-  (let [op-keyword (keyword op)]  ; Convert string to keyword for case matching
+  (let [op-keyword (keyword op)] ; Convert string to keyword for case matching
     (case op-keyword
       :scale (fn [w h] (make-filter "scale" (str w ":" h)))
       :crop (fn [w h x y] (make-filter "crop" (str w ":" h ":" x ":" y)))
       :overlay (fn [] (make-filter "overlay"))
-      :fade (fn [type start duration] 
-             (make-filter "fade" (str (name type) ":" start ":" duration)))
-      
+      :fade (fn [type start duration]
+              (make-filter "fade" (str (name type) ":" start ":" duration)))
+
+      ;; Label functions that return vectors directly
+      :input-labels (fn [& labels] (vec labels))
+      :output-labels (fn [& labels] (vec labels))
+
       ;; Arithmetic and utility functions
       :str str
       :+ +
       :- -
       :/ /
       :* *
-      
+
       ;; Default: treat as filter name
       (fn [& args] (make-filter op (when (seq args) (str/join ":" args)))))))
 

@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.pprint]
-            [bioscoop.dsl :refer [make-filter make-filterchain make-filtergraph]]))
+            [bioscoop.dsl :refer [make-filter make-filterchain make-filtergraph with-input-labels with-output-labels]]))
 
 (def ffmpeg-parser
   (insta/parser (io/resource "ffmpeg-grammar.bnf")))
@@ -21,9 +21,9 @@
 
 (defmethod parse-ffmpeg-ast :filter [[_ & parts]]
   (let [input-labels (when-let [inputs (first (filter #(= :input-linklabels (first %)) parts))]
-                      (vec (rest inputs)))  ; Just take the string names directly
+                       (vec (rest inputs))) ; Just take the string names directly
         output-labels (when-let [outputs (first (filter #(= :output-linklabels (first %)) parts))]
-                       (vec (rest outputs))) ; Just take the string names directly
+                        (vec (rest outputs))) ; Just take the string names directly
         filter-spec (first (filter #(= :filter-spec (first %)) parts))]
     (parse-filter-spec filter-spec input-labels output-labels)))
 
@@ -36,18 +36,22 @@
         filter-name (parse-filter-name name-node)
         ;; Now rest should directly contain the filter-arguments if present
         args-node (first rest)
-        filter-args (when args-node (parse-filter-args args-node))]
-    (make-filter filter-name filter-args (or input-labels []) (or output-labels []))))
+        filter-args (when args-node (parse-filter-args args-node))
+        base-filter (make-filter filter-name filter-args)]
+    ;; Add labels as metadata if present
+    (cond-> base-filter
+      (seq input-labels) (with-input-labels input-labels)
+      (seq output-labels) (with-output-labels output-labels))))
 
 (defn parse-filter-name [name-node]
   (cond
     ;; [:filter-name "crop"] -> "crop"
     (and (vector? name-node) (= :filter-name (first name-node)))
     (second name-node)
-    
+
     ;; Direct string (if grammar changes)
     (string? name-node) name-node
-    
+
     :else (str name-node)))
 
 (defn parse-filter-args [args-node]
@@ -58,16 +62,13 @@
       (cond
         (and (vector? inner-node) (= :unquoted-args (first inner-node)))
         (second inner-node)
-        
+
         (and (vector? inner-node) (= :quoted-string (first inner-node)))
         (second inner-node)
-        
+
         :else (str inner-node)))
-    
+
     :else (str args-node)))
-
-
-
 
 (defn parse-single-linklabel [label-node]
   "Parse a single linklabel node"
@@ -75,10 +76,10 @@
     ;; With hidden brackets: [:linklabel "in"]
     (and (vector? label-node) (= :linklabel (first label-node)))
     (second label-node)
-    
+
     ;; Direct string (if grammar hides linklabel tag too)
     (string? label-node) label-node
-    
+
     :else (str label-node)))
 
 (defn parse-linklabels [linklabels-node]
@@ -88,12 +89,11 @@
 
 (defmethod parse-ffmpeg-ast :filter [[_ & parts]]
   (let [input-labels (when-let [inputs (first (filter #(= :input-linklabels (first %)) parts))]
-                      (parse-linklabels inputs))
+                       (parse-linklabels inputs))
         output-labels (when-let [outputs (first (filter #(= :output-linklabels (first %)) parts))]
-                       (parse-linklabels outputs))
+                        (parse-linklabels outputs))
         filter-spec (first (filter #(= :filter-spec (first %)) parts))]
     (parse-filter-spec filter-spec input-labels output-labels)))
-
 
 (defn debug-ffmpeg-parse [filter-string]
   "Debug the FFmpeg parsing process"
@@ -107,7 +107,7 @@
         (println "Parse tree:")
         (clojure.pprint/pprint ast)
         (println "\nTransformed:")
-        (let [result (parse-ffmpeg-ast ast)]  ; Fixed: added vector brackets and binding
+        (let [result (parse-ffmpeg-ast ast)] ; Fixed: added vector brackets and binding
           (clojure.pprint/pprint result)
           result)))))
 
@@ -125,17 +125,29 @@
   (let [input-labels (extract-input-labels parts)
         output-labels (extract-output-labels parts)
         filter-spec (first (filter #(= :filter-spec (first %)) parts))
-        [filter-name filter-args] (extract-filter-spec filter-spec)]
-    (make-filter filter-name filter-args input-labels output-labels)))
+        [filter-name filter-args] (extract-filter-spec filter-spec)
+        base-filter (make-filter filter-name filter-args)]
+    ;; Add labels as metadata if present
+    (cond-> base-filter
+      (seq input-labels) (with-input-labels input-labels)
+      (seq output-labels) (with-output-labels output-labels))))
 
 ;; Helper functions for extraction
 (defn extract-input-labels [parts]
   (when-let [inputs (first (filter #(= :input-linklabels (first %)) parts))]
-    (vec (rest inputs))))
+    (mapv (fn [label-node]
+            (if (and (vector? label-node) (= :linklabel (first label-node)))
+              (second label-node)
+              (str label-node)))
+          (rest inputs))))
 
 (defn extract-output-labels [parts]
   (when-let [outputs (first (filter #(= :output-linklabels (first %)) parts))]
-    (vec (rest outputs))))
+    (mapv (fn [label-node]
+            (if (and (vector? label-node) (= :linklabel (first label-node)))
+              (second label-node)
+              (str label-node)))
+          (rest outputs))))
 
 (defn extract-filter-spec [filter-spec-node]
   (let [[_ name-node & rest] filter-spec-node
@@ -162,7 +174,7 @@
         :else (str inner-node)))))
 
 ;; Updated main parsing function
-(defn parse-ffmpeg-filter 
+(defn parse-ffmpeg-filter
   "Parse FFmpeg filter string and return Clojure records"
   [filter-string]
   (let [ast (ffmpeg-parser filter-string)]
@@ -172,7 +184,7 @@
 
 ;; For backward compatibility, keep raw parse tree function
 (defn parse-ffmpeg-filter-raw
-  "Parse FFmpeg filter string and return raw parse tree"  
+  "Parse FFmpeg filter string and return raw parse tree"
   [filter-string]
   (let [ast (ffmpeg-parser filter-string)]
     (if (insta/failure? ast)

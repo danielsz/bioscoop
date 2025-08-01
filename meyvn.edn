@@ -12,7 +12,6 @@
              :jar {:enabled false}}
  :interactive {:enabled true
                :reload-on-save true
-               :repl-port :auto
-               :repl-host "127.0.0.1"
-               :repl-unix-socket "nrepl.socket"}
+               :repl-port 7888
+               :repl-host "127.0.0.1"}
  :testing {:enabled true}}

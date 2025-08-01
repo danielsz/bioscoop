@@ -3,8 +3,8 @@
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :refer [parse-ffmpeg-filter]]
             [clojure.test :refer [testing deftest is use-fixtures]]
-            [instaparse.core :as insta]))
-
+            [instaparse.core :as insta])
+  (:import [bioscoop.render FFmpegRenderable]))
 
 (deftest test-dsl-compilation
   (testing "Basic filter creation"
@@ -16,7 +16,7 @@
           bar (parse-ffmpeg-filter "scale=1920:1080")]
       (is (= foo bar))))
 
- (testing "Basic named filter creation"
+  (testing "Basic named filter creation"
     (let [result (compile-dsl "(scale 1920 1080)")]
       (is (= "scale=1920:1080" (to-ffmpeg result)))))
 
@@ -24,14 +24,22 @@
     (let [foo (compile-dsl "(scale 1920 1080)")
           bar (parse-ffmpeg-filter "scale=1920:1080")]
       (is (= foo bar))))
-  
+
   (testing "Filter with labels"
     (let [dsl "(let [input-vid (input-labels \"in\")
                      scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
                  scaled)"
           result (compile-dsl dsl)]
       (is (= "[in]scale=1920:1080[scaled]" (to-ffmpeg result)))))
-  
+
+  (testing "Filter with labels - structural equivalence"
+    (let [dsl "(let [input-vid (input-labels \"in\")
+                     scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
+                 scaled)"
+          foo (compile-dsl dsl)
+          bar (parse-ffmpeg-filter "[in]scale=1920:1080[scaled]")]
+      (is (= foo bar))))
+
   (testing "Filter chain"
     (let [dsl "(chain 
                  (filter \"scale\" \"1920:1080\")
@@ -66,12 +74,12 @@
       ;;       [:binding [:symbol "y"] [:number "1080"]]]
       ;;     [:list [:symbol "scale"] [:symbol "x"] [:symbol "y"]]]]
       (is (= :program (first parse-result)))))
-  
+
   (testing "Simple let binding parse"
     (let [parse-result (dsl-parser "(let [foo 2] foo)")]
       (is (not (insta/failure? parse-result)))
       (is (= :let-binding (first (second parse-result))))))
-  
+
   (testing "Multiple expressions in let body"
     (let [parse-result (dsl-parser "(let [x 1] x (scale x 480))")]
       (is (not (insta/failure? parse-result)))
