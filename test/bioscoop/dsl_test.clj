@@ -116,3 +116,11 @@
     (is (= "scale=10:100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))")))))
   (testing "Unknown functions still become filters"
     (is (= "nonexistent=123:456" (to-ffmpeg (compile-dsl "(nonexistent 123 456)"))))))
+
+(deftest test-roundtrip
+  (testing "DSL -> FFmpeg -> DSL roundtrip"
+    (let [original-dsl "(chain (filter \"scale\" \"1920:1080\") (filter \"overlay\"))"
+          compiled (compile-dsl original-dsl)
+          ffmpeg-output (to-ffmpeg compiled)
+          parsed-back (parse-ffmpeg-filter ffmpeg-output)]
+      (is (= ffmpeg-output (to-ffmpeg parsed-back))))))

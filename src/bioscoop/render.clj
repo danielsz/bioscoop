@@ -1,6 +1,6 @@
 (ns bioscoop.render
   (:require [clojure.string :as str]
-            [bioscoop.dsl :refer [make-filterchain make-filtergraph get-input-labels get-output-labels with-labels]])
+            [bioscoop.dsl :refer [make-filterchain make-filtergraph get-input-labels get-output-labels]])
   (:import [bioscoop.dsl Filter FilterChain FilterGraph]))
 
 ;; Transform our data structures to ffmpeg filter format
