@@ -6,7 +6,7 @@
    [clojure.tools.logging :as log]
    [bioscoop.dsl :refer [dsl-parser compile-dsl]]
    [bioscoop.render :refer [to-ffmpeg]]
-   [bioscoop.ffmpeg-parser :refer [parse-ffmpeg-ast parse-ffmpeg-filter debug-ffmpeg-parse]]
+   [bioscoop.ffmpeg-parser :as ffmpeg]
    [bioscoop.parseable :refer [parse]])
   (:gen-class))
 

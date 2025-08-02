@@ -1,6 +1,6 @@
 (ns bioscoop.parseable
   (:require [bioscoop.dsl :refer [compile-dsl]]
-            [bioscoop.ffmpeg-parser :refer [parse-ffmpeg-filter]]
+            [bioscoop.ffmpeg-parser :as ffmpeg]
             [clojure.string :as str]))
 
 (defprotocol Parseable
@@ -8,12 +8,12 @@
 
 (extend-protocol Parseable
   String
-  (parse [dsl-or-ffmpeg]
+  (parse [s]
     (cond
       ;; Detect DSL syntax (starts with parentheses)
-      (str/starts-with? (str/trim dsl-or-ffmpeg) "(")
-      (compile-dsl dsl-or-ffmpeg)
+      (str/starts-with? (str/trim s) "(")
+      (compile-dsl s)
       
       ;; Otherwise treat as FFmpeg syntax
       :else
-      [(parse-ffmpeg-filter dsl-or-ffmpeg)])))
+      (ffmpeg/parse s))))

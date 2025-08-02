@@ -1,7 +1,7 @@
 (ns bioscoop.dsl-test
   (:require [bioscoop.dsl :refer [compile-dsl dsl-parser]]
             [bioscoop.render :refer [to-ffmpeg]]
-            [bioscoop.ffmpeg-parser :refer [parse-ffmpeg-filter]]
+            [bioscoop.ffmpeg-parser :as ffmpeg]
             [clojure.test :refer [testing deftest is use-fixtures]]
             [instaparse.core :as insta])
   (:import [bioscoop.render FFmpegRenderable]))
@@ -13,7 +13,7 @@
 
   (testing "Basic filter - structural equivalence"
     (let [foo (compile-dsl "(filter \"scale\" \"1920:1080\")")
-          bar (parse-ffmpeg-filter "scale=1920:1080")]
+          bar (ffmpeg/parse "scale=1920:1080")]
       (is (= foo bar))))
 
   (testing "Basic named filter creation"
@@ -22,7 +22,7 @@
 
   (testing "Basic named filter - structural equivalence"
     (let [foo (compile-dsl "(scale 1920 1080)")
-          bar (parse-ffmpeg-filter "scale=1920:1080")]
+          bar (ffmpeg/parse "scale=1920:1080")]
       (is (= foo bar))))
 
   (testing "Filter with labels"
@@ -37,7 +37,7 @@
                      scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
                  scaled)"
           foo (compile-dsl dsl)
-          bar (parse-ffmpeg-filter "[in]scale=1920:1080[scaled]")]
+          bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar))))
 
   (testing "Filter chain"
@@ -52,7 +52,7 @@
                  (filter \"scale\" \"1920:1080\")
                  (filter \"overlay\"))"
           foo (compile-dsl dsl)
-          bar (parse-ffmpeg-filter "scale=1920:1080,overlay")]
+          bar (ffmpeg/parse "scale=1920:1080,overlay")]
       (is (= foo bar))))
 
   (testing "Parent scope access"
@@ -97,13 +97,13 @@
     (is (= "scale=1920:1080"(to-ffmpeg (compile-dsl "(let [width 1920] (scale width 1080))")))))
   (testing "substitution - structural equivalence"
     (let [foo (compile-dsl "(let [width 1920] (scale width 1080))")
-          bar (parse-ffmpeg-filter "scale=1920:1080")]
+          bar (ffmpeg/parse "scale=1920:1080")]
       (is (= foo bar))))
   (testing "arithmetic in let binding expression"
     (is (= "scale=1920:1080" (to-ffmpeg (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")))))
   (testing "arithmetic - structural equivalence"
     (let [foo (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")
-          bar (parse-ffmpeg-filter "scale=1920:1080")]
+          bar (ffmpeg/parse "scale=1920:1080")]
       (is (= foo bar))))
   (testing "Mathematical functions from clojure.core"
     (is (= "scale=4:1080" (to-ffmpeg (compile-dsl "(let [width (mod 10 6)] (scale width 1080))"))))
@@ -122,5 +122,5 @@
     (let [original-dsl "(chain (filter \"scale\" \"1920:1080\") (filter \"overlay\"))"
           compiled (compile-dsl original-dsl)
           ffmpeg-output (to-ffmpeg compiled)
-          parsed-back (parse-ffmpeg-filter ffmpeg-output)]
+          parsed-back (ffmpeg/parse ffmpeg-output)]
       (is (= ffmpeg-output (to-ffmpeg parsed-back))))))
