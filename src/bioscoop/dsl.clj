@@ -118,6 +118,16 @@
       ;; Default: resolve as function
       (apply (resolve-function transformed-op env) transformed-args))))
 
+(defmethod transform-ast :map [[_ kw s] env]
+  (log/debug kw s)
+  (let [k (-> kw
+           (transform-ast env)
+           (transform-ast env))
+        s (transform-ast s env)]
+    (case k
+      "input" (with-meta [s] {:labels :input})
+      "output" (with-meta [s] {:labels :output}))))
+
 (defmethod transform-ast :symbol [[_ sym] env]
   (or (env-get env sym) sym)) ; Returns string, not keyword
 

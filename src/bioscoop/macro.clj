@@ -1,5 +1,6 @@
 (ns bioscoop.macro
-  (:require [bioscoop.dsl :as dsl]))
+  (:require [bioscoop.dsl :as dsl]
+            [clojure.tools.logging :as log]))
 
 (defn form->ast
   "Convert a Clojure form to the same AST structure that Instaparse produces"
@@ -49,6 +50,8 @@
     (vector? form)
     form ; Return as-is, this handles binding vectors in let expressions
 
+    (map? form)
+    [:map [:keyword [:symbol (name (first (keys form)))]] [:string (first (vals form))]]
     ;; Default: return the form as-is (for literals, etc.)
     :else
     form))

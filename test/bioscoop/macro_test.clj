@@ -53,7 +53,12 @@
   (testing "Complex let bindings"
     (let [text-result (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height))")
           macro-result (bioscoop (let [width 1920 height 1080] (scale width height)))]
-      (is (= text-result macro-result))))
+      (is (= text-result macro-result)))
+    (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] (filter \"scale\" width height {:input \"tmp\"}))"))
+          macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] (filter "scale" width height {:input "tmp"}))))
+          ffmpeg-string "[tmp]scale=1920:1080"]
+      (is (= text-result macro-result ffmpeg-string))))
+
 
   (testing "real world examples"
     (let [dsl (bioscoop 

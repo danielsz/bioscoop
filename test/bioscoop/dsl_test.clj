@@ -29,12 +29,19 @@
                      scaled (filter \"scale\" 1920 1080 input-vid (output-labels \"scaled\"))]
                  scaled)"
           result (compile-dsl dsl)]
+      (is (= "[in]scale=1920:1080[scaled]" (to-ffmpeg result))))
+    (let [dsl "(filter \"scale\" 1920 1080 {:input \"in\"} {:output \"scaled\"})"
+          result (compile-dsl dsl)]
       (is (= "[in]scale=1920:1080[scaled]" (to-ffmpeg result)))))
 
   (testing "Filter with labels - structural equivalence"
     (let [dsl "(let [input-vid (input-labels \"in\")
                      scaled (filter \"scale\" 1920 1080 input-vid (output-labels \"scaled\"))]
                  scaled)"
+          foo (compile-dsl dsl)
+          bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
+      (is (= foo bar)))
+    (let [dsl "(filter \"scale\" 1920 1080 {:input \"in\"} {:output \"scaled\"})"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar))))
@@ -151,6 +158,16 @@
                          (filter \"hflip\" in-tmp out-right)
                          (filter \"hstack\" in-left-right)))"]
       (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
+             (to-ffmpeg (compile-dsl dsl))))))
+  (testing "flip inline labels"
+    (let [dsl "(let [out-left-tmp (output-labels \"left\" \"tmp\")
+                     in-left-right (input-labels \"left\" \"right\")]
+                 (graph (chain
+                            (crop \"iw/2\" \"ih\" \"0\" \"0\")
+                            (filter \"split\" out-left-tmp))
+                         (filter \"hflip\" {:input \"tmp\"} {:output \"right\"})
+                         (filter \"hstack\" in-left-right)))"]
+      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg (compile-dsl dsl)))))))
 
 (deftest test-roundtrip
@@ -163,10 +180,10 @@
 
 (deftest instaparse-grammar
   (testing "grammar is not ambiguous"
-    (= 1 (count (dsl-parses "6")))
-    (= 1 (count (dsl-parses "foo")))
-    (= 1 (count (dsl-parses "\"foo\"")))
-    (= 1 (count (dsl-parses "6foo")))
-    (= 1 (count (dsl-parses "foo6")))
-    (= 1 (count (dsl-parses "-6")))
-    (= 1 (count (dsl-parses "-6.6")))))
+    (is (= 1 (count (dsl-parses "6"))))
+    (is (= 1 (count (dsl-parses "foo"))))
+    (is (= 1 (count (dsl-parses "\"foo\""))))
+    (is (= 1 (count (dsl-parses "6foo"))))
+    (is (= 1 (count (dsl-parses "foo6"))))
+    (is (= 1 (count (dsl-parses "-6"))))
+    (is (= 1 (count (dsl-parses "-6.6"))))))

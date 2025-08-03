@@ -15,27 +15,7 @@
   (log/info "Hello, World daniel"))
 
 
-"crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
 
-(to-ffmpeg (bioscoop 
-             (let [out-left-tmp (output-labels "left" "tmp")
-                   in-tmp (input-labels "tmp")
-                   out-right (output-labels "right")
-                   in-left-right (input-labels "left" "right")]
-               (graph (chain
-                       (crop "iw/2" "ih" "0" "0")
-                       (filter "split"  out-left-tmp))
-                      (filter "hflip"  in-tmp out-right)
-                      (filter "hstack" in-left-right)))))
 
-(to-ffmpeg (parse "(let [out-left-tmp (output-labels \"left\" \"tmp\")
-      in-tmp (input-labels \"tmp\")
-      out-right (output-labels \"right\")
-      in-left-right (input-labels \"left\" \"right\")]
-   (graph (chain
-    (crop \"iw/2\" \"ih\" \"0\" \"0\")
-    (filter \"split\"  out-left-tmp))
-  (filter \"hflip\" in-tmp out-right)
-  (filter \"hstack\" in-left-right)))"))
 
 

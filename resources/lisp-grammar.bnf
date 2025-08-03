@@ -1,13 +1,13 @@
 program = expression*
 
-<expression> = atom | list | let-binding
+<expression> = atom | list | let-binding | map
 
 let-binding = <'('> <'let'> binding-vector expression+ <')'>
 <binding-vector> = <'['> binding* <']'>
 binding = symbol expression
 
 list = <'('> (symbol | keyword) expression* <')'>
-
+map = <'{'> keyword atom <'}'>
 <atom> = number | boolean | !boolean !number symbol | string | keyword
 
 number = #'-?\d+(\.\d+)?'
