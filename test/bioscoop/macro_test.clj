@@ -72,6 +72,15 @@
                       (filter "hflip"  in-tmp out-right)
                       (filter "hstack" in-left-right))))]
       (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
+             (to-ffmpeg dsl))))
+    (let [dsl (bioscoop (let [out-left-tmp (output-labels "left" "tmp")
+                              in-left-right (input-labels "left" "right")]
+                          (graph (chain
+                                  (crop "iw/2" "ih" "0" "0")
+                                  (filter "split"  out-left-tmp))
+                                 (filter "hflip" {:input "tmp"} {:output "right"})
+                                 (filter "hstack" in-left-right))))]
+      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg dsl)))))
 
   (testing "Multiple expressions"
