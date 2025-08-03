@@ -1,5 +1,5 @@
 (ns bioscoop.dsl-test
-  (:require [bioscoop.dsl :refer [compile-dsl dsl-parser]]
+  (:require [bioscoop.dsl :refer [compile-dsl dsl-parser dsl-parses]]
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [clojure.test :refer [testing deftest is use-fixtures]]
@@ -139,6 +139,20 @@
   (testing "Unknown functions still become filters"
     (is (= "nonexistent=123:456" (to-ffmpeg (compile-dsl "(nonexistent 123 456)"))))))
 
+(deftest real-world
+  (testing "flip"
+    (let [dsl "(let [out-left-tmp (output-labels \"left\" \"tmp\")
+                     in-tmp (input-labels \"tmp\")
+                     out-right (output-labels \"right\")
+                     in-left-right (input-labels \"left\" \"right\")]
+                 (graph (chain
+                            (crop \"iw/2\" \"ih\" \"0\" \"0\")
+                            (filter \"split\"  out-left-tmp))
+                         (filter \"hflip\" in-tmp out-right)
+                         (filter \"hstack\" in-left-right)))"]
+      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
+             (to-ffmpeg (compile-dsl dsl)))))))
+
 (deftest test-roundtrip
   (testing "DSL -> FFmpeg -> DSL roundtrip"
     (let [original-dsl "(chain (filter \"scale\" 1920 1080) (filter \"overlay\"))"
@@ -146,3 +160,13 @@
           ffmpeg-output (to-ffmpeg compiled)
           parsed-back (ffmpeg/parse ffmpeg-output)]
       (is (= ffmpeg-output (to-ffmpeg parsed-back))))))
+
+(deftest instaparse-grammar
+  (testing "grammar is not ambiguous"
+    (= 1 (count (dsl-parses "6")))
+    (= 1 (count (dsl-parses "foo")))
+    (= 1 (count (dsl-parses "\"foo\"")))
+    (= 1 (count (dsl-parses "6foo")))
+    (= 1 (count (dsl-parses "foo6")))
+    (= 1 (count (dsl-parses "-6")))
+    (= 1 (count (dsl-parses "-6.6")))))

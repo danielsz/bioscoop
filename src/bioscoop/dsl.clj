@@ -93,15 +93,13 @@
 (defmethod transform-ast :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
-    (log/debug transformed-args)
     (case transformed-op
       "filter" (let [[name & args] transformed-args
                      base-filter (if (seq args)                                 
                                    (let [non-label-args (remove vector? args)]
                                      (apply (resolve-function name env) non-label-args))
                                    (make-filter name))
-                     label-args (filter vector? args)]                 
-                 (log/debug "label args" label-args)
+                     label-args (filter vector? args)]
                  (if (seq label-args)
                    (let [{:keys [input-labels output-labels]}
                          (reduce (fn [acc arg]
