@@ -186,4 +186,5 @@
     (is (= 1 (count (dsl-parses "6foo"))))
     (is (= 1 (count (dsl-parses "foo6"))))
     (is (= 1 (count (dsl-parses "-6"))))
-    (is (= 1 (count (dsl-parses "-6.6"))))))
+    (is (= 1 (count (dsl-parses "-6.6"))))
+    (is (= 1 (count (dsl-parses "{:input \"tmp\"}"))))))

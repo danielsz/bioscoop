@@ -10,7 +10,7 @@
     (is (= [:symbol "scale"] (form->ast 'scale)))
     (is (= [:number "1920"] (form->ast 1920)))
     (is (= [:string "scale"] (form->ast "scale")))
-    (is (= [:keyword "in"] (form->ast :in)))
+    (is (= [:keyword [:symbol "in"]] (form->ast :in)))
     (is (= [:boolean "true"] (form->ast true)))
     (is (= [:boolean "false"] (form->ast false))))
 

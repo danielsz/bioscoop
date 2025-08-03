@@ -32,7 +32,7 @@
 
     ;; Handle keywords
     (keyword? form)
-    [:keyword (name form)]
+    [:keyword [:symbol (name form)]]
 
     ;; Handle strings
     (string? form)
@@ -51,7 +51,10 @@
     form ; Return as-is, this handles binding vectors in let expressions
 
     (map? form)
-    [:map [:keyword [:symbol (name (first (keys form)))]] [:string (first (vals form))]]
+    (let [kw (form->ast (first (keys form)))
+          v (form->ast (first (vals form)))]
+      (log/debug kw v)
+      [:map kw v])
     ;; Default: return the form as-is (for literals, etc.)
     :else
     form))
