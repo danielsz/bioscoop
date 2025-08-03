@@ -6,7 +6,7 @@
     </encoder>
   </appender>
   
-  <root level="info">
+  <root level="debug">
     <appender-ref ref="STDOUT" />
   </root>
 
@@ -15,5 +15,10 @@
   </logger>
 
   <logger name="org.jose4j" level="INFO"/>
+  <logger name="org.apache" level ="INFO"/>
+  <logger name="org.eclipse" level="INFO"/>
+  <logger name="org.apache.http" level="ERROR" additivity="false">
+    <appender-ref ref="STDOUT" />
+  </logger>
 
 </configuration>

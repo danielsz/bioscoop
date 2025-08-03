@@ -3,16 +3,15 @@
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [clojure.test :refer [testing deftest is use-fixtures]]
-            [instaparse.core :as insta])
-  (:import [bioscoop.render FFmpegRenderable]))
+            [instaparse.core :as insta]))
 
 (deftest test-dsl-compilation
   (testing "Basic filter creation"
-    (let [result (compile-dsl "(filter \"scale\" \"1920:1080\")")]
+    (let [result (compile-dsl "(filter \"scale\" 1920 1080)")]
       (is (= "scale=1920:1080" (to-ffmpeg result)))))
 
   (testing "Basic filter - structural equivalence"
-    (let [foo (compile-dsl "(filter \"scale\" \"1920:1080\")")
+    (let [foo (compile-dsl "(filter \"scale\" 1920 1080)")
           bar (ffmpeg/parse "scale=1920:1080")]
       (is (= foo bar))))
 
@@ -27,34 +26,57 @@
 
   (testing "Filter with labels"
     (let [dsl "(let [input-vid (input-labels \"in\")
-                     scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
+                     scaled (filter \"scale\" 1920 1080 input-vid (output-labels \"scaled\"))]
                  scaled)"
           result (compile-dsl dsl)]
       (is (= "[in]scale=1920:1080[scaled]" (to-ffmpeg result)))))
 
   (testing "Filter with labels - structural equivalence"
     (let [dsl "(let [input-vid (input-labels \"in\")
-                     scaled (filter \"scale\" \"1920:1080\" input-vid (output-labels \"scaled\"))]
+                     scaled (filter \"scale\" 1920 1080 input-vid (output-labels \"scaled\"))]
                  scaled)"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar))))
 
+  (testing "Labels are preserved when parsing ffmpeg command"
+    (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
+          bar (meta (first (:filters (second  (:chains foo)))))]
+      (is (= ["tmp"] (:input-labels bar)))
+      (is (= ["right"] (:output-labels bar)))))
+  
   (testing "Filter chain"
     (let [dsl "(chain 
-                 (filter \"scale\" \"1920:1080\")
+                 (filter \"scale\" 1920 1080)
                  (filter \"overlay\"))"
           result (compile-dsl dsl)]
       (is (= "scale=1920:1080,overlay" (to-ffmpeg result)))))
 
   (testing "Filter chain - structural equivalence"
     (let [dsl "(chain 
-                 (filter \"scale\" \"1920:1080\")
+                 (filter \"scale\" 1920 1080)
                  (filter \"overlay\"))"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "scale=1920:1080,overlay")]
       (is (= foo bar))))
 
+  (testing "nested chains"
+    (let [dsl "(chain 
+                 (filter \"scale\" 1920 1080)
+                 (filter \"overlay\"))
+               (hflip)"
+          result (compile-dsl dsl)]
+      (is (= "scale=1920:1080,overlay;hflip" (to-ffmpeg result)))))
+  
+ (testing "nested chains - structural equivalence"
+    (let [dsl "(chain 
+                 (filter \"scale\" 1920 1080)
+                 (filter \"overlay\"))
+               (hflip)"
+          foo (compile-dsl dsl)
+          bar (ffmpeg/parse "scale=1920:1080,overlay;hflip")]
+      (is (=  foo bar))))
+  
   (testing "Parent scope access"
     (let [dsl "(let [width 1920]
                  (let [height 1080]
@@ -119,7 +141,7 @@
 
 (deftest test-roundtrip
   (testing "DSL -> FFmpeg -> DSL roundtrip"
-    (let [original-dsl "(chain (filter \"scale\" \"1920:1080\") (filter \"overlay\"))"
+    (let [original-dsl "(chain (filter \"scale\" 1920 1080) (filter \"overlay\"))"
           compiled (compile-dsl original-dsl)
           ffmpeg-output (to-ffmpeg compiled)
           parsed-back (ffmpeg/parse ffmpeg-output)]

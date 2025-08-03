@@ -3,10 +3,11 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.pprint]
-            [bioscoop.dsl :refer [make-filter make-filterchain make-filtergraph with-input-labels with-output-labels]]))
+            [bioscoop.dsl :refer [with-input-labels with-output-labels]]
+            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]))
 
 (def ffmpeg-parser
-  (insta/parser (io/resource "ffmpeg-grammar.bnf")))
+  (insta/parser (io/resource "ffmpeg-grammar.bnf") :auto-whitespace :standard))
 
 
 (defmulti ffmpeg-ast->records first)

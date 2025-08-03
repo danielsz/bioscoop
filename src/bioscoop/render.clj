@@ -1,7 +1,8 @@
 (ns bioscoop.render
   (:require [clojure.string :as str]
-            [bioscoop.dsl :refer [make-filterchain make-filtergraph get-input-labels get-output-labels]])
-  (:import [bioscoop.dsl Filter FilterChain FilterGraph]))
+            [bioscoop.dsl :refer [get-input-labels get-output-labels]]
+            [bioscoop.domain.records :refer [make-filterchain make-filtergraph]])
+  (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 ;; Transform our data structures to ffmpeg filter format
 (defprotocol FFmpegRenderable
@@ -26,11 +27,4 @@
 
   FilterGraph
   (to-ffmpeg [{:keys [chains]}]
-    (str/join ";" (map to-ffmpeg chains))))
-
-;; Helper functions for common patterns
-(defn chain-filters [& filters]
-  (make-filterchain filters))
-
-(defn parallel-filters [& chains]
-  (make-filtergraph chains))
+    (str/join ";" (mapv to-ffmpeg chains))))

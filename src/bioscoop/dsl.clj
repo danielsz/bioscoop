@@ -1,20 +1,14 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]])
+  (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
-(def whitespace
-  (insta/parser
-   "whitespace = #'\\s+'"))
-
-(def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace whitespace))
+(def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
 
 (def dsl-parses (partial insta/parses dsl-parser))
-
-;; Core data structures for our DSL
-(defrecord Filter [name args])
-(defrecord FilterChain [filters])
-(defrecord FilterGraph [chains])
 
 ;; Environment for let bindings
 (defn make-env
@@ -29,17 +23,6 @@
 
 (defn env-put [env sym val]
   (assoc env sym val))
-
-;; Filter construction functions
-(defn make-filter
-  ([name] (->Filter name nil))
-  ([name args] (->Filter name args)))
-
-(defn make-filterchain [filters]
-  (->FilterChain (vec filters)))
-
-(defn make-filtergraph [chains]
-  (->FilterGraph (vec chains)))
 
 ;; Label metadata helper functions
 (defn with-input-labels [filter labels]
@@ -59,12 +42,9 @@
 (defn get-output-labels [filter]
   (:output-labels (meta filter) []))
 
-;; Corrected AST transformation functions
 (declare resolve-function)
-(defmulti transform-ast (fn [node env]
-                          (if (vector? node)
-                            (first node)
-                            :literal)))
+(defmulti transform-ast (fn [node env]                          
+                          (first node)))
 
 (defmethod transform-ast :program [[_ & expressions] env]
   (let [transformed (mapv #(transform-ast % env) expressions)]
@@ -110,27 +90,31 @@
   ;; This shouldn't be called directly in normal flow
   [(transform-ast sym env) (transform-ast expr env)])
 
-
 (defmethod transform-ast :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
+    (log/debug transformed-args)
     (case transformed-op
-      "filter" (let [[name args-str & label-args] transformed-args
-                     base-filter (make-filter name args-str)
-                     ;; Process remaining args for labels
-                     {:keys [input-labels output-labels]}
-                     (reduce (fn [acc arg]
-                               (cond
-                                 (vector? arg) ; input-labels or output-labels return vectors
-                                 (if (:input-labels acc)
-                                   (assoc acc :output-labels arg)
-                                   (assoc acc :input-labels arg))
-                                 :else acc))
-                             {}
-                             label-args)]
-                 (cond-> base-filter
-                   input-labels (with-input-labels input-labels)
-                   output-labels (with-output-labels output-labels)))
+      "filter" (let [[name & args] transformed-args
+                     base-filter (if (seq args)                                 
+                                   (let [non-label-args (remove vector? args)]
+                                     (apply (resolve-function name env) non-label-args))
+                                   (make-filter name))
+                     label-args (filter vector? args)]                 
+                 (log/debug "label args" label-args)
+                 (if (seq label-args)
+                   (let [{:keys [input-labels output-labels]}
+                         (reduce (fn [acc arg]
+                                   (case (:labels (meta arg))
+                                     :input (assoc acc :input-labels arg)
+                                     :output (assoc acc :output-labels arg)
+                                     acc))
+                                 {}
+                                 label-args)]
+                     (cond-> base-filter
+                       input-labels (with-input-labels input-labels)
+                       output-labels (with-output-labels output-labels)))
+                   base-filter))
       "chain" (make-filterchain transformed-args)
       "graph" (make-filtergraph transformed-args)
       ;; Default: resolve as function
@@ -153,11 +137,6 @@
 (defmethod transform-ast :boolean [[_ b] env]
   (= "true" b))
 
-;; Handle direct literals (not wrapped in vectors)
-(defmethod transform-ast :literal [node env]
-  node)
-
-;; Fixed resolve-function that expects string ops
 (defn resolve-function [op env]
   (let [op-keyword (keyword op)]
     (case op-keyword
@@ -169,16 +148,9 @@
               (make-filter "fade" (str (name type) ":" start ":" duration)))
 
       ;; Label functions that return vectors directly
-      :input-labels (fn [& labels] (vec labels))
-      :output-labels (fn [& labels] (vec labels))
-
-      ;; Arithmetic and utility functions (override Clojure's if needed)
-      :str str
-      :+ +
-      :- -
-      :/ /
-      :* *
-
+      :input-labels (fn [& labels] (with-meta (vec labels) {:labels :input}))
+      :output-labels (fn [& labels] (with-meta (vec labels) {:labels :output}))
+      
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
                         (ns-resolve 'clojure.core (symbol op))
