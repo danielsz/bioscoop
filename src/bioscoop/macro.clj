@@ -32,7 +32,7 @@
 
     ;; Handle keywords
     (keyword? form)
-    [:keyword [:symbol (name form)]]
+    [:keyword (keyword form)]
 
     ;; Handle strings
     (string? form)
@@ -53,7 +53,6 @@
     (map? form)
     (let [kw (form->ast (first (keys form)))
           v (form->ast (first (vals form)))]
-      (log/debug kw v)
       [:map kw v])
     ;; Default: return the form as-is (for literals, etc.)
     :else

@@ -79,7 +79,7 @@
         body (drop (count bindings) content)
         new-env (reduce (fn [acc-env [_ sym expr]]
                           (let [sym-val (transform-ast sym env)
-                                expr-val (transform-ast expr acc-env)] ; ← Only change needed
+                                expr-val (transform-ast expr acc-env)]
                             (env-put acc-env sym-val expr-val)))
                         (make-env env)
                         bindings)
@@ -93,6 +93,7 @@
 (defmethod transform-ast :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
+    (log/debug env)
     (case transformed-op
       "filter" (let [[name & args] transformed-args
                      base-filter (if (seq args)                                 
@@ -119,20 +120,17 @@
       (apply (resolve-function transformed-op env) transformed-args))))
 
 (defmethod transform-ast :map [[_ kw s] env]
-  (log/debug kw s)
-  (let [k (-> kw
-           (transform-ast env)
-           (transform-ast env))
+  (let [k (transform-ast kw env)
         s (transform-ast s env)]
     (case k
-      "input" (with-meta [s] {:labels :input})
-      "output" (with-meta [s] {:labels :output}))))
+      :input (with-meta [s] {:labels :input})
+      :output (with-meta [s] {:labels :output}))))
 
 (defmethod transform-ast :symbol [[_ sym] env]
   (or (env-get env sym) sym)) ; Returns string, not keyword
 
 (defmethod transform-ast :keyword [[_ kw] env]
-  kw) ; Returns string (the keyword name)
+  (keyword kw))
 
 (defmethod transform-ast :string [[_ s] env]
   s)

@@ -89,6 +89,11 @@
                  (let [height 1080]
                    (scale width height)))"
           result (compile-dsl dsl)]
+      (is (= "scale=1920:1080" (to-ffmpeg result))))
+    (let [dsl "(let [width 1920]
+                 (let [width 1280]
+                   (scale width 1080)))"
+          result (compile-dsl dsl)]
       (is (= "scale=1920:1080" (to-ffmpeg result))))))
 
 (deftest test-grammar-parse-trees
@@ -185,6 +190,7 @@
     (is (= 1 (count (dsl-parses "\"foo\""))))
     (is (= 1 (count (dsl-parses "6foo"))))
     (is (= 1 (count (dsl-parses "foo6"))))
+    (is (= 1 (count (dsl-parses ":input"))))
     (is (= 1 (count (dsl-parses "-6"))))
     (is (= 1 (count (dsl-parses "-6.6"))))
     (is (= 1 (count (dsl-parses "{:input \"tmp\"}"))))))

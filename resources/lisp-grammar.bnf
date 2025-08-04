@@ -12,6 +12,7 @@ map = <'{'> keyword atom <'}'>
 
 number = #'-?\d+(\.\d+)?'
 string = <'"'> #'[^"]*' <'"'>
-symbol = #'[a-zA-Z_+\-*/][a-zA-Z0-9_\-]*[?!]?'
-keyword = <':'> symbol
+symbol = identifier
+<identifier> = #'[a-zA-Z_+\-*/][a-zA-Z0-9_\-]*[?!]?'
+keyword = <':'> identifier
 boolean = "true" | "false"
