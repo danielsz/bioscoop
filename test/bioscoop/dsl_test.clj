@@ -84,17 +84,24 @@
           bar (ffmpeg/parse "scale=1920:1080,overlay;hflip")]
       (is (=  foo bar))))
   
-  (testing "Parent scope access"
-    (let [dsl "(let [width 1920]
-                 (let [height 1080]
-                   (scale width height)))"
+  (testing "Parent scope access and nesting"
+    (let [dsl "(let [height 1920]
+                 (let [width 1080]
+                   (scale height width)))"
           result (compile-dsl dsl)]
       (is (= "scale=1920:1080" (to-ffmpeg result))))
     (let [dsl "(let [width 1920]
                  (let [width 1280]
-                   (scale width 1080)))"
+                   (scale 1080 width)))"
           result (compile-dsl dsl)]
-      (is (= "scale=1920:1080" (to-ffmpeg result))))))
+      (is (= "scale=1080:1280" (to-ffmpeg result)))))
+  (let [dsl "(let [width 1920]
+                 (let [width 1280]
+                   (let [width 800]
+                     (scale 1080 width))))"
+          result (compile-dsl dsl)]
+      (is (= "scale=1080:800" (to-ffmpeg result))))
+  )
 
 (deftest test-grammar-parse-trees
   (testing "Let binding parse tree structure"

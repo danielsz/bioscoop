@@ -43,7 +43,7 @@
   (:output-labels (meta filter) []))
 
 (declare resolve-function)
-(defmulti transform-ast (fn [node env]                          
+(defmulti transform-ast (fn [node env]
                           (first node)))
 
 (defmethod transform-ast :program [[_ & expressions] env]
@@ -77,10 +77,9 @@
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
-        new-env (reduce (fn [acc-env [_ sym expr]]
-                          (let [sym-val (transform-ast sym env)
-                                expr-val (transform-ast expr acc-env)]
-                            (env-put acc-env sym-val expr-val)))
+        new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
+                          (let [expr-val (transform-ast expr acc-env)]
+                            (env-put acc-env sym-name expr-val)))
                         (make-env env)
                         bindings)
         transformed-body (mapv #(transform-ast % new-env) body)]
@@ -93,10 +92,9 @@
 (defmethod transform-ast :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
-    (log/debug env)
     (case transformed-op
       "filter" (let [[name & args] transformed-args
-                     base-filter (if (seq args)                                 
+                     base-filter (if (seq args)
                                    (let [non-label-args (remove vector? args)]
                                      (apply (resolve-function name env) non-label-args))
                                    (make-filter name))
@@ -127,7 +125,7 @@
       :output (with-meta [s] {:labels :output}))))
 
 (defmethod transform-ast :symbol [[_ sym] env]
-  (or (env-get env sym) sym)) ; Returns string, not keyword
+  (or (env-get env sym) sym))
 
 (defmethod transform-ast :keyword [[_ kw] env]
   (keyword kw))
@@ -156,7 +154,7 @@
       ;; Label functions that return vectors directly
       :input-labels (fn [& labels] (with-meta (vec labels) {:labels :input}))
       :output-labels (fn [& labels] (with-meta (vec labels) {:labels :output}))
-      
+
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
                         (ns-resolve 'clojure.core (symbol op))
