@@ -26,6 +26,7 @@
 
 ;; Label metadata helper functions
 (defn with-input-labels [filter labels]
+    (log/debug filter labels)
   (with-meta filter (assoc (meta filter) :input-labels (vec labels))))
 
 (defn with-output-labels [filter labels]
@@ -100,17 +101,11 @@
                                    (make-filter name))
                      label-args (filter vector? args)]
                  (if (seq label-args)
-                   (let [{:keys [input-labels output-labels]}
-                         (reduce (fn [acc arg]
-                                   (case (:labels (meta arg))
-                                     :input (assoc acc :input-labels arg)
-                                     :output (assoc acc :output-labels arg)
-                                     acc))
-                                 {}
-                                 label-args)]
+                   (let [{:keys [input output]} (group-by (fn [x] (:labels (meta x))) label-args)]
+                     (log/debug input output)
                      (cond-> base-filter
-                       input-labels (with-input-labels input-labels)
-                       output-labels (with-output-labels output-labels)))
+                       (seq input) (with-input-labels (apply concat input))
+                       (seq output) (with-output-labels (apply concat output))))
                    base-filter))
       "chain" (make-filterchain transformed-args)
       "graph" (make-filtergraph transformed-args)

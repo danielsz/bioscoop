@@ -172,13 +172,12 @@
       (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg (compile-dsl dsl))))))
   (testing "flip inline labels"
-    (let [dsl "(let [out-left-tmp (output-labels \"left\" \"tmp\")
-                     in-left-right (input-labels \"left\" \"right\")]
-                 (graph (chain
-                            (crop \"iw/2\" \"ih\" \"0\" \"0\")
-                            (filter \"split\" out-left-tmp))
-                         (filter \"hflip\" {:input \"tmp\"} {:output \"right\"})
-                         (filter \"hstack\" in-left-right)))"]
+    (let [dsl "(graph
+                  (chain
+                     (crop \"iw/2\" \"ih\" \"0\" \"0\")
+                     (filter \"split\" {:output \"left\"} {:output \"tmp\"}))
+                  (filter \"hflip\" {:input \"tmp\"} {:output \"right\"})
+                  (filter \"hstack\" {:input \"left\"} {:input \"right\"}))"]
       (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg (compile-dsl dsl)))))))
 
