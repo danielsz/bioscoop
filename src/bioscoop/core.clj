@@ -5,7 +5,7 @@
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [bioscoop.dsl :as dsl :refer [dsl-parser compile-dsl]]
-   [bioscoop.render :refer [to-ffmpeg]]
+   [bioscoop.render :refer [to-ffmpeg to-dsl]]
    [bioscoop.ffmpeg-parser :as ffmpeg]
    [bioscoop.parseable :refer [parse]]
    [bioscoop.macro :refer [bioscoop]])
