@@ -109,17 +109,19 @@
       "chain" (make-filterchain transformed-args)
       "graph" (make-filtergraph transformed-args)
       ;; Default: resolve as function
-      (apply (resolve-function transformed-op env) transformed-args))))
+      (if (seq transformed-args)
+        ((resolve-function transformed-op env) transformed-args)
+        ((resolve-function transformed-op env))))))
 
-(defmethod transform-ast :map [[_ kw s :as m] env]
-  (case (count m)
+(defmethod transform-ast :map [[_ kw v :as m] env]
+  (case (count (rest m))
     1 m ;; empty map
     2 (let [k (transform-ast kw env)
-            s (transform-ast s env)]
+            v (transform-ast v env)]
       (case k
-        :input (with-meta [s] {:labels :input})
-        :output (with-meta [s] {:labels :output})
-        m)) ;; one key-value pair
+        :input (with-meta [v] {:labels :input})
+        :output (with-meta [v] {:labels :output})
+        {k v})) ;; one key-value pair
     (let [xs (map #(transform-ast % env) (rest m))]
       (into {}  (map vec (partition 2 xs)))) ;; multiple arguments map
     )) 
@@ -147,20 +149,19 @@
       ;; Built-in DSL functions (highest priority)
       :scale scale
       :crop crop
-      :overlay (fn [] (make-filter "overlay"))
       :fade fade
-
+      :overlay (fn [] (make-filter "overlay"))
+      :hflip (fn [] (make-filter "hflip"))
       ;; Label functions that return vectors directly
-      :input-labels (fn [& labels] (with-meta (vec labels) {:labels :input}))
-      :output-labels (fn [& labels] (with-meta (vec labels) {:labels :output}))
+      :input-labels (fn [labels] (with-meta (vec labels) {:labels :input}))
+      :output-labels (fn [labels] (with-meta (vec labels) {:labels :output}))
 
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
                         (ns-resolve 'clojure.core (symbol op))
                         (catch Exception _ nil))]
-        clj-fn
-        ;; Default fallback: treat as filter name
-        (fn [& args] (make-filter op (when (seq args) args)))))))
+        (fn [arg] (apply clj-fn arg))
+        (throw (ex-info "Cannot resolve function" {:name op}))))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]
