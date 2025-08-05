@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]]
-            [bioscoop.built-in :refer [crop]])
+            [bioscoop.built-in :refer [crop scale fade]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
@@ -145,11 +145,10 @@
   (let [op-keyword (keyword op)]
     (case op-keyword
       ;; Built-in DSL functions (highest priority)
-      :scale (fn [w h] (make-filter "scale" [w h]))
+      :scale scale
       :crop crop
       :overlay (fn [] (make-filter "overlay"))
-      :fade (fn [type start duration]
-              (make-filter "fade" [type start duration]))
+      :fade fade
 
       ;; Label functions that return vectors directly
       :input-labels (fn [& labels] (with-meta (vec labels) {:labels :input}))
