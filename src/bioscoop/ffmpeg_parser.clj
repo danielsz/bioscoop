@@ -2,6 +2,7 @@
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
             [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
             [clojure.pprint]
             [bioscoop.dsl :refer [with-input-labels with-output-labels]]
             [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]))
@@ -64,15 +65,15 @@
 
 (defn extract-filter-args [args-node]
   (when args-node
+    (log/debug args-node)
     (let [[_ inner-node] args-node]
       (cond
         (and (vector? inner-node) (= :unquoted-args (first inner-node)))
-        (second inner-node)
+        (str/split (second inner-node) #":")
         (and (vector? inner-node) (= :quoted-string (first inner-node)))
         (second inner-node)
         :else (str inner-node)))))
 
-;; Updated main parsing function
 (defn parse
   "Parse FFmpeg filter string and return Clojure records"
   [filter-string]

@@ -22,7 +22,8 @@
                       (str/join "" (map #(str "[" % "]") input-labels)))
           output-str (when (seq output-labels)
                        (str/join "" (map #(str "[" % "]") output-labels)))
-          args-str (when args (str "=" args))]
+          args-str (when args
+                     (str "=" (str/join ":" (map (fn [[k v]] (str (clojure.core/name k) "=" v)) args))))]
       (str input-str name args-str output-str)))
 
   FilterChain

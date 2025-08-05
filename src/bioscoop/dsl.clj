@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]])
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]]
+            [bioscoop.built-in :refer [crop]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
@@ -94,10 +95,10 @@
         transformed-args (mapv #(transform-ast % env) args)]
     (case transformed-op
       "filter" (let [[name & args] transformed-args
-                     base-filter (if (seq args)
-                                   (let [non-label-args (remove vector? args)]
-                                     (apply (resolve-function name env) non-label-args))
-                                   (make-filter name))
+                     base-filter (let [fn-args (remove vector? args)]
+                                   (if (seq fn-args)
+                                     ((resolve-function name env) fn-args)
+                                     (make-filter name)))
                      label-args (filter vector? args)]
                  (if (seq label-args)
                    (let [{:keys [input output]} (group-by (fn [x] (:labels (meta x))) label-args)]
@@ -110,12 +111,18 @@
       ;; Default: resolve as function
       (apply (resolve-function transformed-op env) transformed-args))))
 
-(defmethod transform-ast :map [[_ kw s] env]
-  (let [k (transform-ast kw env)
-        s (transform-ast s env)]
-    (case k
-      :input (with-meta [s] {:labels :input})
-      :output (with-meta [s] {:labels :output}))))
+(defmethod transform-ast :map [[_ kw s :as m] env]
+  (case (count m)
+    1 m ;; empty map
+    2 (let [k (transform-ast kw env)
+            s (transform-ast s env)]
+      (case k
+        :input (with-meta [s] {:labels :input})
+        :output (with-meta [s] {:labels :output})
+        m)) ;; one key-value pair
+    (let [xs (map #(transform-ast % env) (rest m))]
+      (into {}  (map vec (partition 2 xs)))) ;; multiple arguments map
+    )) 
 
 (defmethod transform-ast :symbol [[_ sym] env]
   (or (env-get env sym) sym))
@@ -138,11 +145,11 @@
   (let [op-keyword (keyword op)]
     (case op-keyword
       ;; Built-in DSL functions (highest priority)
-      :scale (fn [w h] (make-filter "scale" (str w ":" h)))
-      :crop (fn [w h x y] (make-filter "crop" (str w ":" h ":" x ":" y)))
+      :scale (fn [w h] (make-filter "scale" [w h]))
+      :crop crop
       :overlay (fn [] (make-filter "overlay"))
       :fade (fn [type start duration]
-              (make-filter "fade" (str (name type) ":" start ":" duration)))
+              (make-filter "fade" [type start duration]))
 
       ;; Label functions that return vectors directly
       :input-labels (fn [& labels] (with-meta (vec labels) {:labels :input}))
@@ -154,7 +161,7 @@
                         (catch Exception _ nil))]
         clj-fn
         ;; Default fallback: treat as filter name
-        (fn [& args] (make-filter op (when (seq args) (str/join ":" args))))))))
+        (fn [& args] (make-filter op (when (seq args) args)))))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]
