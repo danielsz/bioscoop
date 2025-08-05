@@ -2,7 +2,8 @@
   (:require [bioscoop.macro :refer [bioscoop form->ast]]
             [bioscoop.dsl :as dsl]
             [bioscoop.render :refer [to-ffmpeg]]
-            [clojure.test :refer [deftest is testing]])
+            [clojure.test :refer [deftest is testing]]
+            [bioscoop.domain.spec :as spec])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
 (deftest test-form->ast
@@ -56,7 +57,7 @@
       (is (= text-result macro-result)))
     (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] (filter \"scale\" width height {:input \"tmp\"}))"))
           macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] (filter "scale" width height {:input "tmp"}))))
-          ffmpeg-string "[tmp]scale=1920:1080"]
+          ffmpeg-string "[tmp]scale=w=1920:h=1080"]
       (is (= text-result macro-result ffmpeg-string))))
 
 
@@ -71,14 +72,13 @@
                        (filter "split"  out-left-tmp))
                       (filter "hflip"  in-tmp out-right)
                       (filter "hstack" in-left-right))))]
-      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
-             (to-ffmpeg dsl))))
+      (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack" (to-ffmpeg dsl))))
     (let [dsl (bioscoop (graph (chain
                                 (crop "iw/2" "ih" "0" "0")
                                 (filter "split" {:output "left"} {:output "tmp"}))
                                (filter "hflip" {:input "tmp"} {:output "right"})
                                (filter "hstack" {:input "left"} {:input "right"})))]
-      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
+      (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg dsl)))))
 
   (testing "Multiple expressions"
@@ -95,7 +95,7 @@
       (is (= 1 (count (:chains result))))
       (is (= 1 (count (:filters (first (:chains result))))))
       (is (= "scale" (:name (first (:filters (first (:chains result)))))))
-      (is (= "1920:1080" (:args (first (:filters (first (:chains result)))))))))
+      (is (= #::spec{:w 1920 :h 1080} (:args (first (:filters (first (:chains result)))))))))
 
   (testing "Automatic wrapping of FilterGraph/filterchain"
     (let [result (bioscoop (scale 1920 1080) (scale 1910 1180) (scale 1920 80))]
