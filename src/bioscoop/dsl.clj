@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]]
-            [bioscoop.built-in :refer [crop scale fade]])
+            [bioscoop.built-in :refer [crop scale fade overlay hflip]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
@@ -93,6 +93,7 @@
 (defmethod transform-ast :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
+    (log/debug transformed-args)
     (case transformed-op
       "filter" (let [[name & args] transformed-args
                      base-filter (let [fn-args (remove vector? args)]
@@ -108,23 +109,32 @@
                    base-filter))
       "chain" (make-filterchain transformed-args)
       "graph" (make-filtergraph transformed-args)
-      ;; Default: resolve as function
-      (if (seq transformed-args)
-        ((resolve-function transformed-op env) transformed-args)
-        ((resolve-function transformed-op env))))))
+      "input-labels" (with-meta (vec transformed-args) {:labels :input})
+      "output-labels" (with-meta (vec transformed-args) {:labels :output})
+      (let [base-filter (let [fn-args (remove vector? transformed-args)]
+                          (if (seq fn-args)
+                            ((resolve-function transformed-op env) fn-args)
+                            (make-filter transformed-op)))
+            label-args (filter vector? transformed-args)]
+        (if (seq label-args)
+          (let [{:keys [input output]} (group-by (fn [x] (:labels (meta x))) label-args)]
+            (cond-> base-filter
+              (seq input) (with-input-labels (apply concat input))
+              (seq output) (with-output-labels (apply concat output))))
+          base-filter)))))
 
 (defmethod transform-ast :map [[_ kw v :as m] env]
   (case (count (rest m))
     1 m ;; empty map
     2 (let [k (transform-ast kw env)
             v (transform-ast v env)]
-      (case k
-        :input (with-meta [v] {:labels :input})
-        :output (with-meta [v] {:labels :output})
-        {k v})) ;; one key-value pair
+        (case k
+          :input (with-meta [v] {:labels :input})
+          :output (with-meta [v] {:labels :output})
+          {k v})) ;; one key-value pair
     (let [xs (map #(transform-ast % env) (rest m))]
       (into {}  (map vec (partition 2 xs)))) ;; multiple arguments map
-    )) 
+    ))
 
 (defmethod transform-ast :symbol [[_ sym] env]
   (or (env-get env sym) sym))
@@ -141,7 +151,7 @@
     (Long/parseLong n)))
 
 (defmethod transform-ast :boolean [[_ b] env]
-  (= "true" b))
+  (parse-boolean b))
 
 (defn resolve-function [op env]
   (let [op-keyword (keyword op)]
@@ -150,11 +160,8 @@
       :scale scale
       :crop crop
       :fade fade
-      :overlay (fn [] (make-filter "overlay"))
-      :hflip (fn [] (make-filter "hflip"))
-      ;; Label functions that return vectors directly
-      :input-labels (fn [labels] (with-meta (vec labels) {:labels :input}))
-      :output-labels (fn [labels] (with-meta (vec labels) {:labels :output}))
+      :overlay overlay
+      :hflip hflip
 
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
@@ -170,31 +177,5 @@
       (throw (ex-info "Parse error" {:error ast}))
       (transform-ast ast (make-env)))))
 
-;; Add these for debugging parse trees and transformation
-(defn debug-parse [input]
-  (println "Input:" input)
-  (let [ast (dsl-parser input)]
-    (if (insta/failure? ast)
-      (do (println "Parse error:")
-          (clojure.pprint/pprint ast))
-      (do (println "Parse tree:")
-          (clojure.pprint/pprint ast)))))
-
-(defn debug-transform [dsl-code]
-  "Parse, transform, and print each step for debugging"
-  (let [ast (dsl-parser dsl-code)]
-    (if (insta/failure? ast)
-      (println "Parse error:" ast)
-      (do
-        (println "Parse tree:")
-        (clojure.pprint/pprint ast)
-        (println "\nTransformed:")
-        (let [result (transform-ast ast (make-env))]
-          (clojure.pprint/pprint result)
-          result)))))
-
-;; Usage for debugging:
-;; (debug-parse "(filter \"scale\" \"1920:1080\")")
-;; (debug-transform "(filter \"scale\" \"1920:1080\")")
 
 

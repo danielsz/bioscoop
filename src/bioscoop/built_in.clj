@@ -6,13 +6,15 @@
    [clojure.tools.logging :as log]))
 
 (defn template [arg spec]
-  (if (map? (first arg))
-    (let [m (first arg)]
-      (if (s/valid? spec m)
-        (make-filter (name spec) m)
-        (s/explain-data spec m)))
-    (let [formal-keys (last (s/form spec))]
-      (make-filter (name spec) (zipmap formal-keys arg)))))
+  (if (seq arg)
+    (if (map? (first arg))
+      (let [m (first arg)]
+        (if (s/valid? spec m)
+          (make-filter (name spec) m)
+          (s/explain-data spec m)))
+      (let [formal-keys (last (s/form spec))]
+        (make-filter (name spec) (zipmap formal-keys arg))))
+    (make-filter (name spec))))
 
 (defn crop [arg]
   (template arg ::spec/crop))
@@ -22,3 +24,9 @@
 
 (defn fade [arg]
   (template arg ::spec/fade))
+
+(defn overlay [arg]
+  (template arg ::spec/overlay))
+
+(defn hflip [arg]
+  (template arg ::spec/hflip))
