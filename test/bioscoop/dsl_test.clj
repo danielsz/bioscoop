@@ -39,7 +39,7 @@
 
   (testing "Filter chain - structural equivalence"
     (let [dsl "(chain 
-                 (filter \"scale\" 1920 1080)
+                 (filter \"scale\" \"1920\" \"1080\")
                  (filter \"overlay\"))"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "scale=1920:1080,overlay")]
@@ -47,7 +47,7 @@
 
   (testing "nested chains"
     (let [dsl "(chain 
-                 (filter \"scale\" 1920 1080)
+                 (filter \"scale\" \"1920\" \"1080\")
                  (filter \"overlay\"))
                (hflip)"
           result (compile-dsl dsl)]
@@ -55,7 +55,7 @@
   
  (testing "nested chains - structural equivalence"
     (let [dsl "(chain 
-                 (filter \"scale\" 1920 1080)
+                 (filter \"scale\" \"1920\" \"1080\")
                  (filter \"overlay\"))
                (hflip)"
           foo (compile-dsl dsl)
@@ -135,7 +135,7 @@
                             (filter \"split\"  out-left-tmp))
                          (filter \"hflip\" in-tmp out-right)
                          (filter \"hstack\" in-left-right)))"]
-      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
+      (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg (compile-dsl dsl))))))
   (testing "flip inline labels"
     (let [dsl "(graph
@@ -144,7 +144,7 @@
                      (filter \"split\" {:output \"left\"} {:output \"tmp\"}))
                   (filter \"hflip\" {:input \"tmp\"} {:output \"right\"})
                   (filter \"hstack\" {:input \"left\"} {:input \"right\"}))"]
-      (is (= "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
+      (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg (compile-dsl dsl)))))))
 
 (deftest instaparse-grammar

@@ -5,7 +5,6 @@
    [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]))
 
-
 (defn template [arg spec]
   (if (map? (first arg))
     (let [m (first arg)]

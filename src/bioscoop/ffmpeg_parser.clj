@@ -5,7 +5,9 @@
             [clojure.tools.logging :as log]
             [clojure.pprint]
             [bioscoop.dsl :refer [with-input-labels with-output-labels]]
-            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]))
+            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]
+            [bioscoop.domain.spec :as spec]
+            [bioscoop.built-in :as filters]))
 
 (def ffmpeg-parser
   (insta/parser (io/resource "ffmpeg-grammar.bnf") :auto-whitespace :standard))
@@ -26,7 +28,9 @@
         output-labels (extract-output-labels parts)
         filter-spec (first (filter #(= :filter-spec (first %)) parts))
         [filter-name filter-args] (extract-filter-spec filter-spec)
-        base-filter (make-filter filter-name filter-args)]
+        base-filter (if filter-args
+                      (filters/template filter-args (keyword "bioscoop.domain.spec" filter-name))
+                      (make-filter filter-name))]
     ;; Add labels as metadata if present
     (cond-> base-filter
       (seq input-labels) (with-input-labels input-labels)
@@ -65,7 +69,6 @@
 
 (defn extract-filter-args [args-node]
   (when args-node
-    (log/debug args-node)
     (let [[_ inner-node] args-node]
       (cond
         (and (vector? inner-node) (= :unquoted-args (first inner-node)))
