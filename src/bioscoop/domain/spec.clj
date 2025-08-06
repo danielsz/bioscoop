@@ -137,6 +137,285 @@
 (s/def ::aecho
   (s/keys :req-un [::in_gain ::out_gain ::delays ::decays]))
 
+;; overlay (video overlay filter)
+(s/def ::eof_action #{"repeat" "endall" "pass"})
+(s/def ::format #{"yuv420" "yuv422" "yuv444" "yuv410" "yuv411" "yuv420p" "yuv422p" "yuv444p" "yuv420p10" "yuv422p10" "yuv444p10" "yuv420p16" "yuv422p16" "yuv444p16" "rgb24" "bgr24" "argb" "rgba" "abgr" "bgra" "gray" "gray16"})
+(s/def ::repeatlast boolean?)
+(s/def ::shortest boolean?)
 
+(s/def ::overlay
+  (s/keys :opt-un [::x ::y ::eof_action ::eval ::format ::repeatlast ::shortest]))
 
+;; concat (concatenate filter)
+(s/def ::n pos-int?)
+(s/def ::v pos-int?)
+(s/def ::a pos-int?)
+(s/def ::unsafe boolean?)
 
+(s/def ::concat
+  (s/keys :opt-un [::n ::v ::a ::unsafe]))
+
+;; hflip (horizontal flip filter)
+(s/def ::hflip
+  (s/keys))
+
+;; vflip (vertical flip filter)
+(s/def ::vflip
+  (s/keys))
+
+;; rotate (rotate filter)
+(s/def ::angle string?)
+(s/def ::out_w string?) ; already defined but reused for context
+(s/def ::out_h string?) ; already defined but reused for context
+(s/def ::bilinear boolean?)
+(s/def ::fillcolor string?)
+
+(s/def ::rotate
+  (s/keys :opt-un [::angle ::out_w ::out_h ::bilinear ::fillcolor]))
+
+;; transpose (transpose filter)
+(s/def ::dir #{0 1 2 3 "cclock_flip" "clock" "cclock" "clock_flip"})
+(s/def ::passthrough boolean?)
+
+(s/def ::transpose
+  (s/keys :opt-un [::dir ::passthrough]))
+
+;; pad (pad filter)
+(s/def ::width string?) ; already defined
+(s/def ::height string?) ; already defined
+(s/def ::x string?) ; already defined  
+(s/def ::y string?) ; already defined
+(s/def ::color string?) ; already defined
+(s/def ::aspect string?)
+(s/def ::eval #{"init" "frame"}) ; already defined
+
+(s/def ::pad
+  (s/keys :opt-un [::width ::height ::x ::y ::color ::aspect ::eval]))
+
+;; trim (trim filter)
+(s/def ::start string?)
+(s/def ::end string?)
+(s/def ::start_pts string?)
+(s/def ::end_pts string?)
+(s/def ::duration string?) ; already defined as number, but trim uses string expressions
+
+(s/def ::trim
+  (s/keys :opt-un [::start ::end ::start_pts ::end_pts ::duration]))
+
+;; setpts (set presentation timestamps filter)
+(s/def ::expr string?)
+
+(s/def ::setpts
+  (s/keys :req-un [::expr]))
+
+;; fps (fps filter)
+(s/def ::fps string?)
+(s/def ::start_time number?) ; already defined
+(s/def ::round #{"zero" "inf" "down" "up" "near"})
+(s/def ::eof_action #{"round" "pass"}) ; already defined with different values, need fps-specific
+
+(s/def ::fps
+  (s/keys :opt-un [::fps ::start_time ::round ::eof_action]))
+
+;; format (format filter)
+(s/def ::pix_fmts string?)
+
+(s/def ::format
+  (s/keys :req-un [::pix_fmts]))
+
+;; colorkey (color key filter)
+(s/def ::color string?) ; already defined
+(s/def ::similarity number?)
+(s/def ::blend number?)
+
+(s/def ::colorkey
+  (s/keys :req-un [::color]
+          :opt-un [::similarity ::blend]))
+
+;; chromakey (chroma key filter)
+(s/def ::color string?) ; already defined
+(s/def ::similarity number?) ; already defined
+(s/def ::blend number?) ; already defined
+(s/def ::yuv boolean?)
+
+(s/def ::chromakey
+  (s/keys :req-un [::color]
+          :opt-un [::similarity ::blend ::yuv]))
+
+;; split (split filter)
+(s/def ::outputs pos-int?)
+
+(s/def ::split
+  (s/keys :opt-un [::outputs]))
+
+;; asplit (audio split filter)
+(s/def ::outputs pos-int?) ; already defined
+
+(s/def ::asplit
+  (s/keys :opt-un [::outputs]))
+
+;; amix (audio mixing filter)
+(s/def ::inputs pos-int?)
+(s/def ::duration #{"longest" "shortest" "first"})
+(s/def ::dropout_transition number?)
+(s/def ::weights string?)
+
+(s/def ::amix
+  (s/keys :opt-un [::inputs ::duration ::dropout_transition ::weights]))
+
+;; volume (volume filter)
+(s/def ::volume string?)
+(s/def ::precision #{"fixed" "float" "double"})
+(s/def ::replaygain #{"drop" "ignore" "track" "album"})
+(s/def ::replaygain_preamp number?)
+(s/def ::replaygain_noclip boolean?)
+(s/def ::eval #{"once" "frame"}) ; already defined with different values
+
+(s/def ::volume
+  (s/keys :opt-un [::volume ::precision ::replaygain ::replaygain_preamp ::replaygain_noclip ::eval]))
+
+;; pan (audio panning filter)
+(s/def ::args string?) ; pan uses complex expression syntax
+(s/def ::gain number?)
+
+(s/def ::pan
+  (s/keys :opt-un [::args ::gain]))
+
+;; channelmap (channel mapping filter)
+(s/def ::map string?)
+(s/def ::channel_layout string?)
+
+(s/def ::channelmap
+  (s/keys :opt-un [::map ::channel_layout]))
+
+;; aresample (audio resampling filter)
+(s/def ::sample_rate pos-int?)
+(s/def ::resampler #{"swr" "soxr"})
+(s/def ::precision number?)
+(s/def ::cheby boolean?)
+(s/def ::async number?)
+(s/def ::first_pts pos-int?)
+
+(s/def ::aresample
+  (s/keys :opt-un [::sample_rate ::resampler ::precision ::cheby ::async ::first_pts]))
+
+;; aformat (audio format filter)
+(s/def ::sample_fmts string?)
+(s/def ::sample_rates string?)
+(s/def ::channel_layouts string?)
+
+(s/def ::aformat
+  (s/keys :opt-un [::sample_fmts ::sample_rates ::channel_layouts]))
+
+;; anull (audio null filter - pass through)
+(s/def ::anull
+  (s/keys))
+
+;; null (video null filter - pass through)
+(s/def ::null
+  (s/keys))
+
+;; buffersink (buffer sink)
+(s/def ::pix_fmts string?) ; already defined
+(s/def ::color_spaces string?)
+(s/def ::color_ranges string?)
+
+(s/def ::buffersink
+  (s/keys :opt-un [::pix_fmts ::color_spaces ::color_ranges]))
+
+;; abuffersink (audio buffer sink)
+(s/def ::sample_fmts string?) ; already defined
+(s/def ::sample_rates string?) ; already defined
+(s/def ::channel_layouts string?) ; already defined
+(s/def ::channel_counts string?)
+(s/def ::all_channel_counts boolean?)
+
+(s/def ::abuffersink
+  (s/keys :opt-un [::sample_fmts ::sample_rates ::channel_layouts ::channel_counts ::all_channel_counts]))
+
+;; buffer (video buffer source)
+(s/def ::video_size string?)
+(s/def ::pix_fmt string?)
+(s/def ::time_base string?)
+(s/def ::frame_rate string?)
+(s/def ::sar string?)
+
+(s/def ::buffer
+  (s/keys :req-un [::video_size ::pix_fmt ::time_base ::frame_rate]
+          :opt-un [::sar]))
+
+;; abuffer (audio buffer source)
+(s/def ::sample_rate pos-int?) ; already defined
+(s/def ::sample_fmt string?)
+(s/def ::channel_layout string?) ; already defined
+(s/def ::channels pos-int?)
+
+(s/def ::abuffer
+  (s/keys :req-un [::sample_rate ::sample_fmt ::channel_layout]
+          :opt-un [::channels]))
+
+;; movie (movie source)
+(s/def ::filename string?)
+(s/def ::format_name string?)
+(s/def ::seek_point number?)
+(s/def ::streams string?)
+(s/def ::stream_index int?)
+(s/def ::loop boolean?)
+(s/def ::discontinuity number?)
+(s/def ::dec_threads int?)
+
+(s/def ::movie
+  (s/keys :opt-un [::filename ::format_name ::seek_point ::streams ::stream_index ::loop ::discontinuity ::dec_threads]))
+
+;; amovie (audio movie source)
+(s/def ::filename string?) ; already defined
+(s/def ::format_name string?) ; already defined
+(s/def ::seek_point number?) ; already defined
+(s/def ::streams string?) ; already defined
+(s/def ::stream_index int?) ; already defined
+(s/def ::loop boolean?) ; already defined
+(s/def ::discontinuity number?) ; already defined
+
+(s/def ::amovie
+  (s/keys :opt-un [::filename ::format_name ::seek_point ::streams ::stream_index ::loop ::discontinuity]))
+
+;; testsrc (test video source)
+(s/def ::size string?) ; already defined as ::s
+(s/def ::rate string?)
+(s/def ::duration string?) ; already defined but as number, testsrc uses string
+(s/def ::sar string?) ; already defined
+(s/def ::decimals int?)
+
+(s/def ::testsrc
+  (s/keys :opt-un [::size ::rate ::duration ::sar ::decimals]))
+
+;; sine (sine wave audio generator)
+(s/def ::frequency number?)
+(s/def ::beep_factor number?)
+(s/def ::sample_rate pos-int?) ; already defined
+(s/def ::duration string?) ; already defined
+(s/def ::samples_per_frame int?)
+
+(s/def ::sine
+  (s/keys :opt-un [::frequency ::beep_factor ::sample_rate ::duration ::samples_per_frame]))
+
+;; anoisesrc (audio noise generator)
+(s/def ::sample_rate pos-int?) ; already defined
+(s/def ::amplitude number?)
+(s/def ::duration string?) ; already defined
+(s/def ::color #{"white" "pink" "brown" "blue" "violet"})
+(s/def ::seed int?)
+(s/def ::nb_samples int?)
+
+(s/def ::anoisesrc
+  (s/keys :opt-un [::sample_rate ::amplitude ::duration ::color ::seed ::nb_samples]))
+
+;; color (color source)
+(s/def ::color string?) ; already defined
+(s/def ::size string?) ; already defined
+(s/def ::rate string?) ; already defined
+(s/def ::duration string?) ; already defined
+(s/def ::sar string?) ; already defined
+
+(s/def ::color
+  (s/keys :opt-un [::color ::size ::rate ::duration ::sar]))
