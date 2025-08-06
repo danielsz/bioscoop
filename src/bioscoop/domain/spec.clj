@@ -58,3 +58,34 @@
                                 ::size ::s ::in_color_matrix ::out_color_matrix ::in_range ::out_range
                                 ::in_chroma_loc ::out_chroma_loc ::force_original_aspect_ratio ::force_divisible_by]))
 
+;; drawtext
+(s/def ::fontfile string?)
+(s/def ::text string?)
+(s/def ::textfile string?)
+(s/def ::fontcolor string?)
+(s/def ::fontsize number?)
+(s/def ::box boolean?)
+(s/def ::boxcolor string?)
+(s/def ::boxborderw number?)
+(s/def ::line_spacing number?)
+(s/def ::shadowcolor string?)
+(s/def ::shadowx number?)
+(s/def ::shadowy number?)
+;; The enable option is a string, but it's used for timeline editing, which can be complex.
+;; For now, a simple string spec is sufficient.
+(s/def ::enable string?)
+(s/def ::text_align
+  (s/spec #{"L" "C" "R" "T" "B"
+            "LT" "LC" "LB"
+            "CT" "CC" "CB"
+            "RT" "RC" "RB"}))
+
+(s/def ::drawtext
+  (s/keys :req-un [::text]
+          :opt-un [::fontfile ::textfile ::x ::y ::fontsize ::fontcolor
+                   ::box ::boxcolor ::boxborderw ::line_spacing ::shadowcolor
+                   ::shadowx ::shadowy ::enable ::text_align]))
+
+
+
+
