@@ -80,11 +80,62 @@
             "CT" "CC" "CB"
             "RT" "RC" "RB"}))
 
+ ;; Additional drawtext parameters
+(s/def ::font string?)
+(s/def ::fontcolor_expr string?)
+(s/def ::borderw number?)
+(s/def ::bordercolor string?)
+(s/def ::tab_size number?)
+(s/def ::expansion #{"none" "strftime" "normal"})
+(s/def ::basetime number?)
+(s/def ::reload number?)
+(s/def ::fix_bounds boolean?)
+(s/def ::start_number number?)
+(s/def ::y_align number?)
+
 (s/def ::drawtext
   (s/keys :req-un [::text]
           :opt-un [::fontfile ::textfile ::x ::y ::fontsize ::fontcolor
                    ::box ::boxcolor ::boxborderw ::line_spacing ::shadowcolor
-                   ::shadowx ::shadowy ::enable ::text_align]))
+                   ::shadowx ::shadowy ::enable ::text_align ::font ::fontcolor_expr
+                   ::borderw ::bordercolor ::tab_size ::expansion ::basetime
+                   ::reload ::fix_bounds ::start_number ::y_align]))
+
+ ;; acrossfade (audio crossfade filter)
+(s/def ::overlap boolean?)
+(s/def ::curve1 #{"tri" "qsin" "esin" "hsin" "log" "ipar" "qua" "cub" "squ" "cbr"})
+(s/def ::curve2 #{"tri" "qsin" "esin" "hsin" "log" "ipar" "qua" "cub" "squ" "cbr"})
+
+(s/def ::acrossfade
+  (s/keys :req-un [::duration]
+          :opt-un [::overlap ::curve1 ::curve2]))
+
+ ;; acompressor (audio compressor filter)
+(s/def ::level_in number?)
+(s/def ::mode #{"downward" "upward"})
+(s/def ::threshold number?)
+(s/def ::ratio number?)
+(s/def ::attack number?)
+(s/def ::release number?)
+(s/def ::makeup number?)
+(s/def ::knee number?)
+(s/def ::link #{"average" "maximum"})
+(s/def ::detection #{"peak" "rms"})
+(s/def ::level_sc number?)
+(s/def ::mix number?)
+
+(s/def ::acompressor
+  (s/keys :opt-un [::level_in ::mode ::threshold ::ratio ::attack ::release
+                   ::makeup ::knee ::link ::detection ::level_sc ::mix]))
+
+ ;; aecho (audio echo filter)
+(s/def ::in_gain number?)
+(s/def ::out_gain number?)
+(s/def ::delays (s/coll-of number? :min-count 1))
+(s/def ::decays (s/coll-of number? :min-count 1))
+
+(s/def ::aecho
+  (s/keys :req-un [::in_gain ::out_gain ::delays ::decays]))
 
 
 
