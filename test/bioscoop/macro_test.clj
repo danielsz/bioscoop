@@ -43,8 +43,8 @@
           macro-result (bioscoop (let [width 1920] (scale width 1080)))]
       (is (= text-result macro-result)))
 
-    (let [text-result (dsl/compile-dsl "(filter \"scale\" 1920 1080)")
-          macro-result (bioscoop (filter "scale" 1920 1080))]
+    (let [text-result (dsl/compile-dsl "(scale 1920 1080)")
+          macro-result (bioscoop (scale 1920 1080))]
       (is (= text-result macro-result)))
 
     (let [text-result (dsl/compile-dsl "(chain (scale 1920 1080) (overlay))")
@@ -55,8 +55,8 @@
     (let [text-result (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height))")
           macro-result (bioscoop (let [width 1920 height 1080] (scale width height)))]
       (is (= text-result macro-result)))
-    (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] (filter \"scale\" width height {:input \"tmp\"}))"))
-          macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] (filter "scale" width height {:input "tmp"}))))
+    (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height {:input \"tmp\"}))"))
+          macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] (scale width height {:input "tmp"}))))
           ffmpeg-string "[tmp]scale=w=1920:h=1080"]
       (is (= text-result macro-result ffmpeg-string))))
 
@@ -69,15 +69,15 @@
                    in-left-right (input-labels "left" "right")]
                (graph (chain 
                        (crop "iw/2" "ih" "0" "0")
-                       (filter "split"  out-left-tmp))
-                      (filter "hflip"  in-tmp out-right)
-                      (filter "hstack" in-left-right))))]
+                       (split  out-left-tmp))
+                      (hflip  in-tmp out-right)
+                      (hstack in-left-right))))]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack" (to-ffmpeg dsl))))
     (let [dsl (bioscoop (graph (chain
                                 (crop "iw/2" "ih" "0" "0")
-                                (filter "split" {:output "left"} {:output "tmp"}))
-                               (filter "hflip" {:input "tmp"} {:output "right"})
-                               (filter "hstack" {:input "left"} {:input "right"})))]
+                                (split {:output "left"} {:output "tmp"}))
+                               (hflip {:input "tmp"} {:output "right"})
+                               (hstack {:input "left"} {:input "right"})))]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg dsl)))))
 

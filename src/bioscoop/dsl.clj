@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]]
-            [bioscoop.built-in :refer [crop scale fade overlay hflip]])
+            [bioscoop.built-in :as built-in])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
@@ -93,20 +93,7 @@
 (defmethod transform-ast :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
-    (log/debug transformed-args)
     (case transformed-op
-      "filter" (let [[name & args] transformed-args
-                     base-filter (let [fn-args (remove vector? args)]
-                                   (if (seq fn-args)
-                                     ((resolve-function name env) fn-args)
-                                     (make-filter name)))
-                     label-args (filter vector? args)]
-                 (if (seq label-args)
-                   (let [{:keys [input output]} (group-by (fn [x] (:labels (meta x))) label-args)]
-                     (cond-> base-filter
-                       (seq input) (with-input-labels (apply concat input))
-                       (seq output) (with-output-labels (apply concat output))))
-                   base-filter))
       "chain" (make-filterchain transformed-args)
       "graph" (make-filtergraph transformed-args)
       "input-labels" (with-meta (vec transformed-args) {:labels :input})
@@ -157,12 +144,12 @@
   (let [op-keyword (keyword op)]
     (case op-keyword
       ;; Built-in DSL functions (highest priority)
-      :scale scale
-      :crop crop
-      :fade fade
-      :overlay overlay
-      :hflip hflip
-
+      :scale built-in/scale
+      :crop built-in/crop
+      :fade built-in/fade
+      :overlay built-in/overlay
+      :hflip built-in/hflip
+      :split built-in/split
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
                         (ns-resolve 'clojure.core (symbol op))

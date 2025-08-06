@@ -6,7 +6,7 @@
 
 (deftest simple
   (testing "Basic filter - structural equivalence"
-    (let [foo (compile-dsl "(filter \"scale\" 1920 1080)")
+    (let [foo (compile-dsl "(scale 1920 1080)")
           bar (ffmpeg/parse "scale=w=1920:h=1080")]
       (is (= foo bar))))
   (testing "Basic named filter - structural equivalence"
@@ -15,19 +15,19 @@
       (is (= foo bar))))
   (testing "Filter with labels - structural equivalence"
     (let [dsl "(let [input-vid (input-labels \"in\")
-                     scaled (filter \"scale\" 1920 1080 input-vid (output-labels \"scaled\"))]
+                     scaled (scale 1920 1080 input-vid (output-labels \"scaled\"))]
                  scaled)"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar)))
-    (let [dsl "(filter \"scale\" 1920 1080 {:input \"in\"} {:output \"scaled\"})"
+    (let [dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar)))))
 
 (deftest test-roundtrip
   (testing "DSL -> FFmpeg -> DSL roundtrip"
-    (let [original-dsl "(chain (filter \"scale\" 1920 1080) (filter \"overlay\"))"
+    (let [original-dsl "(chain (scale 1920 1080) (overlay))"
           compiled (compile-dsl original-dsl)
           ffmpeg-output (to-ffmpeg compiled)
           parsed-back (ffmpeg/parse ffmpeg-output)]

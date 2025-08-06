@@ -70,9 +70,12 @@
 (defn extract-filter-args [args-node]
   (when args-node
     (let [[_ inner-node] args-node]
+      (log/debug inner-node (type inner-node))
       (cond
         (and (vector? inner-node) (= :unquoted-args (first inner-node)))
-        (str/split (second inner-node) #":")
+        (let [args (-> (second inner-node)
+                      (str/split  #":"))]
+          (map (fn [s] (last (str/split s #"="))) args))
         (and (vector? inner-node) (= :quoted-string (first inner-node)))
         (second inner-node)
         :else (str inner-node)))))

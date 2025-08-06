@@ -258,6 +258,7 @@
 (s/def ::asplit
   (s/keys :opt-un [::outputs]))
 
+
 ;; amix (audio mixing filter)
 (s/def ::inputs pos-int?)
 (s/def ::duration #{"longest" "shortest" "first"})
@@ -2512,3 +2513,4 @@
 (s/def ::hwmap-derive_device ::string)
 (s/def ::hwmap-reverse (s/nilable ::boolean))
 (s/def ::hwmap (s/keys :opt-un [::hwmap-mode ::hwmap-derive_device ::hwmap-reverse]))
+(s/def ::hstack (s/keys :opt-un [::inputs ::shortest]))

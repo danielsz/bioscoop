@@ -30,3 +30,6 @@
 
 (defn hflip [arg]
   (template arg ::spec/hflip))
+
+(defn split [arg]
+  (template arg ::spec/split))
