@@ -145,7 +145,11 @@
                   (hflip {:input \"tmp\"} {:output \"right\"})
                   (hstack {:input \"left\"} {:input \"right\"}))"]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
-             (to-ffmpeg (compile-dsl dsl)))))))
+             (to-ffmpeg (compile-dsl dsl))))))
+  (testing "args as maps"
+    (let [dsl "(color {:c \"blue\" :size \"1920x1080\" :rate 24 :duration \"10\" :sar \"16/9\"})"]
+      (is "color=c=blue:size=1920x1080:rate=24:duration=10:sar=16/9" (to-ffmpeg (compile-dsl dsl))))))
+
 
 (deftest instaparse-grammar
   (testing "grammar is not ambiguous"

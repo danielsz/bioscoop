@@ -2,6 +2,7 @@
   (:require
    [bioscoop.domain.records :refer [make-filter]]
    [bioscoop.domain.spec :as spec]
+   [bioscoop.domain.specs.color :as color]
    [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]))
 
@@ -33,3 +34,6 @@
 
 (defn split [arg]
   (template arg ::spec/split))
+
+(defn color [arg]
+  (template arg ::color/color))

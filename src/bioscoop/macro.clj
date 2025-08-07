@@ -51,9 +51,9 @@
     form ; Return as-is, this handles binding vectors in let expressions
 
     (map? form)
-    (let [kw (form->ast (first (keys form)))
-          v (form->ast (first (vals form)))]
-      [:map kw v])
+    (let [kw (map form->ast (keys form))
+          v (map form->ast (vals form))]
+      (into [:map] (interleave kw v)))
     ;; Default: return the form as-is (for literals, etc.)
     :else
     form))

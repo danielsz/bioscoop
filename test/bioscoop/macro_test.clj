@@ -80,10 +80,11 @@
                                (hstack {:input "left"} {:input "right"})))]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg dsl)))))
+  (testing "maps as args"
+    (let [dsl (bioscoop (color {:c "blue" :size "1920x1080" :rate 24 :duration "10" :sar "16/9"}))]
+      (is (= "color=c=blue:size=1920x1080:rate=24:duration=10:sar=16/9" (to-ffmpeg dsl)))))
 
   (testing "Multiple expressions"
-    ;; Note: This test assumes the DSL supports multiple expressions in the program
-    ;; If not, we may need to adjust this test
     (let [text-result (try (dsl/compile-dsl "(scale 1920 1080)") (catch Exception e nil))
           macro-result (try (bioscoop (scale 1920 1080)) (catch Exception e nil))]
       (when (and text-result macro-result)

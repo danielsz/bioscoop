@@ -150,6 +150,7 @@
       :overlay built-in/overlay
       :hflip built-in/hflip
       :split built-in/split
+      :color built-in/color
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
                         (ns-resolve 'clojure.core (symbol op))
