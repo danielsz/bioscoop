@@ -7,9 +7,7 @@
 (s/def ::duration
   (s/or :seconds (s/and double? #(>= % 0))
         :timestamp (s/and string? #(re-matches #"\d+:\d{2}:\d{2}(?:\.\d+)?$" %))
-        :value-unit (s/tuple (s/and double? #(>= % 0)) ::duration-unit)
-        :expr string?
-        :ratio ratio?))
+        :expr string?))
 
 (defn duration->str
   "Convert duration spec to FFmpeg-compatible string"
@@ -18,9 +16,7 @@
     (case type
       :seconds (format "%.3f" val)  ; 3 decimal places for seconds
       :timestamp val
-      :value-unit (let [[v unit] val] (str v unit))
-      :expr val
-      :ratio (rational->str val))))
+      :expr val)))
 
 
 

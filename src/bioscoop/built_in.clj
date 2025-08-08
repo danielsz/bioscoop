@@ -1,8 +1,14 @@
 (ns bioscoop.built-in
+  (:refer-clojure :exclude [format concat])
   (:require
    [bioscoop.domain.records :refer [make-filter]]
    [bioscoop.domain.spec :as spec]
    [bioscoop.domain.specs.color :as color]
+   [bioscoop.domain.specs.format :as format]
+   [bioscoop.domain.specs.drawtext :as drawtext]
+   [bioscoop.domain.specs.zoompan :as zoompan]
+   [bioscoop.domain.specs.concat :as concat]
+   [bioscoop.domain.specs.fade :as fade]
    [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]))
 
@@ -24,7 +30,7 @@
   (template arg ::spec/scale))
 
 (defn fade [arg]
-  (template arg ::spec/fade))
+  (template arg ::fade/fade))
 
 (defn overlay [arg]
   (template arg ::spec/overlay))
@@ -37,3 +43,18 @@
 
 (defn color [arg]
   (template arg ::color/color))
+
+(defn format [arg]
+  (template arg ::format/format))
+
+(defn drawtext
+  [arg]
+  (template arg ::drawtext/drawtext))
+
+(defn zoompan
+  [arg]
+  (template arg ::zoompan/zoompan))
+
+(defn concat
+  [arg]
+  (template arg ::concat/concat))

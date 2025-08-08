@@ -79,10 +79,22 @@
                                (hflip {:input "tmp"} {:output "right"})
                                (hstack {:input "left"} {:input "right"})))]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
-             (to-ffmpeg dsl)))))
+             (to-ffmpeg dsl))))
+    (let [dsl (bioscoop (chain (color "white" "480x480" 25 3) (format "rgb24") (drawtext {:fontcolor "black" :fontsize 600 :text "'%{eif\\:t\\:d}'" :x "(w-text_w)/2" :y "(h-text_h)/2"})))]
+      (is (= "color=c=white:size=480x480:rate=25:duration=3,format=pix_fmts=rgb24,drawtext=fontcolor=black:fontsize=600:text='%{eif\\:t\\:d}':x=(w-text_w)/2:y=(h-text_h)/2" (to-ffmpeg dsl))))
+    (let [dsl (bioscoop (zoompan {:z "'min(zoom+0.0015,1.5)'" :d "700" :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)"}))]
+      (is (= "zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2)" (to-ffmpeg dsl))))
+    (let [dsl (bioscoop (let [zoom {:z "'min(zoom+0.0015,1.5)'" :d "700" :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)"}
+                f {:type "out" :start_frame 600 :duration 1}]
+            (graph (chain (zoompan zoom {:input "0:v"}) (fade f {:output "v0"}))
+                   (chain (zoompan zoom {:input "1:v"}) (fade f {:output "v1"}))
+                   (chain (concat {:n 2 :v 1 :a 0} {:input "v0"} {:input "v1"}) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
+      (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl)))))
+
   (testing "maps as args"
     (let [dsl (bioscoop (color {:c "blue" :size "1920x1080" :rate 24 :duration "10" :sar "16/9"}))]
       (is (= "color=c=blue:size=1920x1080:rate=24:duration=10:sar=16/9" (to-ffmpeg dsl)))))
+
 
   (testing "Multiple expressions"
     (let [text-result (try (dsl/compile-dsl "(scale 1920 1080)") (catch Exception e nil))

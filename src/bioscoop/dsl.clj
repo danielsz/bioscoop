@@ -151,6 +151,10 @@
       :hflip built-in/hflip
       :split built-in/split
       :color built-in/color
+      :format built-in/format
+      :drawtext built-in/drawtext
+      :zoompan built-in/zoompan
+      :concat built-in/concat
       ;; Try to resolve as Clojure function from clojure.core
       (if-let [clj-fn (try
                         (ns-resolve 'clojure.core (symbol op))
