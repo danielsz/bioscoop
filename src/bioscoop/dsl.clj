@@ -100,7 +100,7 @@
       "output-labels" (with-meta (vec transformed-args) {:labels :output})
       (let [base-filter (let [fn-args (remove vector? transformed-args)]
                           (if (seq fn-args)
-                            ((resolve-function transformed-op env) fn-args)
+                            ((resolve-function transformed-op) fn-args)
                             (make-filter transformed-op)))
             label-args (filter vector? transformed-args)]
         (if (seq label-args)
@@ -140,27 +140,12 @@
 (defmethod transform-ast :boolean [[_ b] env]
   (parse-boolean b))
 
-(defn resolve-function [op env]
-  (let [op-keyword (keyword op)]
-    (case op-keyword
-      ;; Built-in DSL functions (highest priority)
-      :scale built-in/scale
-      :crop built-in/crop
-      :fade built-in/fade
-      :overlay built-in/overlay
-      :hflip built-in/hflip
-      :split built-in/split
-      :color built-in/color
-      :format built-in/format
-      :drawtext built-in/drawtext
-      :zoompan built-in/zoompan
-      :concat built-in/concat
-      ;; Try to resolve as Clojure function from clojure.core
-      (if-let [clj-fn (try
-                        (ns-resolve 'clojure.core (symbol op))
-                        (catch Exception _ nil))]
-        (fn [arg] (apply clj-fn arg))
-        (throw (ex-info "Cannot resolve function" {:name op}))))))
+(defn resolve-function [op]
+  (let [f (ns-resolve 'bioscoop.built-in (symbol op))]
+    (case (str (:ns (meta f)))
+      "bioscoop.built-in" f
+      "clojure.core" (fn [arg] (apply f arg))
+      (throw (ex-info "Cannot resolve function" {:name op})))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]
