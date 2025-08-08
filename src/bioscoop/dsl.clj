@@ -3,8 +3,7 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]]
-            [bioscoop.built-in :as built-in])
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
