@@ -25,6 +25,6 @@
 (s/def ::color
   (s/or :named ::named-color
         :hex (s/and string?
-                    #(re-matches #"(?i)^(0x)?[0-9a-f]{6}([0-9a-f]{2})?$" %))))
+                    #(re-matches #"(?i)^(?:0x|#)?[0-9a-f]{6}([0-9a-f]{2})?$" %))))
 
 

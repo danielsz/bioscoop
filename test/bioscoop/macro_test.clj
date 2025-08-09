@@ -57,7 +57,7 @@
       (is (= text-result macro-result)))
     (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height {:input \"tmp\"}))"))
           macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] (scale width height {:input "tmp"}))))
-          ffmpeg-string "[tmp]scale=w=1920:h=1080"]
+          ffmpeg-string "[tmp]scale=width=1920:height=1080"]
       (is (= text-result macro-result ffmpeg-string))))
 
 
@@ -108,7 +108,7 @@
       (is (= 1 (count (:chains result))))
       (is (= 1 (count (:filters (first (:chains result))))))
       (is (= "scale" (:name (first (:filters (first (:chains result)))))))
-      (is (= #::spec{:w 1920 :h 1080} (:args (first (:filters (first (:chains result)))))))))
+      (is (= #:bioscoop.domain.specs.scale{:width 1920 :height 1080} (:args (first (:filters (first (:chains result)))))))))
 
   (testing "Automatic wrapping of FilterGraph/filterchain"
     (let [result (bioscoop (scale 1920 1080) (scale 1910 1180) (scale 1920 80))]

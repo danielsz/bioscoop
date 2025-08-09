@@ -8,21 +8,21 @@
 (deftest test-dsl-compilation
   (testing "Basic filter creation"
     (let [result (compile-dsl "(scale 1920 1080)")]
-      (is (= "scale=w=1920:h=1080" (to-ffmpeg result)))))
+      (is (= "scale=width=1920:height=1080" (to-ffmpeg result)))))
 
   (testing "Basic named filter creation"
     (let [result (compile-dsl "(scale 1920 1080)")]
-      (is (= "scale=w=1920:h=1080" (to-ffmpeg result)))))
+      (is (= "scale=width=1920:height=1080" (to-ffmpeg result)))))
 
   (testing "Filter with labels"
     (let [dsl "(let [input-vid (input-labels \"in\")
                      scaled (scale 1920 1080 input-vid (output-labels \"scaled\"))]
                  scaled)"
           result (compile-dsl dsl)]
-      (is (= "[in]scale=w=1920:h=1080[scaled]" (to-ffmpeg result))))
+      (is (= "[in]scale=width=1920:height=1080[scaled]" (to-ffmpeg result))))
     (let [dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
           result (compile-dsl dsl)]
-      (is (= "[in]scale=w=1920:h=1080[scaled]" (to-ffmpeg result)))))
+      (is (= "[in]scale=width=1920:height=1080[scaled]" (to-ffmpeg result)))))
 
   (testing "Labels are preserved when parsing ffmpeg command"
     (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
@@ -35,14 +35,14 @@
                  (scale 1920 1080)
                  (overlay))"
           result (compile-dsl dsl)]
-      (is (= "scale=w=1920:h=1080,overlay" (to-ffmpeg result)))))
+      (is (= "scale=width=1920:height=1080,overlay" (to-ffmpeg result)))))
 
   (testing "Filter chain - structural equivalence"
     (let [dsl "(chain 
                  (scale \"1920\" \"1080\")
                  (overlay))"
           foo (compile-dsl dsl)
-          bar (ffmpeg/parse "scale=1920:1080,overlay")]
+          bar (ffmpeg/parse "scale=width=1920:height=1080,overlay")]
       (is (= foo bar))))
 
   (testing "nested chains"
@@ -51,7 +51,7 @@
                  (overlay))
                (hflip)"
           result (compile-dsl dsl)]
-      (is (= "scale=w=1920:h=1080,overlay;hflip" (to-ffmpeg result)))))
+      (is (= "scale=width=1920:height=1080,overlay;hflip" (to-ffmpeg result)))))
   
  (testing "nested chains - structural equivalence"
     (let [dsl "(chain 
@@ -67,18 +67,18 @@
                  (let [width 1080]
                    (scale height width)))"
           result (compile-dsl dsl)]
-      (is (= "scale=w=1920:h=1080" (to-ffmpeg result))))
+      (is (= "scale=width=1920:height=1080" (to-ffmpeg result))))
     (let [dsl "(let [width 1920]
                  (let [width 1280]
                    (scale 1080 width)))"
           result (compile-dsl dsl)]
-      (is (= "scale=w=1080:h=1280" (to-ffmpeg result)))))
+      (is (= "scale=width=1080:height=1280" (to-ffmpeg result)))))
   (let [dsl "(let [width 1920]
                  (let [width 1280]
                    (let [width 800]
                      (scale 1080 width))))"
           result (compile-dsl dsl)]
-      (is (= "scale=w=1080:h=800" (to-ffmpeg result))))
+      (is (= "scale=width=1080:height=800" (to-ffmpeg result))))
   )
 
 (deftest test-grammar-parse-trees
@@ -113,14 +113,14 @@
 
 (deftest let-bindings
   (testing "Mathematical functions from clojure.core"
-    (is (= "scale=w=4:h=1080" (to-ffmpeg (compile-dsl "(let [width (mod 10 6)] (scale width 1080))"))))
-    (is (= "scale=w=1920:h=1920" (to-ffmpeg (compile-dsl "(let [size (max 1920 1080)] (scale size size))"))))
-    (is (= "scale=w=10:h=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))"))))
-    (is (= "scale=w=1920:h=1080" (to-ffmpeg (compile-dsl "(let [next (inc 1919)] (scale next 1080))")))))
+    (is (= "scale=width=4:height=1080" (to-ffmpeg (compile-dsl "(let [width (mod 10 6)] (scale width 1080))"))))
+    (is (= "scale=width=1920:height=1920" (to-ffmpeg (compile-dsl "(let [size (max 1920 1080)] (scale size size))"))))
+    (is (= "scale=width=10:height=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))"))))
+    (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [next (inc 1919)] (scale next 1080))")))))
   (testing "Nested expressions work"
-    (is (= "scale=w=5:h=100" (to-ffmpeg (compile-dsl "(let [result (inc (mod 10 6))] (scale result 100))")))))
+    (is (= "scale=width=5:height=100" (to-ffmpeg (compile-dsl "(let [result (inc (mod 10 6))] (scale result 100))")))))
   (testing "Negative numbers work properly"
-    (is (= "scale=w=10:h=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))")))))
+    (is (= "scale=width=10:height=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))")))))
   (testing "Unknown functions still become filters"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Cannot" (compile-dsl "(nonexistent 123 456)")))))
 

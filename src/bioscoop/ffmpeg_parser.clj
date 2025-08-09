@@ -29,7 +29,7 @@
         filter-spec (first (filter #(= :filter-spec (first %)) parts))
         [filter-name filter-args] (extract-filter-spec filter-spec)
         base-filter (if filter-args
-                      (filters/template filter-args (keyword "bioscoop.domain.spec" filter-name))
+                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) filter-args)
                       (make-filter filter-name))]
     ;; Add labels as metadata if present
     (cond-> base-filter

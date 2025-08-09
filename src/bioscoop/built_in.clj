@@ -9,6 +9,7 @@
    [bioscoop.domain.specs.zoompan :as zoompan]
    [bioscoop.domain.specs.concat :as concat]
    [bioscoop.domain.specs.fade :as fade]
+   [bioscoop.domain.specs.scale :as scale]
    [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]))
 
@@ -27,7 +28,7 @@
   (template arg ::spec/crop))
 
 (defn scale [arg]
-  (template arg ::spec/scale))
+  (template arg ::scale/scale))
 
 (defn fade [arg]
   (template arg ::fade/fade))
