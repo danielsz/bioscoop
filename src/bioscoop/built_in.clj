@@ -10,6 +10,11 @@
    [bioscoop.domain.specs.concat :as concat]
    [bioscoop.domain.specs.fade :as fade]
    [bioscoop.domain.specs.scale :as scale]
+   [bioscoop.domain.specs.pad :as pad]
+   [bioscoop.domain.specs.overlay :as overlay]
+   [bioscoop.domain.specs.sources :as sources]
+   [bioscoop.domain.specs.layout :as layout]
+   [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]))
 
@@ -37,7 +42,7 @@
   (template arg ::fade/fade))
 
 (defn overlay [arg]
-  (template arg ::spec/overlay))
+  (template arg ::overlay/overlay))
 
 (defn hflip [arg]
   (template arg ::spec/hflip))
@@ -62,3 +67,33 @@
 (defn concat
   [arg]
   (template arg ::concat/concat))
+
+(defn pad [arg]
+  (template arg ::pad/pad))
+
+(defn testsrc [arg]
+  (template arg ::sources/testsrc))
+
+(defn rgbtestsrc [arg]
+  (template arg ::sources/rgbtestsrc))
+
+(defn smptebars [arg]
+  (template arg ::sources/smptebars))
+
+(defn smptehdbars [arg]
+  (template arg ::sources/smptehdbars))
+
+(defn hstack [arg]
+  (template arg ::layout/hstack))
+
+(defn vstack [arg]
+  (template arg ::layout/vstack))
+
+(defn xstack [arg]
+  (template arg ::layout/xstack))
+
+(defn tile [arg]
+  (template arg ::layout/tile))
+
+(defn xfade [arg]
+  (template arg ::effects/xfade))

@@ -91,6 +91,14 @@
                                  (chain (concat {:n 2 :v 1 :a 0} {:input "v0"} {:input "v1"}) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
       (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl)))))
 
+
+  (testing "bioscoop ad"
+    (is (= "smptebars[v0];testsrc[v1];[v0]pad=width=iw*2:height=ih[out0];[out0][v1]overlay=x=w"
+         (to-ffmpeg (bioscoop (graph (chain (smptebars {:output "v0"}))
+                              (chain (testsrc {:output "v1"}))
+                              (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
+                              (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))))))
+
   (testing "maps as args"
     (let [dsl (bioscoop (color {:color "blue" :size "1920x1080" :rate 24 :duration "10" :sar "16/9"}))]
       (is (= "color=color=blue:size=1920x1080:rate=24:duration=10:sar=16/9" (to-ffmpeg dsl)))))

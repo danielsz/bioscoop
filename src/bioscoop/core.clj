@@ -28,3 +28,15 @@
                         (chain (concat {:n 3 :v 1 :a 0} {:input "v0"} {:input "v1"} {:input "v2"}) (format {:pix_fmts "yuv420p"} {:output "outv"})))))))
 
 
+(defn bioscoop-ad []
+  (to-ffmpeg (bioscoop (graph (chain (smptebars {:output "v0"}))
+                              (chain (testsrc {:output "v1"}))
+                              (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
+                              (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))))
+
+(defn xstack []
+  (to-ffmpeg (bioscoop (graph (chain (testsrc) (scale "qvga" {:output "a"}))
+                              (chain (testsrc) (scale "qvga" {:output "b"}))
+                              (chain (testsrc) (scale "qvga" {:output "c"}))
+                              (chain (testsrc) (scale "qvga" {:output "d"}))
+                              (chain (xstack {:inputs 4 :layout "0_0|0_h0|w0_0|w0_h0"} {:input "a"} {:input "b"} {:input "c"} {:input "d"}{:output "out"}))))))
