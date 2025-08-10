@@ -55,11 +55,14 @@
             (instance? FilterGraph single) single
             (instance? FilterChain single) (make-filtergraph [single])
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
-            ;; Better error for invalid programs
-            :else (throw (ex-info "DSL programs must produce filter operations, not primitive values"
-                                  {:expr single
-                                   :type (type single)
-                                   :hint "End your program with a filter, chain, or graph operation"}))))
+            :else
+            (if (= :clojure.spec.alpha/problems (key (first single)))
+              (throw (ex-info "Not a valid parameter" {:value (:clojure.spec.alpha/value single)                                                       
+                                                       :problems (:clojure.spec.alpha/problems single)}))
+              (throw (ex-info "Not a valid ffmpeg program (filtergraph)"
+                              {:expr single
+                               :type (type single)
+                               :hint "End your program with a filter, chain, or graph operation"})))))
       ;; Multiple expressions
       (if (every? #(or (instance? Filter %)
                        (instance? FilterChain %)
@@ -152,6 +155,3 @@
     (if (insta/failure? ast)
       (throw (ex-info "Parse error" {:error ast}))
       (transform-ast ast (make-env)))))
-
-
-
