@@ -56,7 +56,7 @@
             (instance? FilterChain single) (make-filtergraph [single])
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
             :else
-            (if (= :clojure.spec.alpha/problems (key (first single)))
+            (if (and (map? single) (= :clojure.spec.alpha/problems (key (first single))))
               (throw (ex-info "Not a valid parameter" {:value (:clojure.spec.alpha/value single)                                                       
                                                        :problems (:clojure.spec.alpha/problems single)}))
               (throw (ex-info "Not a valid ffmpeg program (filtergraph)"

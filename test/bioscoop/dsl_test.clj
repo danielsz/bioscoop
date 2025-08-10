@@ -109,7 +109,7 @@
 
 (deftest test-programs
   (testing "let binding should return valid structures (filter, filterchain, filtergraph)"
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^DSL programs" (compile-dsl "(let [x 1] x)")))))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Not a valid" (compile-dsl "(let [x 1] x)")))))
 
 (deftest let-bindings
   (testing "Mathematical functions from clojure.core"
