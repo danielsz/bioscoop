@@ -20,8 +20,11 @@
         (if (s/valid? spec m)
           (make-filter (name spec) m)
           (s/explain-data spec m)))
-      (let [formal-keys (last (s/form spec))]
-        (make-filter (name spec) (zipmap formal-keys arg))))
+      (let [formal-keys (last (s/form spec))
+            m (zipmap formal-keys arg)]
+        (if (s/valid? spec m)
+          (make-filter (name spec) m)
+          (s/explain-data spec m))))
     (make-filter (name spec))))
 
 (defn crop [arg]
