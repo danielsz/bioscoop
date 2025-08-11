@@ -1,28 +1,16 @@
 (ns bioscoop.ffmpeg
-  (:import [net.bramp.ffmpeg FFmpeg FFprobe FFmpegExecutor RunProcessFunction]
-           [net.bramp.ffmpeg.builder FFmpegBuilder FFmpegOutputBuilder]))
+  (:require [clojure.java.io :as io])
+  (:import [java.lang ProcessBuilder]))
 
-(defn img2video [working-dir & {:keys [image sound subtitles output]}]
-  (let [run (doto (RunProcessFunction.)
-              (.setWorkingDirectory working-dir))
-        ffmpeg (FFmpeg. "/usr/bin/ffmpeg" run)
-        ffprobe (FFprobe. "/usr/bin/ffprobe" run)
-        output (doto (FFmpegOutputBuilder.)
-                 (.setFormat "mp4")
-                 (.setVideoFrameRate (int 1) (int 1))
-                 (.setAudioCodec "aac")
-                 (.addExtraArgs (into-array String ["-shortest"]))
-                 (.setFilename output))
-        builder (doto (FFmpegBuilder.)
-                  (.addInput image)
-                  (.addExtraArgs (into-array String ["-loop" "1" "-r" "1"]))
-                  (.addInput sound)
-                  (cond-> (some? subtitles)
-                    (.setVideoFilter (str "subtitles=" subtitles ",scale=-2:'min(720,ih)'")))
-                  (.overrideOutputFiles true)
-                  (.addOutput output))
-        executor (FFmpegExecutor. ffmpeg ffprobe)
-        job (.createJob executor builder)]
-    (try (.run job)
-         (catch Exception _ (.getState job)))
-    (.getState job)))
+(def ffmpeg-bin "/usr/bin/ffmpeg")
+(def ffplay-bin "/usr/bin/ffplay")
+(def ffprobe-bin "/usr/bin/ffprobe")
+
+(defn filter-complex [filter & {:keys [working-dir output] :or {working-dir (System/getProperty "java.io.tmpdir") output "output.mp4"}}]
+  (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
+        cmd [ffmpeg-bin "-y" "-filter_complex" filter "-map" "[out]" output]
+        pb (ProcessBuilder. cmd)]
+    (.redirectOutput pb log)
+    (.redirectError pb log)
+    (.directory pb (io/file working-dir))
+    (.start pb)))

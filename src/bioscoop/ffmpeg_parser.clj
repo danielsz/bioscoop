@@ -12,7 +12,6 @@
 (def ffmpeg-parser
   (insta/parser (io/resource "ffmpeg-grammar.bnf") :auto-whitespace :standard))
 
-
 (defmulti ffmpeg-ast->records first)
 
 (defmethod ffmpeg-ast->records :filtergraph [[_ & content]]
@@ -22,14 +21,15 @@
 (defmethod ffmpeg-ast->records :filterchain [[_ & filters]]
   (make-filterchain (mapv ffmpeg-ast->records filters)))
 
-(declare extract-input-labels extract-output-labels extract-filter-spec extract-filter-name extract-filter-args)
+(declare extract-input-labels extract-output-labels extract-filter-spec extract-filter-name extract-filter-args transform-arg)
 (defmethod ffmpeg-ast->records :filter [[_ & parts]]
   (let [input-labels (extract-input-labels parts)
         output-labels (extract-output-labels parts)
         filter-spec (first (filter #(= :filter-spec (first %)) parts))
         [filter-name filter-args] (extract-filter-spec filter-spec)
+        transformed-args (map transform-arg filter-args)
         base-filter (if filter-args
-                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) filter-args)
+                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) transformed-args)
                       (make-filter filter-name))]
     ;; Add labels as metadata if present
     (cond-> base-filter
@@ -78,6 +78,9 @@
         (and (vector? inner-node) (= :quoted-string (first inner-node)))
         (second inner-node)
         :else (str inner-node)))))
+
+(defn transform-arg [arg]
+  (or (parse-boolean arg) (parse-long arg) (parse-double arg)  arg))
 
 (defn parse
   "Parse FFmpeg filter string and return Clojure records"

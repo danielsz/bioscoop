@@ -1,5 +1,6 @@
 (ns bioscoop.ffmpeg-parser-test
   (:require [bioscoop.dsl :refer [compile-dsl]]
+            [bioscoop.macro :refer [bioscoop]]
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [clojure.test :refer [testing deftest is]]))
@@ -35,15 +36,18 @@
 
 (deftest let-binding
   (testing "substitution"
-    (is (= "scale=w=1920:h=1080" (to-ffmpeg (compile-dsl "(let [width 1920] (scale width 1080))")))))
+    (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [width 1920] (scale width 1080))")))))
   (testing "substitution - structural equivalence"
     (let [foo (compile-dsl "(let [width 1920] (scale width 1080))")
           bar (ffmpeg/parse "scale=w=1920:h=1080")]
       (is (= foo bar))))
+  (let [foo (bioscoop (let [width 1920] (scale width 1080)))
+          bar (ffmpeg/parse "scale=w=1920:h=1080")]
+      (is (= foo bar)))
   (testing "arithmetic in let binding expression"
-    (is (= "scale=w=1920:h=1080" (to-ffmpeg (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")))))
+    (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")))))
   (testing "arithmetic - structural equivalence"
     (let [foo (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")
-          bar (ffmpeg/parse "scale=w=1920:h=1080")]
+          bar (ffmpeg/parse "scale=width=1920:height=1080")]
       (is (= foo bar)))))
 

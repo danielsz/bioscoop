@@ -89,7 +89,6 @@
     (last transformed-body)))
 
 (defmethod transform-ast :binding [[_ sym expr] env]
-  ;; This shouldn't be called directly in normal flow
   [(transform-ast sym env) (transform-ast expr env)])
 
 (defmethod transform-ast :list [[_ op & args] env]

@@ -83,6 +83,12 @@
 (defn smptehdbars [arg]
   (template arg ::sources/smptehdbars))
 
+(defn haldclutsrc [arg]
+  (template arg ::sources/haldclutsrc))
+
+(defn yuvtestsrc [arg]
+  (template arg ::sources/yuvtestsrc))
+
 (defn hstack [arg]
   (template arg ::layout/hstack))
 

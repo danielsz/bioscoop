@@ -6,13 +6,11 @@
    [clojure.tools.logging :as log]
    [bioscoop.dsl :as dsl :refer [dsl-parser compile-dsl]]
    [bioscoop.render :refer [to-ffmpeg to-dsl]]
-   [bioscoop.ffmpeg-parser :as ffmpeg]
+   [bioscoop.ffmpeg-parser :as ffmpeg-parser]
    [bioscoop.parseable :refer [parse]]
-   [bioscoop.macro :refer [bioscoop]])
+   [bioscoop.macro :refer [bioscoop]]
+   [bioscoop.ffmpeg :as ffmpeg])
   (:gen-class))
-
-(defn -main [& args]
-  (log/info "Hello, World daniel"))
 
 
 (defn the-haikou-diaries []
@@ -35,8 +33,19 @@
                               (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))))
 
 (defn xstack []
-  (to-ffmpeg (bioscoop (graph (chain (testsrc) (scale "qvga" {:output "a"}))
-                              (chain (testsrc) (scale "qvga" {:output "b"}))
-                              (chain (testsrc) (scale "qvga" {:output "c"}))
-                              (chain (testsrc) (scale "qvga" {:output "d"}))
-                              (chain (xstack {:inputs 4 :layout "0_0|0_h0|w0_0|w0_h0"} {:input "a"} {:input "b"} {:input "c"} {:input "d"}{:output "out"}))))))
+  (to-ffmpeg (bioscoop (let [space-grotesk "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2"
+                             background-text (drawtext {:text "This is a video" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontsize 400 :fontcolor "#ebd999"
+                                                        :fontfile space-grotesk})
+                             background-color (color {:c "#0F172A" :size "3840x2160" :sar "3/4" :rate 25 :duration 3})]
+                         (graph (chain (testsrc {:duration 4}) (scale "hd1080" {:output "a"}))
+                                (chain (rgbtestsrc {:duration 4}) (scale "hd1080" {:output "b"}))
+                                (chain (smptebars {:duration 4}) (scale "hd1080" {:output "c"}))
+                                (chain (yuvtestsrc {:duration 4}) (scale "hd1080" {:output "d"}))
+                                (chain background-color background-text (format {:pix_fmts "rgb24"} {:output "out1"}))
+                                (chain background-color background-text (format {:pix_fmts "rgb24"} {:output "out3"}))
+                                (chain (xstack {:inputs 4 :layout "0_0|0_h0|w0_0|w0_h0"} {:input "a"} {:input "b"} {:input "c"} {:input "d"} {:output "out2"}))
+                                (chain (concat {:n 3 :v 1 :a 0} {:input "out1"} {:input "out2"} {:input "out3"}) (format {:pix_fmts "yuv420p"} {:output "out"})))))))
+
+(defn -main [& args]
+  (log/info "Hello, World daniel")
+  (xstack))

@@ -1,6 +1,5 @@
 (ns bioscoop.domain.specs.shared.duration
-  (:require [clojure.spec.alpha :as s]
-            [bioscoop.domain.specs.shared.rational :refer [rational->str]]))
+  (:require [clojure.spec.alpha :as s]))
 
 (s/def ::duration-unit #{"s" "ms" "us"})
 

@@ -8,7 +8,12 @@
               :excludes {:artifacts ["org.clojure:google-closure-library" "com.google.javascript:closure-compiler"]
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
               :include-source false
-              :obfuscation {:enabled false}}
+              :obfuscation {:enabled false}
+              :graalvm {:enabled true
+                        :build-args "--report-unsupported-elements-at-runtime --initialize-at-build-time --verbose --no-fallback"       
+                        :agent {:enabled true
+                                :filter {:rules [{:excludeClasses "clojure.**"}
+                                                 {:includeClasses "clojure.lang.Reflector"}]}}}}
              :jar {:enabled false}}
  :interactive {:enabled true
                :reload-on-save true
