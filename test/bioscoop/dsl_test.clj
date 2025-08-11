@@ -39,7 +39,7 @@
 
   (testing "Filter chain - structural equivalence"
     (let [dsl "(chain 
-                 (scale \"1920\" \"1080\")
+                 (scale 1920 1080)
                  (overlay))"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "scale=width=1920:height=1080,overlay")]
@@ -55,7 +55,7 @@
   
  (testing "nested chains - structural equivalence"
     (let [dsl "(chain 
-                 (scale \"1920\" \"1080\")
+                 (scale 1920 1080)
                  (overlay))
                (hflip)"
           foo (compile-dsl dsl)

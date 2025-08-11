@@ -49,5 +49,13 @@
   (testing "arithmetic - structural equivalence"
     (let [foo (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")
           bar (ffmpeg/parse "scale=width=1920:height=1080")]
-      (is (= foo bar)))))
+      (is (= foo bar))))
+  (testing "more complicated dsl"
+    (let [structures (bioscoop (graph (chain (smptebars {:output "v0"}))
+                              (chain (testsrc {:output "v1"}))
+                              (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
+                              (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))
+          s (to-ffmpeg structures)
+          back (ffmpeg/parse s)]
+      (is (= structures back)))))
 

@@ -1,5 +1,6 @@
 (ns bioscoop.domain.spec
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [lang-utils.core :refer [seek]]))
 
 ;; Data structure specifications
 (s/def ::name (s/and string? #(re-matches #"[a-zA-Z0-9_]+" %)))
@@ -15,7 +16,47 @@
 (s/def ::int integer?)
 (s/def ::float float? )
 
-;; Filter arguments
+
+(defn spec-aware-namespace-keyword [spec unqualified-kw]
+  (let [spec-map (apply hash-map (rest (s/form spec)))
+        opt-un-specs (get spec-map :opt-un [])]
+    (seek (fn [kw] (= (name kw) (name unqualified-kw))) opt-un-specs)))
+;; to process a map: (into {} (map (fn [[k v]] [(spec-aware-namespace-keyword ::scale k) v]) {:width 1920 :height 1080})) or like below
+ 
+(defn spec-aware-namespace-map
+  "Convert unnamespaced map to properly namespaced map based on spec registry.
+   Looks up where each spec is actually defined and uses that namespace."
+  [spec-keyword unnamespaced-map]
+  (when-not (s/get-spec spec-keyword)
+    (throw (ex-info "Spec not found in registry" {:spec spec-keyword})))
+  
+  (let [spec-form (s/form spec-keyword)]
+    (if (and (sequential? spec-form) 
+             (= 'clojure.spec.alpha/keys (first spec-form)))
+      (let [spec-map (apply hash-map (rest spec-form))
+            opt-un-specs (get spec-map :opt-un [])
+            req-un-specs (get spec-map :req-un [])
+            all-un-specs (concat opt-un-specs req-un-specs)
+            ;; Create mapping from unqualified key to its actual qualified spec
+            key-mapping (into {} 
+                           (map (fn [qualified-spec-kw]
+                                  (let [unqual-key (keyword (name qualified-spec-kw))]
+                                    [unqual-key qualified-spec-kw]))
+                                all-un-specs))]
+        ;; Transform the map using the spec-derived key mapping
+        (into {} 
+              (map (fn [[k v]]
+                     (if-let [qualified-kw (get key-mapping k)]
+                       [qualified-kw v]
+                       ;; Keep unmapped keys as-is (or could warn/error)
+                       [k v]))
+                   unnamespaced-map)))
+      ;; If not a keys spec, return original map
+      unnamespaced-map)))
+
+
+
+;; Below is temporary, requires reorganization (ongoing)
 
 ;; crop
 (s/def ::out_w string?)
@@ -27,83 +68,6 @@
 (s/def ::keep_aspect boolean?)
 (s/def ::exact boolean?)
 (s/def ::crop (s/keys :opt-un [::out_w ::w ::out_h ::h ::x ::y ::keep_aspect ::exact]))
-
-;; fade
-(s/def ::type #{"in" "out"})
-(s/def ::start_frame int?)
-(s/def ::nb_frames int?)
-(s/def ::alpha boolean?)
-(s/def ::start_time number?)
-(s/def ::duration number?)
-(s/def ::color string?)
-(s/def ::fade (s/keys :opt-un [::type ::start_frame ::nb_frames ::alpha ::start_time ::duration ::color]))
-
-;; scale
-;; scale filter parameters
-(s/def ::width string?) ; alias for ::w
-(s/def ::height string?) ; alias for ::h
-(s/def ::eval #{"init" "frame"})
-(s/def ::interl #{-1 0 1})
-(s/def ::flags string?)
-(s/def ::param0 string?)
-(s/def ::param1 string?)
-(s/def ::size string?)
-(s/def ::s string?) ; alias for ::size
-(s/def ::in_color_matrix #{"auto" "bt709" "fcc" "bt601" "bt470" "smpte170m" "smpte240m" "bt2020"})
-(s/def ::out_color_matrix #{"auto" "bt709" "fcc" "bt601" "bt470" "smpte170m" "smpte240m" "bt2020"})
-(s/def ::in_range #{"auto" "unknown" "jpeg" "full" "pc" "mpeg" "limited" "tv"})
-(s/def ::out_range #{"auto" "unknown" "jpeg" "full" "pc" "mpeg" "limited" "tv"})
-(s/def ::in_chroma_loc #{"auto" "unknown" "left" "center" "topleft" "top" "bottomleft" "bottom"})
-(s/def ::out_chroma_loc #{"auto" "unknown" "left" "center" "topleft" "top" "bottomleft" "bottom"})
-(s/def ::force_original_aspect_ratio #{"disable" "decrease" "increase"})
-(s/def ::force_divisible_by pos-int?)
-
-(s/def ::scale (s/keys :opt-un [::w ::h ::width ::height ::eval ::interl ::flags ::param0 ::param1
-                                ::size ::s ::in_color_matrix ::out_color_matrix ::in_range ::out_range
-                                ::in_chroma_loc ::out_chroma_loc ::force_original_aspect_ratio ::force_divisible_by]))
-
-;; drawtext
-(s/def ::fontfile string?)
-(s/def ::text string?)
-(s/def ::textfile string?)
-(s/def ::fontcolor string?)
-(s/def ::fontsize number?)
-(s/def ::box boolean?)
-(s/def ::boxcolor string?)
-(s/def ::boxborderw number?)
-(s/def ::line_spacing number?)
-(s/def ::shadowcolor string?)
-(s/def ::shadowx number?)
-(s/def ::shadowy number?)
-;; The enable option is a string, but it's used for timeline editing, which can be complex.
-;; For now, a simple string spec is sufficient.
-(s/def ::enable string?)
-(s/def ::text_align
-  (s/spec #{"L" "C" "R" "T" "B"
-            "LT" "LC" "LB"
-            "CT" "CC" "CB"
-            "RT" "RC" "RB"}))
-
- ;; Additional drawtext parameters
-(s/def ::font string?)
-(s/def ::fontcolor_expr string?)
-(s/def ::borderw number?)
-(s/def ::bordercolor string?)
-(s/def ::tab_size number?)
-(s/def ::expansion #{"none" "strftime" "normal"})
-(s/def ::basetime number?)
-(s/def ::reload number?)
-(s/def ::fix_bounds boolean?)
-(s/def ::start_number number?)
-(s/def ::y_align number?)
-
-(s/def ::drawtext
-  (s/keys :req-un [::text]
-          :opt-un [::fontfile ::textfile ::x ::y ::fontsize ::fontcolor
-                   ::box ::boxcolor ::boxborderw ::line_spacing ::shadowcolor
-                   ::shadowx ::shadowy ::enable ::text_align ::font ::fontcolor_expr
-                   ::borderw ::bordercolor ::tab_size ::expansion ::basetime
-                   ::reload ::fix_bounds ::start_number ::y_align]))
 
  ;; acrossfade (audio crossfade filter)
 (s/def ::overlap boolean?)
@@ -140,24 +104,6 @@
 
 (s/def ::aecho
   (s/keys :req-un [::in_gain ::out_gain ::delays ::decays]))
-
-;; overlay (video overlay filter)
-(s/def ::eof_action #{"repeat" "endall" "pass"})
-(s/def ::format #{"yuv420" "yuv422" "yuv444" "yuv410" "yuv411" "yuv420p" "yuv422p" "yuv444p" "yuv420p10" "yuv422p10" "yuv444p10" "yuv420p16" "yuv422p16" "yuv444p16" "rgb24" "bgr24" "argb" "rgba" "abgr" "bgra" "gray" "gray16"})
-(s/def ::repeatlast boolean?)
-(s/def ::shortest boolean?)
-
-(s/def ::overlay
-  (s/keys :opt-un [::x ::y ::eof_action ::eval ::format ::repeatlast ::shortest]))
-
-;; concat (concatenate filter)
-(s/def ::n pos-int?)
-(s/def ::v pos-int?)
-(s/def ::a pos-int?)
-(s/def ::unsafe boolean?)
-
-(s/def ::concat
-  (s/keys :opt-un [::n ::v ::a ::unsafe]))
 
 ;; hflip (horizontal flip filter)
 (s/def ::hflip
@@ -206,12 +152,6 @@
 (s/def ::trim
   (s/keys :opt-un [::start ::end ::start_pts ::end_pts ::duration]))
 
-;; setpts (set presentation timestamps filter)
-(s/def ::expr string?)
-
-(s/def ::setpts
-  (s/keys :req-un [::expr]))
-
 ;; fps (fps filter)
 (s/def ::fps string?)
 (s/def ::start_time number?) ; already defined
@@ -221,11 +161,6 @@
 (s/def ::fps
   (s/keys :opt-un [::fps ::start_time ::round ::eof_action]))
 
-;; format (format filter)
-(s/def ::pix_fmts string?)
-
-(s/def ::format
-  (s/keys :req-un [::pix_fmts]))
 
 ;; colorkey (color key filter)
 (s/def ::color string?) ; already defined

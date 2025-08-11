@@ -23,7 +23,7 @@
     (if (map? (first arg))
       (let [m (first arg)]
         (if (s/valid? spec m)
-          (make-filter (name spec) m)
+          (make-filter (name spec) (spec/spec-aware-namespace-map spec m))
           (s/explain-data spec m)))
       (let [formal-keys (last (s/form spec))
             m (zipmap formal-keys arg)]
