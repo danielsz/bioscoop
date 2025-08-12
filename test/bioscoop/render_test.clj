@@ -35,7 +35,7 @@
   (testing "Filter with input and output labels"
     (let [structure (compile-dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})")
           back-to-dsl (to-dsl structure)]
-      (is (= "(scale {:width 1920, :height 1080} {:input \"in\"} {:input \"scaled\"})" back-to-dsl))))
+      (is (= "(scale {:width 1920, :height 1080} {:input \"in\"} {:output \"scaled\"})" back-to-dsl))))
 
   (testing "Filter with only input label"
     (let [structure (compile-dsl "(hflip {:input \"tmp\"})")
@@ -58,13 +58,14 @@
           back-to-dsl (to-dsl structure)]
       (is (= "(graph (scale {:width 1920, :height 1080}) (overlay))" back-to-dsl)))))
 
+
 (deftest test-roundtrip-consistency
   (testing "DSL -> structure -> DSL roundtrip preserves semantics"
     (let [test-cases ["(scale 1920 1080)"
                       "(chain (scale 1920 1080) (overlay))"
                       "(graph (scale 1920 1080) (overlay))"
-                      "(filter \"hflip\")"
-                      "(filter \"scale\" 1920 1080 {:input \"in\"} {:output \"scaled\"})"
+                      "(hflip)"
+                      "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
                       "(crop \"iw/2\" \"ih\" \"0\" \"0\")"]]
       (doseq [original-dsl test-cases]
         (let [parsed (compile-dsl original-dsl)
@@ -87,14 +88,13 @@
           (is (= original-ffmpeg reparsed-ffmpeg)
               (str "FFmpeg output differs for: " original-dsl
                    "\nOriginal FFmpeg: " original-ffmpeg
-                   "\nReparsed FFmpeg: " reparsed-ffmpeg)))))
+                   "\nReparsed FFmpeg: " reparsed-ffmpeg))))))
 
-    (testing "Complex nested structure"
+  (testing "Complex nested structure"
     (let [structure (compile-dsl "(graph (chain (crop \"iw/2\" \"ih\" \"0\" \"0\") (split (output-labels \"left\" \"tmp\"))) (hflip {:input \"tmp\"} {:output \"right\"}))")
           back-to-dsl (to-dsl structure)]
-      ;; The exact formatting might differ, but it should parse back to the same structure
       (let [reparsed (compile-dsl back-to-dsl)]
-        (is (= structure reparsed))))))
+        (is (= structure reparsed)))))
 
   (testing "real world"
     (let [filtergraph "testsrc,scale=width=qvga[a];rgbtestsrc,scale=width=qvga[b];smptebars,scale=width=qvga[c];yuvtestsrc,scale=width=qvga[d];[a][b][c][d]xstack=inputs=4:layout=0_0|0_h0|w0_0|w0_h0[out]"

@@ -50,7 +50,7 @@
                         (> (count input-labels) 1) (conj `(~(symbol "input-labels") ~@input-labels))
                         (= 1 (count input-labels)) (conj {:input (first input-labels)})
                         (> (count output-labels) 1) (conj `(~(symbol "output-labels") ~@output-labels))
-                        (= 1 (count output-labels)) (conj {:input (first output-labels)}))]
+                        (= 1 (count output-labels)) (conj {:output (first output-labels)}))]
       (str (apply list with-labels))))
 
   FilterChain
