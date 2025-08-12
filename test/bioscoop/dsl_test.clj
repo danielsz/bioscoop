@@ -79,7 +79,11 @@
                      (scale 1080 width))))"
           result (compile-dsl dsl)]
       (is (= "scale=width=1080:height=800" (to-ffmpeg result))))
-  )
+
+  (testing "coma in maps is insignificant"
+    (let [m1 "{:input \"tmp\" :output \"right\"}"
+          m2 "{:input \"tmp\", :output \"right\"}"]
+      (is (= (dsl-parser m1) (dsl-parser m2))))))
 
 (deftest test-grammar-parse-trees
   (testing "Let binding parse tree structure"
@@ -161,4 +165,7 @@
     (is (= 1 (count (dsl-parses ":input"))))
     (is (= 1 (count (dsl-parses "-6"))))
     (is (= 1 (count (dsl-parses "-6.6"))))
-    (is (= 1 (count (dsl-parses "{:input \"tmp\"}"))))))
+    (is (= 1 (count (dsl-parses "{:input \"tmp\"}"))))
+    (is (= 1 (count (dsl-parses "{:input \"tmp\",}"))))
+    (is (= 1 (count (dsl-parses "{:input \"tmp\" :output \"right\"}"))))
+    (is (= 1 (count (dsl-parses "{:input \"tmp\", :output \"right\"}"))))))

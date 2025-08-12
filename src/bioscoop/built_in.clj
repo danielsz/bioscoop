@@ -1,5 +1,5 @@
 (ns bioscoop.built-in
-  (:refer-clojure :exclude [format concat])
+  (:refer-clojure :exclude [format concat loop])
   (:require
    [bioscoop.domain.records :refer [make-filter]]
    [bioscoop.domain.spec :as spec]
@@ -14,8 +14,12 @@
    [bioscoop.domain.specs.overlay :as overlay]
    [bioscoop.domain.specs.sources :as sources]
    [bioscoop.domain.specs.layout :as layout]
+   [bioscoop.domain.specs.loop :as loop]
+   [bioscoop.domain.specs.split :as split]
+   [bioscoop.domain.specs.fps :as fps]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
+   [bioscoop.domain.specs.shared.image-size :as image-size]
    [clojure.tools.logging :as log]))
 
 (defn template [arg spec]
@@ -103,3 +107,18 @@
 
 (defn xfade [arg]
   (template arg ::effects/xfade))
+
+(defn loop [arg]
+  (template arg ::loop/loop))
+
+(defn fps [arg]
+  (template arg ::fps/fps))
+
+(defn split [arg]
+  (template arg ::split/split))
+
+(defn setdar [arg]
+  (template arg ::image-size/setdar))
+
+(defn setsar [arg]
+  (template arg ::image-size/setsar))

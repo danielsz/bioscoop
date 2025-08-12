@@ -51,4 +51,11 @@
         :preset ::presets))
 
 
+(s/def ::dar string?)
+(s/def ::ratio string?)
+(s/def ::r string?)
+(s/def ::max int?)
+(s/def ::setdar (s/keys :opt-un [::dar ::ratio ::r ::max]))
 
+(s/def ::sar string?)
+(s/def ::setsar (s/keys :opt-un [::sar ::ratio ::r ::max]))

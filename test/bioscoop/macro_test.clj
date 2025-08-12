@@ -89,6 +89,12 @@
                           (graph (chain (zoompan zoom {:input "0:v"}) (fade f {:output "v0"}))
                                  (chain (zoompan zoom {:input "1:v"}) (fade f {:output "v1"}))
                                  (chain (concat {:n 2 :v 1 :a 0} {:input "v0"} {:input "v1"}) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
+      (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl))))
+    (let [dsl (bioscoop (let [zoom {:z "'min(zoom+0.0015,1.5)'" :d 700 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)"}
+                              f {:type "out" :start_frame 600 :duration 1}]
+                          (graph (chain (zoompan zoom {:input "0:v"}) (fade f {:output "v0"}))
+                                 (chain (zoompan zoom {:input "1:v"}) (fade f {:output "v1"}))
+                                 (chain (concat {:n 2 :v 1 :a 0} (input-labels "v0" "v1")) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
       (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl)))))
 
 

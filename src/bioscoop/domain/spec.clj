@@ -29,7 +29,7 @@
   [spec-keyword unnamespaced-map]
   (when-not (s/get-spec spec-keyword)
     (throw (ex-info "Spec not found in registry" {:spec spec-keyword})))
-  
+
   (let [spec-form (s/form spec-keyword)]
     (if (and (sequential? spec-form) 
              (= 'clojure.spec.alpha/keys (first spec-form)))

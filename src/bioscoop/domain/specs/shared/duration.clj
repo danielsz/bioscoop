@@ -10,6 +10,6 @@
    :timestamp (s/and string? #(re-matches #"\d+:\d{2}:\d{2}(?:\.\d+)?$" %))
    :expr string?))
 
+(s/def ::loop int?)
 
-
-
+(s/def ::fps (s/or :number number? :string string?))

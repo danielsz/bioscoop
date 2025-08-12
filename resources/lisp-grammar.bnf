@@ -7,7 +7,7 @@ let-binding = <'('> <'let'> binding-vector expression+ <')'>
 binding = symbol expression
 
 list = <'('> expression* <')'>
-<mapentry> = keyword atom
+<mapentry> = keyword atom [<','>]
 map = <'{'> mapentry* <'}'>
 <atom> = number | boolean | !boolean !number symbol | string | keyword
 
