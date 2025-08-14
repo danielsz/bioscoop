@@ -12,6 +12,8 @@
 (def ffmpeg-parser
   (insta/parser (io/resource "ffmpeg-grammar.bnf") :auto-whitespace :standard))
 
+(def ffmpeg-parses (partial insta/parses ffmpeg-parser))
+
 (defmulti ffmpeg-ast->records first)
 
 (defmethod ffmpeg-ast->records :filtergraph [[_ & content]]
