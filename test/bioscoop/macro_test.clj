@@ -34,6 +34,29 @@
            (form->ast '(let [width 1920 height 1080] (scale width height)))))))
 
 (deftest test-bioscoop-macro
+  (testing "arithmetic expressions"
+    (let [structures (bioscoop (let [base-width 1920]
+                                 (scale (+ base-width 100) 1080)))]
+      (is (= "scale=width=2020:height=1080" (to-ffmpeg structures)))))
+
+  (testing "labels"
+    (let [structures (bioscoop (scale 1920 1080
+                                      (input-labels "input")
+                                      (output-labels "scaled")))]
+      (is (= "[input]scale=width=1920:height=1080[scaled]" (to-ffmpeg structures)))))
+  (testing "complex expression"
+    (let [structures (bioscoop (let [w 1920
+                                     h 1080
+                                     x "10"
+                                     y "20"]
+                                 (chain (scale w h)
+                                        (crop "800" "600" x y)
+                                        (overlay))))]
+      (is (= "scale=width=1920:height=1080,crop=out_w=800:w=600:out_h=10:h=20,overlay" (to-ffmpeg structures)))))
+
+  (testing "undefined function"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Cannot resolve function" (bioscoop (undefined-function 123)))))
+
   (testing "Macro produces same results as text parsing"
     (let [text-result (dsl/compile-dsl "(scale 1920 1080)")
           macro-result (bioscoop (scale 1920 1080))]
@@ -50,7 +73,6 @@
     (let [text-result (dsl/compile-dsl "(chain (scale 1920 1080) (overlay))")
           macro-result (bioscoop (chain (scale 1920 1080) (overlay)))]
       (is (= text-result macro-result))))
-
   (testing "Complex let bindings"
     (let [text-result (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height))")
           macro-result (bioscoop (let [width 1920 height 1080] (scale width height)))]
@@ -96,7 +118,6 @@
                                  (chain (zoompan zoom {:input "1:v"}) (fade f {:output "v1"}))
                                  (chain (concat {:n 2 :v 1 :a 0} (input-labels "v0" "v1")) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
       (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl)))))
-
 
   (testing "bioscoop ad"
     (is (= "smptebars[v0];testsrc[v1];[v0]pad=width=iw*2:height=ih[out0];[out0][v1]overlay=x=w"

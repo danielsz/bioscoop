@@ -5,15 +5,13 @@
             [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
-;; Transform our data structures to ffmpeg filter format
-(defprotocol FFmpegRenderable
-  (to-ffmpeg [this] "Convert to ffmpeg filter string"))
 
-;; Transform our data structures back to DSL format
-(defprotocol DSLRenderable
+(declare drop-namespace-from-map)
+(defprotocol Renderable
+  (to-ffmpeg [this] "Convert to ffmpeg filter string")
   (to-dsl [this] "Convert to DSL string"))
 
-(extend-protocol FFmpegRenderable
+(extend-protocol Renderable
   Filter
   (to-ffmpeg [filter]
     (let [{:keys [name args]} filter
@@ -27,18 +25,6 @@
                      (str "=" (str/join ":" (map (fn [[k v]] (str (clojure.core/name k) "=" v)) args))))]
       (str input-str name args-str output-str)))
 
-  FilterChain
-  (to-ffmpeg [{:keys [filters]}]
-    (str/join "," (map to-ffmpeg filters)))
-
-  FilterGraph
-  (to-ffmpeg [{:keys [chains]}]
-    (str/join ";" (mapv to-ffmpeg chains))))
-
-(declare drop-namespace-from-map)
-
-(extend-protocol DSLRenderable
-  Filter
   (to-dsl [filter]
     (let [{:keys [name args]} filter
           input-labels (get-input-labels filter)
@@ -52,16 +38,18 @@
                         (> (count output-labels) 1) (conj `(~(symbol "output-labels") ~@output-labels))
                         (= 1 (count output-labels)) (conj {:output (first output-labels)}))]
       (str (apply list with-labels))))
-
+  
   FilterChain
+  (to-ffmpeg [{:keys [filters]}]
+    (str/join "," (map to-ffmpeg filters)))
+  
   (to-dsl [{:keys [filters]}]
-    (if (= 1 (count filters))
-      ;; Single filter, no need for chain wrapper
-      (to-dsl (first filters))
-      ;; Multiple filters, use chain
-      (format "(chain %s)" (str/join " " (map to-dsl filters)))))
+    (format "(chain %s)" (str/join " " (map to-dsl filters))))
 
   FilterGraph
+  (to-ffmpeg [{:keys [chains]}]
+    (str/join ";" (mapv to-ffmpeg chains)))
+
   (to-dsl [{:keys [chains]}]
     (cond
       ;; Single chain with single filter - just return the filter
@@ -76,6 +64,7 @@
       ;; Multiple chains - use graph
       :else
       (format "(graph %s)" (str/join " " (map to-dsl chains))))))
+
 
 (defn drop-namespace-from-map
   "Transforms a map by removing the namespace from qualified keyword keys."

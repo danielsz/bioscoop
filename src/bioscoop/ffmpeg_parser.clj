@@ -5,38 +5,13 @@
             [clojure.tools.logging :as log]
             [clojure.pprint]
             [bioscoop.dsl :refer [with-input-labels with-output-labels]]
-            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]
-            [bioscoop.domain.spec :as spec]
-            [bioscoop.built-in :as filters]))
+            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]))
 
 (def ffmpeg-parser
   (insta/parser (io/resource "ffmpeg-grammar.bnf") :auto-whitespace :standard))
 
 (def ffmpeg-parses (partial insta/parses ffmpeg-parser))
 
-(defmulti ffmpeg-ast->records first)
-
-(defmethod ffmpeg-ast->records :filtergraph [[_ & content]]
-  (let [chains (filter #(= :filterchain (first %)) content)]
-    (make-filtergraph (mapv ffmpeg-ast->records chains))))
-
-(defmethod ffmpeg-ast->records :filterchain [[_ & filters]]
-  (make-filterchain (mapv ffmpeg-ast->records filters)))
-
-(declare extract-input-labels extract-output-labels extract-filter-spec extract-filter-name extract-filter-args transform-arg)
-(defmethod ffmpeg-ast->records :filter [[_ & parts]]
-  (let [input-labels (extract-input-labels parts)
-        output-labels (extract-output-labels parts)
-        filter-spec (first (filter #(= :filter-spec (first %)) parts))
-        [filter-name filter-args] (extract-filter-spec filter-spec)
-        transformed-args (map transform-arg filter-args)
-        base-filter (if filter-args
-                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) transformed-args)
-                      (make-filter filter-name))]
-    ;; Add labels as metadata if present
-    (cond-> base-filter
-      (seq input-labels) (with-input-labels input-labels)
-      (seq output-labels) (with-output-labels output-labels))))
 
 ;; Helper functions for extraction
 (defn extract-input-labels [parts]
@@ -55,20 +30,6 @@
               (str label-node)))
           (rest outputs))))
 
-(defn extract-filter-spec [filter-spec-node]
-  (let [[_ name-node & rest] filter-spec-node
-        filter-name (extract-filter-name name-node)
-        args-node (first (filter #(= :filter-arguments (first %)) rest))
-        filter-args (when args-node (extract-filter-args args-node))]
-    [filter-name filter-args]))
-
-(defn extract-filter-name [name-node]
-  (cond
-    (and (vector? name-node) (= :filter-name (first name-node)))
-    (second name-node)
-    (string? name-node) name-node
-    :else (str name-node)))
-
 (defn extract-filter-args [args-node]
   (when args-node
     (let [[_ inner-node] args-node]
@@ -81,8 +42,46 @@
         (second inner-node)
         :else (str inner-node)))))
 
+(defn extract-filter-name [name-node]
+  (cond
+    (and (vector? name-node) (= :filter-name (first name-node)))
+    (second name-node)
+    (string? name-node) name-node
+    :else (str name-node)))
+
+(defn extract-filter-spec [filter-spec-node]
+  (let [[_ name-node & rest] filter-spec-node
+        filter-name (extract-filter-name name-node)
+        args-node (first (filter #(= :filter-arguments (first %)) rest))
+        filter-args (when args-node (extract-filter-args args-node))]
+    [filter-name filter-args]))
+
+
 (defn transform-arg [arg]
   (or (parse-boolean arg) (parse-long arg) (parse-double arg)  arg))
+
+(defmulti ffmpeg-ast->records first)
+
+(defmethod ffmpeg-ast->records :filtergraph [[_ & content]]
+  (let [chains (filter #(= :filterchain (first %)) content)]
+    (make-filtergraph (mapv ffmpeg-ast->records chains))))
+
+(defmethod ffmpeg-ast->records :filterchain [[_ & filters]]
+  (make-filterchain (mapv ffmpeg-ast->records filters)))
+
+(defmethod ffmpeg-ast->records :filter [[_ & parts]]
+  (let [input-labels (extract-input-labels parts)
+        output-labels (extract-output-labels parts)
+        filter-spec (first (filter #(= :filter-spec (first %)) parts))
+        [filter-name filter-args] (extract-filter-spec filter-spec)
+        transformed-args (map transform-arg filter-args)
+        base-filter (if filter-args
+                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) transformed-args)
+                      (make-filter filter-name))]
+    ;; Add labels as metadata if present
+    (cond-> base-filter
+      (seq input-labels) (with-input-labels input-labels)
+      (seq output-labels) (with-output-labels output-labels))))
 
 (defn parse
   "Parse FFmpeg filter string and return Clojure records"
