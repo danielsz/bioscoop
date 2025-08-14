@@ -2,8 +2,7 @@ filtergraph    = sws-flags? filterchain (<semicolon> filterchain)*
 sws-flags      = <'sws_flags'> <equals> flags <semicolon>
 flags          = #'[^;]+'
 
-
-filterchain    = filter (<comma> filter)*
+filterchain    = !sws-flags filter (<comma> filter)*
 filter         = input-linklabels? filter-spec output-linklabels?
 
 input-linklabels  = linklabel+
@@ -16,9 +15,7 @@ filter-name    = name (at name)?
 filter-arguments = (quoted-string | unquoted-args)+
 unquoted-args   = #'[^,;\s\[\]\'"]+'
 
-quoted-string  = <"'"> (escaped-char | #"[^']*") <"'">
-escaped-char   = "\\\"" | "\\'" | "\\\\"
-
+quoted-string  = <"'">  #"[^']*" <"'">
 
 <name>         = #'[a-zA-Z0-9_:]+'
 at           = '@'

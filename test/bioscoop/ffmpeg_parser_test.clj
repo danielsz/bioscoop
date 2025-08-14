@@ -59,3 +59,42 @@
           back (ffmpeg/parse s)]
       (is (= structures back)))))
 
+
+(deftest ffmpeg-grammar
+  (testing "Filter with positional arguments"
+    (let [expr "scale=640:480"]
+      (is (= expr expr))))
+  (testing "Labeled filter"
+    (let [expr "scale@hd=1280:720"]
+      (is (= expr expr))))
+  (testing "Multiple output linklabels"
+    (let [expr "[in]scale=1280:720[scaled1][scaled2]"]
+      (is (= expr expr)))
+    (let [expr "[0:v]split[o0][o1]"]
+      (is (= expr expr))))
+  (testing "Filter with instance label"
+    (let [expr "[in]scale@highres=1920:1080[hd]"]
+      (is (= expr expr))))
+  (testing "Quoted string with escapes"
+    (let [expr "[v]drawtext=text='Hello\\'s World':fontsize=24[out]"]
+      (is (= expr expr)))
+    (let [expr "[v]drawtext=text='He said \\\"Hi\\\"':fontsize=24[out]"]
+      (is (= expr expr))))
+  (testing "Complex argument with special characters"
+    (let [expr "[vid]drawtext=text='Price: $50\\%':x=(w-tw)/2:fontsize=24[out]"]
+      (is (= expr expr))))
+  (testing "Multiple filters in chain"
+    (let [expr "[0:v]scale=640:360[small]; [1:a]volume=1.5[loud]"]
+      (is (= expr expr))))
+  (testing "Complex chain"
+    (let [expr "[in]scale@thumb=320:240[small];[in]scale@full=1280:720[big]"]
+      (is (= expr expr))))
+  (testing "Sws_flags declaration"
+    (let [expr "sws_flags=lanczos+accurate_rnd; [0:v]scale=1920:1080[hd]"]
+      (is (= expr expr))))
+  (testing "Invalid case (empty linklabel)"
+    (let [expr "[in]scale=640:480[]"]
+      (is (= expr expr)))))
+
+
+
