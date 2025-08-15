@@ -1,5 +1,6 @@
 (ns bioscoop.domain.specs.shared.color
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s])
+  (:import [java.lang IllegalStateException]))
 
 (s/def ::named-color
   #{"aliceblue" "antiquewhite" "aqua" "aquamarine" "azure" "beige" "bisque" "black"
@@ -22,9 +23,16 @@
     "slategrey" "snow" "springgreen" "steelblue" "tan" "teal" "thistle" "tomato" "turquoise" "violet"
     "wheat" "white" "whitesmoke" "yellow" "yellowgreen" "random"}) ; FFmpeg known names + 'random'
 
-(s/def ::color
-  (s/or :named ::named-color
-        :hex (s/and string?
-                    #(re-matches #"(?i)^(?:0x|#)?[0-9a-f]{6}([0-9a-f]{2})?$" %))))
+
+(defn capture [s]
+  (let [patt (re-pattern "^(?:(?<name>[a-zA-Z]+)|(?<hex>0x[0-9a-fA-F]{6}))(?:@(?<opacity>\\d*\\.?\\d+))?|(?<hexalpha>0x[0-9a-fA-F]{8})$")
+        matcher (re-matcher patt s)]
+    (re-find matcher)
+    (try (if-let [colorname (.group matcher "name")]
+           (s/valid? ::named-color colorname)
+           true)
+         (catch IllegalStateException _))))
+
+(s/def ::color capture)
 
 

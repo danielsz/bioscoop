@@ -1,6 +1,7 @@
 (ns bioscoop.domain.spec
   (:require [clojure.spec.alpha :as s]
-            [lang-utils.core :refer [seek]]))
+            [lang-utils.core :refer [seek]]
+            [bioscoop.domain.specs.shared.duration :as duration]))
 
 ;; Data structure specifications
 (s/def ::name (s/and string? #(re-matches #"[a-zA-Z0-9_]+" %)))
@@ -75,13 +76,13 @@
 (s/def ::curve2 #{"tri" "qsin" "esin" "hsin" "log" "ipar" "qua" "cub" "squ" "cbr"})
 
 (s/def ::acrossfade
-  (s/keys :req-un [::duration]
+  (s/keys :req-un [::duration/duration]
           :opt-un [::overlap ::curve1 ::curve2]))
 
  ;; acompressor (audio compressor filter)
 (s/def ::level_in number?)
 (s/def ::mode #{"downward" "upward"})
-(s/def ::threshold number?)
+(s/def ::acompressor-threshold number?)
 (s/def ::ratio number?)
 (s/def ::attack number?)
 (s/def ::release number?)
@@ -90,11 +91,11 @@
 (s/def ::link #{"average" "maximum"})
 (s/def ::detection #{"peak" "rms"})
 (s/def ::level_sc number?)
-(s/def ::mix number?)
+(s/def ::acompressor-mix number?)
 
 (s/def ::acompressor
-  (s/keys :opt-un [::level_in ::mode ::threshold ::ratio ::attack ::release
-                   ::makeup ::knee ::link ::detection ::level_sc ::mix]))
+  (s/keys :opt-un [::level_in ::mode ::acompressor-threshold ::ratio ::attack ::release
+                   ::makeup ::knee ::link ::detection ::level_sc ::acompressor-mix]))
 
  ;; aecho (audio echo filter)
 (s/def ::in_gain number?)

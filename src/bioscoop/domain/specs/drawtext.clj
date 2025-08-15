@@ -3,6 +3,7 @@
             [bioscoop.domain.specs.shared.color :as color]
             [bioscoop.domain.specs.shared.rational :as rational]))
 
+;; Either text, a valid file, a timecode or text source must be provided
 
 (s/def ::drawtext
   (s/keys :opt-un [::box
