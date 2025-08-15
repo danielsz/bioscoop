@@ -10,6 +10,7 @@
    [bioscoop.domain.specs.concat :as concat]
    [bioscoop.domain.specs.fade :as fade]
    [bioscoop.domain.specs.scale :as scale]
+   [bioscoop.domain.specs.crop :as crop]
    [bioscoop.domain.specs.pad :as pad]
    [bioscoop.domain.specs.overlay :as overlay]
    [bioscoop.domain.specs.sources :as sources]
@@ -36,11 +37,11 @@
           (s/explain-data spec m))))
     (make-filter (name spec))))
 
-(defn crop [arg]
-  (template arg ::spec/crop))
-
 (defn scale [arg]
   (template arg ::scale/scale))
+
+(defn crop [arg]
+  (template arg ::crop/crop))
 
 (defn fade [arg]
   (template arg ::fade/fade))

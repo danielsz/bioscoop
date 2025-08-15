@@ -50,4 +50,7 @@
                                 (chain (concat {:n 3 :v 1 :a 0} {:input "out1"} {:input "out2"} {:input "out3"}) (format {:pix_fmts "yuv420p"} {:output "out"})))))))
 
 (defn -main [& args]
-  (log/info "Hello, World daniel"))
+  (log/info "Hello, World daniel")
+  (bioscoop-ad))
+
+

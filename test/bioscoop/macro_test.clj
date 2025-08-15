@@ -3,7 +3,7 @@
             [bioscoop.dsl :as dsl]
             [bioscoop.render :refer [to-ffmpeg]]
             [clojure.test :refer [deftest is testing]]
-            [bioscoop.domain.spec :as spec])
+            [bioscoop.built-in])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
 (deftest test-form->ast

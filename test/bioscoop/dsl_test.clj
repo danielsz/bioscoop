@@ -2,6 +2,7 @@
   (:require [bioscoop.dsl :refer [compile-dsl dsl-parser dsl-parses]]
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
+            [bioscoop.built-in]
             [clojure.test :refer [testing deftest is use-fixtures]]
             [instaparse.core :as insta]))
 

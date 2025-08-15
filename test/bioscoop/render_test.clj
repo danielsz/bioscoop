@@ -2,7 +2,8 @@
   (:require [bioscoop.dsl :refer [compile-dsl]]
             [bioscoop.render :refer [to-dsl to-ffmpeg]]
             [clojure.test :refer [testing deftest is]]
-            [bioscoop.ffmpeg-parser :as ffmpeg-parser])
+            [bioscoop.ffmpeg-parser :as ffmpeg-parser]
+            [bioscoop.built-in])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (deftest test-to-dsl-basic-filters

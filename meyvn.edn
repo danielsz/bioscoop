@@ -9,7 +9,7 @@
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
               :include-source false
               :obfuscation {:enabled false}
-              :graalvm {:enabled false
+              :graalvm {:enabled true
                         :build-args "--report-unsupported-elements-at-runtime --initialize-at-build-time --verbose --no-fallback"       
                         :agent {:enabled true
                                 :filter {:rules [{:excludeClasses "clojure.**"}

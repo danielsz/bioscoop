@@ -3,6 +3,7 @@
             [bioscoop.macro :refer [bioscoop]]
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
+            [bioscoop.built-in]
             [clojure.test :refer [testing deftest is]]))
 
 (deftest simple
