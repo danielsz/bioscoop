@@ -5,49 +5,14 @@
 
 ;; Either text, a valid file, a timecode or text source must be provided
 
-(s/def ::drawtext
-  (s/keys :opt-un [::box
-                   ::boxborderw
-                   ::boxcolor
-                   ::line_spacing
-                   ::text_align
-                   ::text
-                   ::textfile
-                   ::fontcolor
-                   ::fontcolor_expr
-                   ::font
-                   ::fontfile
-                   ::fontsize
-                   ::text_shaping
-                   ::ft_load_flags
-                   ::shadowcolor
-                   ::shadowx
-                   ::shadowy
-                   ::bordercolor
-                   ::borderw
-                   ::tabsize
-                   ::timecode
-                   ::rate
-                   ::timecode_rate
-                   ::reload
-                   ::alpha
-                   ::x
-                   ::y
-                   ::fix_bounds
-                   ::start_number
-                   ::expansion
-                   ::basetime
-                   ::strftime
-                   ::text_expansion
-                   ::fontsize_expr
-                   ::text_len]))
 
 ;; Parameter types
 (s/def ::box (s/or :int int? :boolean boolean?))
 (s/def ::boxborderw number?)
 (s/def ::boxcolor ::color/color)
 (s/def ::line_spacing number?)
-(s/def ::text_align #{"left" "center" "right"})
+(s/def ::text_align #{"left" "center" "right" "bottom" "middle"})
+(s/def ::y_align #{"text" "baseline" "font"})
 (s/def ::text string?)
 (s/def ::textfile string?)
 (s/def ::fontcolor ::color/color)
@@ -74,9 +39,42 @@
 (s/def ::start_number number?)
 (s/def ::expansion #{"none" "normal" "strftime"})
 (s/def ::basetime number?)
-(s/def ::strftime (s/or :int int? :boolean boolean?))
-(s/def ::text_expansion #{"none" "normal" "strftime"})
-(s/def ::fontsize_expr string?)
-(s/def ::text_len number?)
+(s/def ::expansion #{"none" "normal" "strftime"})
 
-
+(s/def ::drawtext
+  (s/keys :opt-un [::fontfile
+                   ::text
+                   ::textfile
+                   ::fontcolor
+                   ::fontcolor_expr
+                   ::boxcolor
+                   ::bordercolor
+                   ::shadowcolor
+                   ::box
+                   ::boxborderw
+                   ::line_spacing
+                   ::fontsize
+                   ::text_align
+                   ::x
+                   ::y
+                   ::boxw
+                   ::boxh
+                   ::shadowx
+                   ::shadowy
+                   ::borderw
+                   ::tabsize
+                   ::basetime
+                   ::font
+                   ::expansion
+                   ::y_align
+                   ::timecode
+                   ::tc24hmax
+                   ::timecode_rate
+                   ::rate
+                   ::reload
+                   ::alpha
+                   ::fix_bounds
+                   ::start_number
+                   ::text_source
+                   ::text_shaping
+                   ::ft_load_flags]))
