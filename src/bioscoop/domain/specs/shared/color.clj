@@ -25,7 +25,7 @@
 
 
 (defn capture [s]
-  (let [patt (re-pattern "^(?:(?<name>[a-zA-Z]+)|(?<hex>0x[0-9a-fA-F]{6}))(?:@(?<opacity>\\d*\\.?\\d+))?|(?<hexalpha>0x[0-9a-fA-F]{8})$")
+  (let [patt (re-pattern "^(?:(?<name>[a-zA-Z]+)|(?<hex>(?:0x|#)[0-9a-fA-F]{6}))(?:@(?<opacity>\\d*\\.?\\d+))?|(?<hexalpha>(?:0x|#)[0-9a-fA-F]{8})$")
         matcher (re-matcher patt s)]
     (re-find matcher)
     (try (if-let [colorname (.group matcher "name")]

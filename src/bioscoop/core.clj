@@ -9,6 +9,7 @@
    [bioscoop.ffmpeg-parser :as ffmpeg-parser]
    [bioscoop.parseable :refer [parse]]
    [bioscoop.macro :refer [bioscoop]]
+   [bioscoop.built-in]
    [bioscoop.ffmpeg :as ffmpeg])
   (:gen-class))
 
@@ -17,7 +18,7 @@
                (let [background-color (color {:c "#0F172A" :size "1920x1280" :rate 25 :duration 3})
                      background-text (drawtext {:text "The Haikou Diaries" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontsize 46 :fontcolor "#ebd999"
                                                 :fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2"})
-                     zoom {:z "'min(zoom+0.0015,1.5)'" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}
+                     zoom {:z "min(zoom+0.0015,1.5)" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}
                      nozoom {:z "1" :d 400 :s "1920x1280"}
                      f {:type "out" :start_frame 320 :duration 1}
                      padding {:width "3/2*iw" :height "3/2*ih" :x "(ow-iw)/2" :y "(oh-ih)/2" :color "#0F172A"}]
@@ -51,6 +52,6 @@
 
 (defn -main [& args]
   (log/info "Hello, World daniel")
-  (bioscoop-ad))
+  (println (to-ffmpeg (compile-dsl (first args)))))
 
 
