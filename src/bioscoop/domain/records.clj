@@ -22,3 +22,6 @@
 
 (defn parallel-filters [& chains]
   (make-filtergraph chains))
+
+(defn join-filtergraphs [& filtergraphs]
+  (make-filtergraph (apply concat (map #(.-chains %) filtergraphs))))

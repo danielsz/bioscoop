@@ -1,7 +1,6 @@
 (ns bioscoop.domain.spec
   (:require [clojure.spec.alpha :as s]
-            [lang-utils.core :refer [seek]]
-            [bioscoop.domain.specs.shared.duration :as duration]))
+            [lang-utils.core :refer [seek]]))
 
 ;; Data structure specifications
 (s/def ::name (s/and string? #(re-matches #"[a-zA-Z0-9_]+" %)))
@@ -55,8 +54,6 @@
       ;; If not a keys spec, return original map
       unnamespaced-map)))
 
-
-
 ;; Below is temporary, requires reorganization (ongoing)
 
 ;; hflip (horizontal flip filter)
@@ -67,10 +64,5 @@
 (s/def ::vflip
   (s/keys :opt-un []))
 
-;; split (split filter)
-(s/def ::outputs pos-int?)
-
-(s/def ::split
-  (s/keys :opt-un [::outputs]))
 
 
