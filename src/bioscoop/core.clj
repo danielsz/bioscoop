@@ -13,22 +13,34 @@
    [bioscoop.ffmpeg :as ffmpeg])
   (:gen-class))
 
+(defn title []
+  (bioscoop (let [background-color (color {:c "black" :size "1920x1080" :rate 25 :duration 3})
+                  base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontcolor "white" :fontsize 46}
+                  part1 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2"}))
+                  part2 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2"}))]
+              (spit "/tmp/sentence.txt" "The Saul Haikou Lewicz Diaries")
+              (spit "/tmp/sentence1.txt" "The      Haikou        Diaries")
+              (spit "/tmp/sentence2.txt" "    Saul        Lewicz        ")
+              (chain background-color part1 part2))))
+
 (defn the-haikou-diaries []
   (to-ffmpeg (bioscoop
-               (let [background-color (color {:c "#0F172A" :size "1920x1280" :rate 25 :duration 3})
-                     background-text (drawtext {:text "The Haikou Diaries" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontsize 46 :fontcolor "#ebd999"
-                                                :fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2"})
-                     zoom {:z "min(zoom+0.0015,1.5)" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}
+               (let [base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontcolor "#ebd999"}
+                     background-color (color {:c "#0F172A" :size "1920x1280" :rate 25 :duration 3})
+                     background-text (drawtext (merge base-text {:text "The Haikou Diaries" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontsize 46}))
+                     untitled-text (drawtext (merge base-text {:text "Untitled" :x "w-text_w-400" :y "h-text_h-350" :fontsize 46}))
+                     zoom {:z "'min(zoom+0.0015,1.5)'" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}
                      nozoom {:z "1" :d 400 :s "1920x1280"}
                      f {:type "out" :start_frame 320 :duration 1}
-                     padding {:width "3/2*iw" :height "3/2*ih" :x "(ow-iw)/2" :y "(oh-ih)/2" :color "#0F172A"}]
+                     padding {:width "3/2*iw" :height "3/2*ih" :x "(ow-iw)/5" :y "(oh-ih)/2" :color "#0F172A"}]
                  (graph (chain (split {:input "0:v"} (output-labels "o0" "o1")))
                         (chain background-color background-text (format {:pix_fmts "rgb24"} {:output "c0"}) )
-                        (chain (zoompan nozoom {:input "o0"}) (pad padding) (scale {:width 1920 :height -1} {:output "p1"}))
+                        (chain (zoompan nozoom {:input "o0"}) (pad padding) untitled-text (scale {:width 1920 :height -1} {:output "p1"}))
                         (chain (zoompan nozoom {:input "o1"}) (setsar {:sar "1"} {:output "p2"}))
                         (chain (zoompan zoom {:input "0:v"}) (fade f) (setsar {:sar "1"} {:output "v1"}))
                         (chain (zoompan zoom {:input "1:v"}) (fade f) (setsar {:sar "1"} {:output "v2"}))
                         (chain (concat {:n 5 :v 1 :a 0} (input-labels "c0" "p1" "p2" "v1" "v2")) (format {:pix_fmts "yuv420p"} {:output "out"})))))))
+
 
 (defn bioscoop-ad []
   (to-ffmpeg (bioscoop (graph (chain (smptebars {:output "v0"}))

@@ -1,2 +1,5 @@
 /.clojure-mcp/
 /LLM_CODE_STYLE.md
+/code/
+/conversations/
+/examples/
