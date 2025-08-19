@@ -1,6 +1,7 @@
 (ns bioscoop.macro
   (:require [bioscoop.dsl :as dsl]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [bioscoop.registry :as registry]))
 
 (defn form->ast
   "Convert a Clojure form to the same AST structure that Instaparse produces"
@@ -19,6 +20,7 @@
           body-nodes (mapv form->ast body)]
       (vec (concat [:let-binding] binding-nodes body-nodes)))
 
+    (and (seq? form) (= 'compose (first form))) '()
     ;; Handle function calls and lists: (fn-name args...)
     (seq? form)
     (let [[op & args] form
@@ -70,3 +72,10 @@
   (let [ast-nodes (mapv form->ast forms)
         program-ast (vec (concat [:program] ast-nodes))]
     `(dsl/transform-ast ~program-ast (dsl/make-env))))
+
+(defmacro defgraph [name & body]
+  `(let [graph# (bioscoop ~@body)]
+     ;; Register the graph in the registry under the keyword of the name
+     (registry/register-graph! '~name graph#)
+     ;; Define a var with the given name, bound to the graph (for Clojure-level use)
+     (def ~name graph#)))

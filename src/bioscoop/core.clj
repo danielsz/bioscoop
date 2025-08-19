@@ -7,22 +7,26 @@
    [bioscoop.render :refer [to-ffmpeg to-dsl]]
    [bioscoop.ffmpeg-parser :as ffmpeg-parser]
    [bioscoop.parseable :refer [parse]]
-   [bioscoop.macro :refer [bioscoop]]
-   [bioscoop.domain.records :refer [join-filtergraphs]]
+   [bioscoop.macro :refer [bioscoop defgraph]]
+   [bioscoop.domain.records :refer [join-filtergraphs compose+]]
    [bioscoop.built-in]
    [bioscoop.ffmpeg :as ffmpeg])
   (:gen-class))
 
 
-(defn red-fade-in-title []
-  (bioscoop (let [background-color (color {:c "black" :size "1920x1280" :rate 25 :duration 8})
+(defn title []
+  (bioscoop (let [background-color (color {:c "black" :size "1920x1280" :rate 25 :duration 16})
                   base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontsize 66}
-                  part1 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "white"}))
-                  part2 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (t/5), 0, 255) \\:x\\:2}'"}) {:output "intro"})]
+                  part1 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "white" :enable "'between(t,0,6)'"}))
+                  part2 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (t/5), 0, 255) \\:x\\:2}'" :enable "'between(t,0,6)'"}))
+                  part3 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FFFFFF%{eif\\: clip(255 * (1 - (t - 6)/6), 0, 255) \\:x\\:2}'" :enable "'between(t,6,12)'"}))
+                  part4 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "red" :enable "'between(t,6,12)'"}))
+                  part5 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (1 - (t - 12)/4), 0, 255) \\:x\\:2}'" :enable "'between(t,12,16)'"}) {:output "intro"})]
               (spit "/tmp/sentence0.txt" "The Saul Haikou Lewicz Diaries")
               (spit "/tmp/sentence1.txt" " The        Haikou            Diaries ")
               (spit "/tmp/sentence2.txt" "    Saul            Lewicz         ")
-              (chain background-color part1 part2))))
+              (chain background-color part1 part2 part3 part4 part5))))
+
 
 (defn the-haikou-diaries []
   (bioscoop
@@ -66,4 +70,12 @@
   (println (to-ffmpeg (compile-dsl (first args)))))
 
 
-(comment (def foo (ffmpeg/with-inputs (to-ffmpeg (join-filtergraphs (red-fade-in-title) (the-haikou-diaries) (assembly))) "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg")))
+(comment (def foo (ffmpeg/with-inputs (to-ffmpeg (join-filtergraphs (title) (the-haikou-diaries) (assembly))) "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg")))
+
+(defgraph ad
+  (graph (chain (smptebars {:output "v0"}))
+         (chain (testsrc {:output "v1"}))
+         (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
+         (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))
+
+(defgraph title (scale 1920 1680))

@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain]])
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain join-filtergraphs compose+]]
+            [bioscoop.registry :as registry])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
@@ -77,6 +78,10 @@
                         {:expressions transformed
                          :hint "Each expression should create filters, chains, or graphs"}))))))
 
+(defmethod transform-ast :compose [[_ & content] env]
+  (let [children (mapv #(transform-ast % env) (rest content))]
+    (apply compose+ children)))
+
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
@@ -124,8 +129,8 @@
       (into {}  (map vec (partition 2 xs)))) ;; multiple arguments map
     ))
 
-(defmethod transform-ast :symbol [[_ sym] env]
-  (or (env-get env sym) sym))
+  (defmethod transform-ast :symbol [[_ sym] env]
+    (or (registry/get-graph (symbol sym)) (env-get env sym) sym))
 
 (defmethod transform-ast :keyword [[_ kw] env]
   (keyword kw))

@@ -1,10 +1,12 @@
 program = expression*
 
-<expression> = atom | list | let-binding | map
+<expression> = atom | list | let-binding | map | compose
 
 let-binding = <'('> <'let'> binding-vector expression+ <')'>
 <binding-vector> = <'['> binding* <']'>
 binding = symbol expression
+
+compose = <'('> 'compose' expression+ <')'>
 
 list = <'('> expression* <')'>
 <mapentry> = keyword atom [<','>]

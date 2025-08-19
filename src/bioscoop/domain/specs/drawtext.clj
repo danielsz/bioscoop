@@ -40,6 +40,7 @@
 (s/def ::expansion #{"none" "normal" "strftime"})
 (s/def ::basetime number?)
 (s/def ::expansion #{"none" "normal" "strftime"})
+(s/def ::enable string?)
 
 (s/def ::drawtext
   (s/keys :opt-un [::fontfile
@@ -77,4 +78,5 @@
                    ::start_number
                    ::text_source
                    ::text_shaping
-                   ::ft_load_flags]))
+                   ::ft_load_flags
+                   ::enable]))

@@ -1,9 +1,19 @@
 (ns bioscoop.domain.records)
 
+(declare join-filtergraphs)
+(defprotocol Composable
+  (compose [this other]))
+
 ;; Core data structures for our DSL
 (defrecord Filter [name args])
 (defrecord FilterChain [filters])
-(defrecord FilterGraph [chains])
+(defrecord FilterGraph [chains]
+  Composable
+  (compose [this others]
+    (apply join-filtergraphs (conj others this))))
+
+(defn compose+ [& filtergraphs]
+  (compose (first filtergraphs) (rest filtergraphs)))
 
 ;; Filter construction functions
 
@@ -24,4 +34,4 @@
   (make-filtergraph chains))
 
 (defn join-filtergraphs [& filtergraphs]
-  (make-filtergraph (apply concat (map #(.-chains %) filtergraphs))))
+  (make-filtergraph (mapcat #(.-chains %) filtergraphs)))
