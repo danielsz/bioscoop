@@ -21,7 +21,8 @@
       (vec (concat [:let-binding] binding-nodes body-nodes)))
 
     ;; Handle compose
-    (and (seq? form) (= 'compose (first form))) (into [:compose "compose"] (mapv form->ast (rest form)))
+    (and (seq? form) (= 'compose (first form)))
+    (into [:compose "compose"] (mapv form->ast (rest form)))
 
     ;; Handle function calls and lists: (fn-name args...)
     (seq? form)
