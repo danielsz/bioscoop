@@ -3,8 +3,16 @@
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [bioscoop.built-in]
+            [bioscoop.registry :refer [get-graph clear-registry!]]
             [clojure.test :refer [testing deftest is use-fixtures]]
-            [instaparse.core :as insta]))
+            [instaparse.core :as insta])
+  (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
+
+(defn once-fixture [f]
+  (f)
+  (clear-registry!))
+
+(use-fixtures :once once-fixture)
 
 (deftest test-dsl-compilation
   (testing "Basic filter creation"
@@ -170,3 +178,17 @@
     (is (= 1 (count (dsl-parses "{:input \"tmp\",}"))))
     (is (= 1 (count (dsl-parses "{:input \"tmp\" :output \"right\"}"))))
     (is (= 1 (count (dsl-parses "{:input \"tmp\", :output \"right\"}"))))))
+
+(deftest defgraph
+  (testing "Parsing graph definitions is done for their side effects"
+    (let [dsl "(defgraph my-scale (scale 1920 1080))"]
+      (compile-dsl dsl)
+      (is (instance? FilterGraph (get-graph 'my-scale)))))
+  (testing "Parsing a regular expression and a graph definition - only the regular expression is transformed and returned"
+    (let [dsl "(defgraph my-crop (crop \"1920\" \"1080\"))\n(scale 1920 180)"]
+      (is (= (compile-dsl dsl)
+             (compile-dsl "(scale 1920 180)")))))
+  (testing "If no regular expressions are present, return empty Filtergraph"
+    (let [dsl "(defgraph my-scale (scale 1920 1080))"
+          result (compile-dsl dsl)]
+      (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result))))))

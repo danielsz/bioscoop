@@ -1,4 +1,4 @@
-program = expression*
+program = (expression | graph-definition)*
 
 <expression> = atom | list | let-binding | map | compose
 
@@ -6,6 +6,7 @@ let-binding = <'('> <'let'> binding-vector expression+ <')'>
 <binding-vector> = <'['> binding* <']'>
 binding = symbol expression
 
+graph-definition = <'('> <'defgraph'> symbol expression* <')'>
 compose = <'('> 'compose' expression+ <')'>
 
 list = <'('> expression* <')'>

@@ -48,7 +48,11 @@
                           (first node)))
 
 (defmethod transform-ast :program [[_ & expressions] env]
-  (let [transformed (mapv #(transform-ast % env) expressions)]
+  (let [defgraph-exprs (filter #(= :graph-definition (first %)) expressions)
+        regular-exprs (remove #(= :graph-definition (first %)) expressions)
+        transformed (mapv #(transform-ast % env) regular-exprs)]
+    (doseq [defgraph-expr defgraph-exprs]
+      (transform-ast defgraph-expr env))
     (case (count transformed)
       0 (make-filtergraph [])
       1 (let [single (first transformed)]
@@ -58,7 +62,7 @@
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
             :else
             (if (and (map? single) (= :clojure.spec.alpha/problems (key (first single))))
-              (throw (ex-info "Not a valid parameter" {:value (:clojure.spec.alpha/value single)                                                       
+              (throw (ex-info "Not a valid parameter" {:value (:clojure.spec.alpha/value single)
                                                        :problems (:clojure.spec.alpha/problems single)}))
               (throw (ex-info "Not a valid ffmpeg program (filtergraph)"
                               {:expr single
@@ -81,6 +85,14 @@
 (defmethod transform-ast :compose [[_ & content] env]
   (let [children (mapv #(transform-ast % env) (rest content))]
     (apply compose+ children)))
+
+(defmethod transform-ast :graph-definition [[_ graph-name & body] env]
+  (let [graph-name (transform-ast graph-name env)
+        graph-body (into [:program] body)
+        graph (transform-ast graph-body env)]
+    (when (string? graph-name)
+      (registry/register-graph! (symbol graph-name) graph))
+    graph))
 
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
@@ -126,11 +138,11 @@
           :output (with-meta [v] {:labels :output})
           {k v})) ;; one key-value pair
     (let [xs (map #(transform-ast % env) (rest m))]
-      (into {}  (map vec (partition 2 xs)))) ;; multiple arguments map
+      (into {} (map vec (partition 2 xs)))) ;; multiple arguments map
     ))
 
-  (defmethod transform-ast :symbol [[_ sym] env]
-    (or (registry/get-graph (symbol sym)) (env-get env sym) sym))
+(defmethod transform-ast :symbol [[_ sym] env]
+  (or (registry/get-graph (symbol sym)) (env-get env sym) sym))
 
 (defmethod transform-ast :keyword [[_ kw] env]
   (keyword kw))
