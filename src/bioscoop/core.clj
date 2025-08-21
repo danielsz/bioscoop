@@ -13,37 +13,54 @@
    [bioscoop.ffmpeg :as ffmpeg])
   (:gen-class))
 
+(defn gcd 
+  "(gcd a b) computes the greatest common divisor of a and b."
+  [x y]
+  (loop [a x
+         b y]
+    (if (zero? b)
+      a
+      (recur b (mod a b)))))
 
-(defn title []
-  (bioscoop (let [background-color (color {:c "black" :size "1920x1280" :rate 25 :duration 16})
-                  base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontsize 66}
-                  part1 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "white" :enable "'between(t,0,6)'"}))
-                  part2 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (t/5), 0, 255) \\:x\\:2}'" :enable "'between(t,0,6)'"}))
-                  part3 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FFFFFF%{eif\\: clip(255 * (1 - (t - 6)/6), 0, 255) \\:x\\:2}'" :enable "'between(t,6,12)'"}))
-                  part4 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "red" :enable "'between(t,6,12)'"}))
-                  part5 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (1 - (t - 12)/4), 0, 255) \\:x\\:2}'" :enable "'between(t,12,16)'"}) {:output "intro"})]
-              (spit "/tmp/sentence0.txt" "The Saul Haikou Lewicz Diaries")
-              (spit "/tmp/sentence1.txt" " The        Haikou            Diaries ")
-              (spit "/tmp/sentence2.txt" "    Saul            Lewicz         ")
-              (chain background-color part1 part2 part3 part4 part5))))
+(defn aspect-ratio [width height]
+  (let [n  (gcd width height)]
+    (/ (/ width n) (/ height n))))
 
 
-(defn the-haikou-diaries []
-  (bioscoop
-    (let [base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontcolor "white"}
-          untitled-text (drawtext (merge base-text {:text "Untitled" :x "w-text_w-400" :y "h-text_h-350" :fontsize 46}))
-          zoom {:z "'min(zoom+0.0015,1.5)'" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}
-          nozoom {:z "1" :d 400 :s "1920x1280"}
-          f {:type "out" :start_frame 320 :duration 1}
-          padding {:width "3/2*iw" :height "3/2*ih" :x "(ow-iw)/5" :y "(oh-ih)/2" :color "#0F172A"}]
-      (graph (chain (split {:input "0:v"} (output-labels "o0" "o1")))
-             (chain (zoompan nozoom {:input "o0"}) (pad padding) untitled-text (scale {:width 1920 :height -1} {:output "p1"}))
-             (chain (zoompan nozoom {:input "o1"}) (setsar {:sar "1"} {:output "p2"}))
-             (chain (zoompan zoom {:input "0:v"}) (fade f) (setsar {:sar "1"} {:output "v1"}))
-             (chain (zoompan zoom {:input "1:v"}) (fade f) (setsar {:sar "1"} {:output "v2"}))))))
+(defgraph title
+  (let [background-color (color {:c "black" :size "1920x1280" :rate 25 :duration 16})
+        base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontsize 66}
+        part1 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "white" :enable "'between(t,0,6)'"}))
+        part2 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (t/5), 0, 255) \\:x\\:2}'" :enable "'between(t,0,6)'"}))
+        part3 (drawtext (merge base-text {:textfile "/tmp/sentence1.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FFFFFF%{eif\\: clip(255 * (1 - (t - 6)/6), 0, 255) \\:x\\:2}'" :enable "'between(t,6,12)'"}))
+        part4 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor "red" :enable "'between(t,6,12)'"}))
+        part5 (drawtext (merge base-text {:textfile "/tmp/sentence2.txt" :x "(w-text_w)/2" :y "(h-text_h)/2" :fontcolor_expr "'FF0000%{eif\\: clip(255 * (1 - (t - 12)/4), 0, 255) \\:x\\:2}'" :enable "'between(t,12,16)'"}) {:output "intro"})]
+    (spit "/tmp/sentence0.txt" "The Saul Haikou Lewicz Diaries")
+    (spit "/tmp/sentence1.txt" " The        Haikou            Diaries ")
+    (spit "/tmp/sentence2.txt" "    Saul            Lewicz         ")
+    (chain background-color part1 part2 part3 part4 part5)))
 
-(defn assembly []
-  (bioscoop (chain (concat {:n 5 :v 1 :a 0} (input-labels "intro" "p1" "p2" "v1" "v2")) (format {:pix_fmts "yuv420p"} {:output "out"}))))
+
+(defgraph chinese-opera-woman (let [nozoom {:z "1" :d 400 :s "1920x1280"}]
+                                (zoompan nozoom {:input "0:v"} {:output "v1"})))
+
+(defgraph cross-fade (xfade {:transition "fade" :duration 8 :offset 6} (input-labels "intro" "v1") {:output "out"}))
+
+(defgraph the-haikou-diaries
+  (let [base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontcolor "white"}
+        untitled-text (drawtext (merge base-text {:text "Untitled" :x "w-text_w-400" :y "h-text_h-350" :fontsize 46}))
+        zoom {:z "'min(zoom+0.0015,1.5)'" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}
+        nozoom {:z "1" :d 400 :s "1920x1280"}
+        f {:type "out" :start_frame 320 :duration 1}
+        padding {:width "3/2*iw" :height "3/2*ih" :x "(ow-iw)/5" :y "(oh-ih)/2" :color "#0F172A"}]
+    (graph (chain (split {:input "0:v"} (output-labels "o0" "o1")))
+           (chain (zoompan nozoom {:input "o0"}) (pad padding) untitled-text (scale {:width 1920 :height -1} {:output "p1"}))
+           (chain (zoompan nozoom {:input "o1"}) (setsar {:sar "1"} {:output "p2"}))
+           (chain (zoompan zoom {:input "0:v"}) (fade f) (setsar {:sar "1"} {:output "v1"}))
+           (chain (zoompan zoom {:input "1:v"}) (fade f) (setsar {:sar "1"} {:output "v2"})))))
+
+(defgraph assembly
+  (chain (concat {:n 5 :v 1 :a 0} (input-labels "intro" "p1" "p2" "v1" "v2")) (format {:pix_fmts "yuv420p"} {:output "out"})))
 
 (defn bioscoop-ad []
   (bioscoop (graph (chain (smptebars {:output "v0"}))
@@ -72,10 +89,12 @@
 
 (comment (def foo (ffmpeg/with-inputs (to-ffmpeg (join-filtergraphs (title) (the-haikou-diaries) (assembly))) "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg")))
 
-(defgraph ad
-  (graph (chain (smptebars {:output "v0"}))
-         (chain (testsrc {:output "v1"}))
-         (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
-         (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))
 
-(defgraph title (scale 1920 1680))
+(comment (let [filter (to-ffmpeg (bioscoop (compose title the-haikou-diaries assembly)))]
+           (ffmpeg/with-inputs filter "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg")))
+
+(comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title the-haikou-diaries assembly)))]
+  (ffmpeg/with-inputs filter "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg"))))
+
+(comment ((let [filter (to-ffmpeg (bioscoop (compose title chinese-opera-woman cross-fade)))]
+            (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))

@@ -1,10 +1,18 @@
 (ns bioscoop.macro-test
-  (:require [bioscoop.macro :refer [bioscoop form->ast]]
+  (:require [bioscoop.macro :refer [bioscoop form->ast defgraph]]
             [bioscoop.dsl :as dsl]
             [bioscoop.render :refer [to-ffmpeg]]
-            [clojure.test :refer [deftest is testing]]
+            [clojure.test :refer [deftest is testing use-fixtures]]
+            [bioscoop.registry :refer [clear-registry!]]
             [bioscoop.built-in])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
+
+(defn once-fixture [f]
+  (f)
+  (clear-registry!))
+
+(use-fixtures :once once-fixture)
+
 
 (deftest test-form->ast
   (testing "Simple expressions"

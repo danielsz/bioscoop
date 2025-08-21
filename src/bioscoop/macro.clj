@@ -78,7 +78,9 @@
 
 (defmacro defgraph [name & body]
   `(let [graph# (bioscoop ~@body)]
-     ;; Register the graph in the registry under the keyword of the name
+     ;; Register the graph in the registry under the symbol of the name
      (registry/register-graph! '~name graph#)
      ;; Define a var with the given name, bound to the graph (for Clojure-level use)
      (def ~name graph#)))
+
+

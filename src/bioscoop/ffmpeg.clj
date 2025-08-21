@@ -24,7 +24,7 @@
   (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
         cmd (-> [ffmpeg-bin "-y" "-i"]
                (into (interpose "-i" inputs))
-               (conj "-filter_complex" filter "-map" "[out]" "-t" "360" "output.mp4"))
+               (conj "-filter_complex" filter "-map" "[out]" "output.mp4"))
         pb (ProcessBuilder. cmd)]
     (log/debug cmd)
     (.redirectOutput pb log)
