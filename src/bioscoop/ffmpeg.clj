@@ -24,9 +24,21 @@
   (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
         cmd (-> [ffmpeg-bin "-y" "-i"]
                (into (interpose "-i" inputs))
-               (conj "-filter_complex" filter "-map" "[out]" "output.mp4"))
+               (conj "-filter_complex" filter "-t" "240" "-map" "[out]" "output.mp4"))
         pb (ProcessBuilder. cmd)]
-    (log/debug cmd)
+    (.redirectOutput pb log)
+    (.redirectError pb log)
+    (.directory pb (io/file (System/getProperty "java.io.tmpdir")))
+    (.start pb)))
+
+(defn with-looping-inputs
+  "It's possible to destroy the process if we keep a handle on the Process instance"
+  [filter & inputs]
+  (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
+        cmd (-> [ffmpeg-bin "-y""-loop" "1" "-t" "5" "-i"]
+               (into (interpose "-loop 1 -t 5 -i" inputs))
+               (conj "-filter_complex" filter "-t" "240" "-map" "[out]" "output.mp4"))
+        pb (ProcessBuilder. cmd)]
     (.redirectOutput pb log)
     (.redirectError pb log)
     (.directory pb (io/file (System/getProperty "java.io.tmpdir")))

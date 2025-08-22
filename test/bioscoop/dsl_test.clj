@@ -191,4 +191,9 @@
   (testing "If no regular expressions are present, return empty Filtergraph"
     (let [dsl "(defgraph my-scale (scale 1920 1080))"
           result (compile-dsl dsl)]
-      (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result))))))
+      (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result)))))
+  (testing "we can compose filtergraphs"
+    (do (compile-dsl "(defgraph my-scale (scale 1920 1080))")
+        (compile-dsl "(defgraph my-crop (scale \"1920\" \"1080\"))")
+        (let [result (compile-dsl "(compose my-scale my-crop)")]
+          (is (= 2 (count (.-chains result))))))))

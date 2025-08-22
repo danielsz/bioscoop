@@ -12,4 +12,9 @@
 (defn clear-registry!
   "Clear registry (mainly for testing)"
   []
+  (doseq [[name _] @graph-registry]
+    (ns-unmap *ns* name))
   (reset! graph-registry {}))
+
+(defn debug []
+  (keys @graph-registry))

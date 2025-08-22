@@ -17,7 +17,9 @@
    [bioscoop.domain.specs.layout :as layout]
    [bioscoop.domain.specs.loop :as loop]
    [bioscoop.domain.specs.split :as split]
+   [bioscoop.domain.specs.trim :as trim]
    [bioscoop.domain.specs.fps :as fps]
+   [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
@@ -51,9 +53,6 @@
 
 (defn hflip [arg]
   (template arg ::spec/hflip))
-
-(defn split [arg]
-  (template arg ::spec/split))
 
 (defn color [arg]
   (template arg ::color/color))
@@ -118,8 +117,14 @@
 (defn split [arg]
   (template arg ::split/split))
 
+(defn trim [arg]
+  (template arg ::trim/trim))
+
 (defn setdar [arg]
   (template arg ::image-size/setdar))
 
 (defn setsar [arg]
   (template arg ::image-size/setsar))
+
+(defn setpts [arg]
+  (template arg ::setpts/setpts))

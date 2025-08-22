@@ -174,5 +174,7 @@
       (is (instance? FilterChain (first (:chains result))))
       (is (instance? Filter (last (:chains result))))
       (is (= 2 (count (:chains result))))
-      (is (= 2 (count (:filters (first (:chains result)))))))))
+      (is (= 2 (count (:filters (first (:chains result))))))))
 
+  (testing "defgraph is idempotent")
+  )
