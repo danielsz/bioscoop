@@ -176,5 +176,9 @@
       (is (= 2 (count (:chains result))))
       (is (= 2 (count (:filters (first (:chains result))))))))
 
+  (testing "the name following defgraph cannot be a built-in name"
+    (is (thrown? AssertionError (defgraph split (split)))))
+  (testing "the name following defgraph cannot be a known clojure.core name"
+    (is (thrown? AssertionError (defgraph map (split)))))
   (testing "defgraph is idempotent")
   )

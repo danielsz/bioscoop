@@ -7,6 +7,7 @@
    [bioscoop.render :refer [to-ffmpeg to-dsl]]
    [bioscoop.ffmpeg-parser :as ffmpeg-parser]
    [bioscoop.parseable :refer [parse]]
+   [bioscoop.registry :refer [debug clear-registry!]]
    [bioscoop.macro :refer [bioscoop defgraph]]
    [bioscoop.domain.records :refer [join-filtergraphs compose+]]
    [bioscoop.built-in]
@@ -41,10 +42,33 @@
     (chain background-color part1 part2 part3 part4 part5)))
 
 
-(defgraph chinese-opera-woman (let [nozoom {:z "1" :d 400 :s "1920x1280"}]
-                                (zoompan nozoom {:input "0:v"} {:output "v1"})))
+(defgraph chinese-opera-woman (let [nozoom {:z "1" :d 800 :s "1920x1280"}]
+                                (zoompan nozoom {:input "0:v"} {:output "v2"})))
 
-(defgraph cross-fade (xfade {:transition "fade" :duration 8 :offset 6} (input-labels "intro" "v1") {:output "out"}))
+(defgraph chinese-opera-woman-zoom (let [zoom {:z "'min(zoom+0.0015,1.5)'" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}]
+                                     (zoompan zoom {:input "0:v"} {:output "f2"})))
+
+(defgraph chinese-opera-woman-trimmed (chain (trim {:duration 5} {:input "0:v"}) (setpts {:expr "PTS-STARTPTS"}) (fps {:fps "25"}) (scale {:width 1920 :height 1280 :force_original_aspect_ratio "decrease"} {:output "t1"})))
+
+(defgraph splitting (split {:input "0:v"} (output-labels "o0" "o1")))
+(defgraph chinese-opera-woman-padded (let [nozoom {:z "1" :d 300 :s "1920x1280"}
+                                           padding  {:width "1920" :height "1280" :x "(ow-iw)/2" :y "(oh-ih)/2" :color "#0F172A"}]
+                                      (chain (scale {:width 1152 :height 768 :force_original_aspect_ratio "decrease"} {:input "0:v"}) (pad padding) (zoompan nozoom {:output "v1"}))))
+
+(defgraph cross-fade (xfade {:transition "fade" :duration 8 :offset 6} (input-labels "intro" "v1") {:output "c1"}))
+(defgraph smoothleft (xfade {:transition "smoothleft" :duration 1 :offset 16} (input-labels "c1" "t1") {:output "p1"}))
+
+(defgraph assembly2
+  (chain (concat {:n 2 :v 1 :a 0} (input-labels "p1" "f2")) (format {:pix_fmts "yuv420p"} {:output "out"})))
+
+(comment (def bar (let [filter (to-ffmpeg (bioscoop (compose part1 chinese-opera-woman-zoom assembly2)))]
+                    (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
+
+(comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft)))]
+                    (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
+
+(defgraph part1 (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft))
+
 
 (defgraph the-haikou-diaries
   (let [base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontcolor "white"}
@@ -62,11 +86,11 @@
 (defgraph assembly
   (chain (concat {:n 5 :v 1 :a 0} (input-labels "intro" "p1" "p2" "v1" "v2")) (format {:pix_fmts "yuv420p"} {:output "out"})))
 
-(defn bioscoop-ad []
-  (bioscoop (graph (chain (smptebars {:output "v0"}))
-                   (chain (testsrc {:output "v1"}))
-                   (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
-                   (chain (overlay {:x "w"} {:input "out0"} {:input "v1"})))))
+(defgraph bioscoop-ad
+  (graph (chain (smptebars {:output "v0"}))
+         (chain (testsrc {:output "v1"}))
+         (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
+         (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))
 
 (defn xstack []
   (to-ffmpeg (bioscoop (let [space-grotesk "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2"
@@ -87,14 +111,17 @@
   (println (to-ffmpeg (compile-dsl (first args)))))
 
 
-(comment (def foo (ffmpeg/with-inputs (to-ffmpeg (join-filtergraphs (title) (the-haikou-diaries) (assembly))) "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg")))
-
-
 (comment (let [filter (to-ffmpeg (bioscoop (compose title the-haikou-diaries assembly)))]
            (ffmpeg/with-inputs filter "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg")))
 
 (comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title the-haikou-diaries assembly)))]
   (ffmpeg/with-inputs filter "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg"))))
 
-(comment ((let [filter (to-ffmpeg (bioscoop (compose title chinese-opera-woman cross-fade)))]
-            (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
+(defgraph ffy (let [a 1020] (scale {:width 1980 :height a})))
+(defgraph aa (let [a 1020] (scale 1980 a)))
+(defgraph b (let [c "red"
+                  background-color (color {:c c :size "1920x1280" :rate 25 :duration 16})]
+              (chain background-color (scale 450 300))))
+(defgraph z (chain (scale 340 455) (crop "440" "555")))
+(defgraph c (compose ffy b))
+(defgraph d (compose c z))
