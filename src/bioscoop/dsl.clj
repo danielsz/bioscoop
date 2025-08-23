@@ -142,7 +142,19 @@
     ))
 
 (defmethod transform-ast :symbol [[_ sym] env]
-  (or (registry/get-graph (symbol sym)) (env-get env sym) sym))
+  (let [env-val (env-get env sym)
+        graph-val (registry/get-graph (symbol sym))]
+    (cond
+      (and env-val graph-val) (throw (ex-info (str "Ambiguous symbol reference: '" sym "'\n"
+                                                   "This symbol exists as both a local binding and a graph definition.\n"
+                                                   "To resolve this ambiguity, use a different name for one of them.")
+                                              {:symbol sym
+                                               :local-value env-val
+                                               :graph-value graph-val
+                                               :type :ambiguous-symbol}))
+      graph-val graph-val
+      env-val env-val
+      :else sym)))
 
 (defmethod transform-ast :keyword [[_ kw] env]
   (keyword kw))
