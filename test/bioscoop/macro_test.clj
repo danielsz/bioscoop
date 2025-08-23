@@ -3,7 +3,7 @@
             [bioscoop.dsl :as dsl]
             [bioscoop.render :refer [to-ffmpeg]]
             [clojure.test :refer [deftest is testing use-fixtures]]
-            [bioscoop.registry :refer [clear-registry!]]
+            [bioscoop.registry :refer [clear-registry! get-graph]]
             [bioscoop.built-in])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
@@ -180,5 +180,12 @@
     (is (thrown? AssertionError (defgraph split (split)))))
   (testing "the name following defgraph cannot be a known clojure.core name"
     (is (thrown? AssertionError (defgraph map (split)))))
-  (testing "defgraph is idempotent")
-  )
+  (testing "defgraph is idempotent"
+    (do (defgraph foo (let [shade "red"
+                            background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
+                        (chain background-color (scale 450 300))))
+        (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))
+        (defgraph foo (let [shade "red"
+                            background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
+                        (chain background-color (scale 450 300))))
+        (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300")))))
