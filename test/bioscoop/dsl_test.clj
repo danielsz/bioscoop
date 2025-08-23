@@ -197,3 +197,12 @@
         (compile-dsl "(defgraph my-crop (scale \"1920\" \"1080\"))")
         (let [result (compile-dsl "(compose my-scale my-crop)")]
           (is (= 2 (count (.-chains result))))))))
+
+(deftest name-shadowing
+  (testing "When we use a the name of built-in function in a let binding, we shadow the built-in function so reject it"
+    (testing "built-in reserved words"
+      (let [dsl "(let [color red] (color {:c color}))"]
+        (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Reserved word:" (compile-dsl dsl)))))
+    (testing "built-in Clojure names"
+      (let [dsl "(let [map red] (color {:c map}))"]
+        (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))

@@ -3,8 +3,7 @@
 (def ^:private graph-registry (atom {}))
 
 (defn register-graph! [name graph]
-  {:pre [(not (or (ns-resolve 'clojure.core name)
-                  (ns-resolve 'bioscoop.built-in name)))]}
+  {:pre [(not (ns-resolve 'bioscoop.built-in name))]} ;; catches clojure.core too
   (swap! graph-registry assoc name graph))
 
 (defn get-graph [name]

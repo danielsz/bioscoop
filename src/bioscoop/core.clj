@@ -67,8 +67,7 @@
 (comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft)))]
                     (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
 
-(defgraph part1 (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft))
-
+(defgraph part-one (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft))
 
 (defgraph the-haikou-diaries
   (let [base-text {:fontfile "/home/daniel/go/pkg/mod/github.com/u-root/u-root@v0.14.1-0.20250724181933-b01901710169/docs/src/fonts/SpaceGrotesk.woff2" :fontcolor "white"}
@@ -117,11 +116,3 @@
 (comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title the-haikou-diaries assembly)))]
   (ffmpeg/with-inputs filter "/home/daniel/Pictures/thehaikoudiaries/DSCF3793_01.jpg" "/home/daniel/Pictures/thehaikoudiaries/DSCF3804_02.jpg"))))
 
-(defgraph ffy (let [a 1020] (scale {:width 1980 :height a})))
-(defgraph aa (let [a 1020] (scale 1980 a)))
-(defgraph b (let [c "red"
-                  background-color (color {:c c :size "1920x1280" :rate 25 :duration 16})]
-              (chain background-color (scale 450 300))))
-(defgraph z (chain (scale 340 455) (crop "440" "555")))
-(defgraph c (compose ffy b))
-(defgraph d (compose c z))

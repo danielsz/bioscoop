@@ -97,7 +97,16 @@
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
+        validate (fn [sym] (when-let [resolved (ns-resolve 'bioscoop.built-in (symbol sym))]
+                            (let [namespace (str (ns-name (:ns (meta resolved))))]
+                              (case namespace
+                                "clojure.core" (log/warn "You are binding a clojure.core name in the let binding. Caution advised")
+                                "bioscoop.built-in" (throw (ex-info (str "Reserved word: '" sym "'\n"
+                                                                        "This is the name of an existing ffmpeg filter and is reserved. Please use a different name")
+                                                                   {:symbol sym
+                                                                    :type :reserved-word}))))))
         new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
+                          (validate sym-name)
                           (let [expr-val (transform-ast expr acc-env)]
                             (env-put acc-env sym-name expr-val)))
                         (make-env env)
@@ -147,7 +156,7 @@
     (cond
       (and env-val graph-val) (throw (ex-info (str "Ambiguous symbol reference: '" sym "'\n"
                                                    "This symbol exists as both a local binding and a graph definition.\n"
-                                                   "To resolve this ambiguity, use a different name for one of them.")
+                                                   "To resolve this ambiguity, please use a different name for either one of them.")
                                               {:symbol sym
                                                :local-value env-val
                                                :graph-value graph-val

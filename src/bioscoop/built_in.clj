@@ -22,8 +22,7 @@
    [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
-   [bioscoop.domain.specs.shared.image-size :as image-size]
-   [clojure.tools.logging :as log]))
+   [bioscoop.domain.specs.shared.image-size :as image-size]))
 
 (defn template [arg spec]
   (if (seq arg)
