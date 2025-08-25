@@ -48,7 +48,7 @@
 (defgraph chinese-opera-woman-zoom (let [zoom {:z "'min(zoom+0.0015,1.5)'" :d 400 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)" :s "1920x1280"}]
                                      (zoompan zoom {:input "0:v"} {:output "f2"})))
 
-(defgraph chinese-opera-woman-trimmed (chain (trim {:duration 5} {:input "0:v"}) (setpts {:expr "PTS-STARTPTS"}) (fps {:fps "25"}) (scale {:width 1920 :height 1280 :force_original_aspect_ratio "decrease"} {:output "t1"})))
+(defgraph chinese-opera-woman-trimmed (chain (loop {:loop 124 :size 1} {:input "0:v"}) (setpts {:expr "PTS-STARTPTS"}) (fps {:fps "25"}) (scale {:width 1920 :height 1280 :force_original_aspect_ratio "decrease"} {:output "t1"})))
 
 (defgraph splitting (split {:input "0:v"} (output-labels "o0" "o1")))
 (defgraph chinese-opera-woman-padded (let [nozoom {:z "1" :d 300 :s "1920x1280"}
@@ -61,11 +61,11 @@
 (defgraph assembly2
   (chain (concat {:n 2 :v 1 :a 0} (input-labels "p1" "f2")) (format {:pix_fmts "yuv420p"} {:output "out"})))
 
-(comment (def bar (let [filter (to-ffmpeg (bioscoop (compose part1 chinese-opera-woman-zoom assembly2)))]
-                    (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
+(comment (def bar (let [filter (to-ffmpeg (bioscoop (compose part-one chinese-opera-woman-zoom assembly2)))]
+                    (ffmpeg/with-inputs filter ["/home/daniel/Pictures/chinese-opera/DSC09323.JPG"])) ))
 
 (comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft)))]
-                    (ffmpeg/with-inputs filter "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
+                    (ffmpeg/with-inputs filter "[p1]" "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
 
 (defgraph part-one (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft))
 

@@ -1,9 +1,9 @@
 {:pom {:group-id "org.danielsz"
        :artifact-id "bioscoop"
-       :version "1.0.0"
+       :version "1.0.1"
        :name "bioscoop"}
  :packaging {:uberjar
-             {:enabled true
+             {:enabled false
               :build-properties {:main-class "bioscoop.core"}
               :excludes {:artifacts ["org.clojure:google-closure-library" "com.google.javascript:closure-compiler"]
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
@@ -14,7 +14,7 @@
                         :agent {:enabled true
                                 :filter {:rules [{:excludeClasses "clojure.**"}
                                                  {:includeClasses "clojure.lang.Reflector"}]}}}}
-             :jar {:enabled false}}
+             :jar {:enabled true}}
  :interactive {:enabled true
                :reload-on-save true
                :repl-port 7888
