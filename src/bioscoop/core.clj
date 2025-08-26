@@ -64,7 +64,7 @@
 (comment (def bar (let [filter (to-ffmpeg (bioscoop (compose part-one chinese-opera-woman-zoom assembly2)))]
                     (ffmpeg/with-inputs filter ["/home/daniel/Pictures/chinese-opera/DSC09323.JPG"])) ))
 
-(comment (def foo (let [filter (to-ffmpeg (bioscoop (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft)))]
+(comment (def foo (let [filter (to-ffmpeg part-one)]
                     (ffmpeg/with-inputs filter "[p1]" "/home/daniel/Pictures/chinese-opera/DSC09323.JPG")) ))
 
 (defgraph part-one (compose title chinese-opera-woman-padded cross-fade chinese-opera-woman-trimmed smoothleft))

@@ -17,7 +17,6 @@
     (.directory pb (io/file working-dir))
     (.start pb)))
 
-
 (defn with-inputs
   "It's possible to destroy the process if we keep a handle on the Process instance"
   ([filter inputs]
@@ -37,7 +36,7 @@
   "It's possible to destroy the process if we keep a handle on the Process instance"
   [filter & inputs]
   (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
-        cmd (-> [ffmpeg-bin "-y""-loop" "1" "-t" "5" "-i"]
+        cmd (-> [ffmpeg-bin "-y" "-loop" "1" "-t" "5" "-i"]
                (into (interpose "-loop 1 -t 5 -i" inputs))
                (conj "-filter_complex" filter "-map" "[out]" "output.mp4"))
         pb (ProcessBuilder. cmd)]

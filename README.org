@@ -1,0 +1,38 @@
+* Bioscoop
+
+** Motivation 
+
+Yes, FFmpeg is everywhere and it is amazing, but it is mainly used for
+post-processing. Bioscoop is an attempt to unleash the power of FFmpeg
+in the creative process. It offers an alternative to Non-Linear
+editing of videos in favor of a programmatic approach.
+
+FFmpeg offers a wealth of filters that can be
+terseness, information density
+
+
+FFmpeg has asserted its dominance in the post-processing phase of
+video 
+Unleash the power of FFmpeg in the creative process, beyond its
+dominance in the post-processing 
+
+
+[file:resources/itsallaboutfilters.jpeg]
+
+
+#+HTML: <img src="resources/itsallaboutfilters.jpeg" width="867" height="499"/>
+
+It is a language-focused solution to the information density problem
+of FFmpeg's filtergraph syntax.
+
+#+HTML: <video controls width="400"><source src="resources/output.mp4" type="video/mp4/></video>
+
+#+begin_src clojure
+
+#+end_src
+
+Told in the words of communties:
+
+- Clojurians: a dsl that compiles Lisp forms to FFmpeg's filtergraph
+- PLT: A context-free grammar describing a simple Lisp language -> AST transformation into data structues
+-   
