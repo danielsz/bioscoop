@@ -1,6 +1,6 @@
 {:pom {:group-id "org.danielsz"
        :artifact-id "bioscoop"
-       :version "1.0.3"
+       :version "1.0.4"
        :name "bioscoop"}
  :packaging {:uberjar
              {:enabled false
