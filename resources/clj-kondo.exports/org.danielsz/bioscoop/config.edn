@@ -1,0 +1,28 @@
+{;; Configure the bioscoop and defgraph macro hooks
+ :hooks {:analyze-call {bioscoop.macro/bioscoop org.danielsz.bioscoop.hooks/bioscoop
+                        bioscoop.macro/defgraph org.danielsz.bioscoop.hooks/defgraph}}
+
+ ;; Namespace-level configuration
+ :config-in-ns {bioscoop.hooks
+                {:linters {:unused-namespace {:level :off}
+                           :unused-referred-var {:level :off}}}
+
+                ;; For test files using the macro
+                bioscoop.macro-test
+                {:linters {:unresolved-symbol {:exclude [scale crop overlay fade
+                                                         filter chain graph
+                                                         input-labels output-labels]}}}}
+
+ ;; Global linter configuration
+ :linters {:unresolved-symbol {:exclude [;; Core macros
+                                         bioscoop.macro/bioscoop
+                                         bioscoop.macro/defgraph
+                                        ;; DSL functions (when used outside namespaces)
+                                         scale crop overlay fade
+                                         filter chain graph
+                                         input-labels output-labels]}
+
+           ;; Reduce noise for DSL usage
+           :unused-binding {:exclude-destructured-keys-in-fn-args true}
+           :redundant-do {:level :off} ; Our hook uses 'do' as placeholder
+           :unused-value {:level :warning}}}
