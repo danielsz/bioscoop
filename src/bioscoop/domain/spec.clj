@@ -54,15 +54,7 @@
       ;; If not a keys spec, return original map
       unnamespaced-map)))
 
-;; Below is temporary, requires reorganization (ongoing)
 
-;; hflip (horizontal flip filter)
-(s/def ::hflip
-  (s/keys :opt-un []))
-
-;; vflip (vertical flip filter)
-(s/def ::vflip
-  (s/keys :opt-un []))
 
 
 

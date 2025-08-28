@@ -4,6 +4,7 @@
    [bioscoop.domain.records :refer [make-filter]]
    [bioscoop.domain.spec :as spec]
    [bioscoop.domain.specs.color :as color]
+   [bioscoop.domain.specs.hue :as hue]
    [bioscoop.domain.specs.format :as format]
    [bioscoop.domain.specs.drawtext :as drawtext]
    [bioscoop.domain.specs.zoompan :as zoompan]
@@ -15,6 +16,15 @@
    [bioscoop.domain.specs.overlay :as overlay]
    [bioscoop.domain.specs.sources :as sources]
    [bioscoop.domain.specs.layout :as layout]
+   [bioscoop.domain.specs.negate :as negate]
+   [bioscoop.domain.specs.threshold :as threshold]
+   [bioscoop.domain.specs.edgedetect :as edgedetect]
+   [bioscoop.domain.specs.gradients :as gradients]
+   [bioscoop.domain.specs.palette :as palette]
+   [bioscoop.domain.specs.blend :as blend]
+   [bioscoop.domain.specs.curves :as curves]
+   [bioscoop.domain.specs.geq :as geq]
+   [bioscoop.domain.specs.flip :as flip]
    [bioscoop.domain.specs.loop :as loop]
    [bioscoop.domain.specs.split :as split]
    [bioscoop.domain.specs.trim :as trim]
@@ -51,7 +61,10 @@
   (template arg ::overlay/overlay))
 
 (defn hflip [arg]
-  (template arg ::spec/hflip))
+  (template arg ::flip/hflip))
+
+(defn vflip [arg]
+  (template arg ::flip/vflip))
 
 (defn color [arg]
   (template arg ::color/color))
@@ -127,3 +140,33 @@
 
 (defn setpts [arg]
   (template arg ::setpts/setpts))
+
+(defn hue [arg]
+  (template arg ::hue/hue))
+
+(defn negate [arg]
+  (template arg ::negate/negate))
+
+(defn edgedetect [arg]
+  (template arg ::edgedetect/edgedetect))
+
+(defn gradients [arg]
+  (template arg ::gradients/gradients))
+
+(defn paletteuse [arg]
+  (template arg ::palette/paletteuse))
+
+(defn palettegen [arg]
+  (template arg ::palette/palettegen))
+
+(defn geq [arg]
+  (template arg ::geq/geq))
+
+(defn threshold [arg]
+  (template arg ::threshold/threshold))
+
+(defn curves [arg]
+  (template arg ::curves/curves))
+
+(defn blend [arg]
+  (template arg ::blend/blend))
