@@ -23,6 +23,7 @@
    [bioscoop.domain.specs.palette :as palette]
    [bioscoop.domain.specs.blend :as blend]
    [bioscoop.domain.specs.curves :as curves]
+   [bioscoop.domain.specs.lumakey :as lumakey]
    [bioscoop.domain.specs.geq :as geq]
    [bioscoop.domain.specs.flip :as flip]
    [bioscoop.domain.specs.loop :as loop]
@@ -170,3 +171,6 @@
 
 (defn blend [arg]
   (template arg ::blend/blend))
+
+(defn lumakey [arg]
+  (template arg ::lumakey/lumakey))
