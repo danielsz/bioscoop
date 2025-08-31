@@ -1,7 +1,9 @@
 (ns bioscoop.macro
   (:require [bioscoop.dsl :as dsl]
             [clojure.tools.logging :as log]
-            [bioscoop.registry :as registry]))
+            [bioscoop.registry :as registry]
+            [bioscoop.error-handling :refer [error-processing]])
+  (:import [bioscoop.domain.records FilterGraph]))
 
 (defn form->ast
   "Convert a Clojure form to the same AST structure that Instaparse produces"
@@ -73,8 +75,11 @@
   (dsl/compile-dsl \"(let [width 1920] (scale width 1080))\")"
   [& forms]
   (let [ast-nodes (mapv form->ast forms)
-        program-ast (vec (concat [:program] ast-nodes))]
-    `(dsl/transform-ast ~program-ast (dsl/make-env))))
+        program-ast (vec (concat [:program] ast-nodes))
+        result# `(dsl/transform-ast ~program-ast (dsl/make-env))]
+    `(if (instance? FilterGraph ~result#)
+       ~result#
+      (error-processing ~result#))))
 
 (defmacro defgraph [name & body]
   `(let [graph# (bioscoop ~@body)]

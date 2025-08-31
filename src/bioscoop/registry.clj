@@ -1,4 +1,5 @@
-(ns bioscoop.registry)
+(ns bioscoop.registry
+  (:require [clojure.tools.logging :as log]))
 
 (def ^:private graph-registry (atom {}))
 

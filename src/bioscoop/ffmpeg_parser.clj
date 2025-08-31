@@ -77,7 +77,7 @@
         [filter-name filter-args] (extract-filter-spec filter-spec)
         transformed-args (map transform-arg filter-args)
         base-filter (if filter-args
-                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) transformed-args)
+                      ((ns-resolve 'bioscoop.built-in (symbol filter-name)) transformed-args {:errors (atom [])})
                       (make-filter filter-name))]
     ;; Add labels as metadata if present
     (cond-> base-filter

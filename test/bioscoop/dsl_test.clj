@@ -6,7 +6,7 @@
             [bioscoop.registry :refer [get-graph clear-registry!]]
             [clojure.test :refer [testing deftest is use-fixtures]]
             [instaparse.core :as insta])
-  (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
+  (:import [bioscoop.domain.records FilterGraph]))
 
 (defn once-fixture [f]
   (f)
@@ -38,6 +38,18 @@
           bar (meta (first (:filters (second  (:chains foo)))))]
       (is (= ["tmp"] (:input-labels bar)))
       (is (= ["right"] (:output-labels bar)))))
+
+  (testing "Multiple expressions, implicit filterchain"
+    (let [dsl "(scale 1920 1080)
+               (overlay)"
+          result (compile-dsl dsl)]
+      (is (= "scale=width=1920:height=1080;overlay" (to-ffmpeg result)))))
+
+  (testing "Multiple expressions, one is invalid"
+    (let [dsl "(scale 1920 1080)
+               (overlay) 1"
+          result (compile-dsl dsl)]
+      (is (= :bad-apple (:error-type result)))))
   
   (testing "Filter chain"
     (let [dsl "(chain 
@@ -122,7 +134,9 @@
 
 (deftest test-programs
   (testing "let binding should return valid structures (filter, filterchain, filtergraph)"
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Not a valid" (compile-dsl "(let [x 1] x)")))))
+    (is (= :not-a-filtergraph (:error-type (compile-dsl "(let [x 1] x)")))))
+  (testing "invalid parameters"
+    (is (= :invalid-parameter (:error-type (compile-dsl "(scale 1.23 456)"))))))
 
 (deftest let-bindings
   (testing "Mathematical functions from clojure.core"
@@ -135,7 +149,7 @@
   (testing "Negative numbers work properly"
     (is (= "scale=width=10:height=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))")))))
   (testing "Unknown functions still become filters"
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Cannot" (compile-dsl "(nonexistent 123 456)")))))
+    (is (= :unresolved-function (:error-type (compile-dsl "(nonexistent 123 456)"))))))
 
 (deftest real-world
   (testing "flip"
@@ -202,7 +216,7 @@
   (testing "When we use a the name of built-in function in a let binding, we shadow the built-in function so reject it"
     (testing "built-in reserved words"
       (let [dsl "(let [color red] (color {:c color}))"]
-        (is (thrown-with-msg? clojure.lang.ExceptionInfo #"^Reserved word:" (compile-dsl dsl)))))
+        (is (= :reserved-word (:error-type  (compile-dsl dsl))))))
     (testing "built-in Clojure names"
       (let [dsl "(let [map red] (color {:c map}))"]
         (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))

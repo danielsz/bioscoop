@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain join-filtergraphs compose+]]
-            [bioscoop.registry :as registry])
+            [bioscoop.registry :as registry]
+            [bioscoop.error-handling :refer [accumulate-error error-processing]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
@@ -13,8 +14,8 @@
 
 ;; Environment for let bindings
 (defn make-env
-  ([] {})
-  ([parent] (assoc {} :parent parent)))
+  ([] {:errors (atom [])})
+  ([parent] (assoc {:errors (atom [])} :parent parent)))
 
 (defn env-get [env sym]
   (if-let [val (get env sym)]
@@ -61,13 +62,8 @@
             (instance? FilterChain single) (make-filtergraph [single])
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
             :else
-            (if (and (map? single) (= :clojure.spec.alpha/problems (key (first single))))
-              (throw (ex-info "Not a valid parameter" {:value (:clojure.spec.alpha/value single)
-                                                       :problems (:clojure.spec.alpha/problems single)}))
-              (throw (ex-info "Not a valid ffmpeg program (filtergraph)"
-                              {:expr single
-                               :type (type single)
-                               :hint "End your program with a filter, chain, or graph operation"})))))
+            (do (accumulate-error env single :not-a-filtergraph)
+                env)))
       ;; Multiple expressions
       (if (every? #(or (instance? Filter %)
                        (instance? FilterChain %)
@@ -78,9 +74,8 @@
                   (instance? Filter %) (make-filterchain [%])
                   (instance? FilterGraph %) (first (:chains %)))
                transformed))
-        (throw (ex-info "All expressions in DSL program must produce filter operations"
-                        {:expressions transformed
-                         :hint "Each expression should create filters, chains, or graphs"}))))))
+        (do (accumulate-error env transformed :bad-apple)
+            env)))))
 
 (defmethod transform-ast :compose [[_ & content] env]
   (let [children (mapv #(transform-ast % env) (rest content))]
@@ -101,10 +96,7 @@
                             (let [namespace (str (ns-name (:ns (meta resolved))))]
                               (case namespace
                                 "clojure.core" (log/warn "You are binding a clojure.core name in the let binding. Caution advised")
-                                "bioscoop.built-in" (throw (ex-info (str "Reserved word: '" sym "'\n"
-                                                                        "This is the name of an existing ffmpeg filter and is reserved. Please use a different name")
-                                                                   {:symbol sym
-                                                                    :type :reserved-word}))))))
+                                "bioscoop.built-in" (accumulate-error env sym :reserved-word)))))
         new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
                           (validate sym-name)
                           (let [expr-val (transform-ast expr acc-env)]
@@ -127,7 +119,8 @@
       "output-labels" (with-meta (vec transformed-args) {:labels :output})
       (let [base-filter (let [fn-args (remove vector? transformed-args)]
                           (if (seq fn-args)
-                            ((resolve-function transformed-op) fn-args)
+                            (let [resolved (resolve-function transformed-op env)]
+                              (resolved fn-args env))
                             (make-filter transformed-op)))
             label-args (filter vector? transformed-args)]
         (if (seq label-args)
@@ -179,16 +172,20 @@
 (defmethod transform-ast :boolean [[_ b] env]
   (parse-boolean b))
 
-(defn resolve-function [op]
+(defn resolve-function [op env]
   (let [f (ns-resolve 'bioscoop.built-in (symbol op))]
     (case (str (:ns (meta f)))
       "bioscoop.built-in" f
-      "clojure.core" (fn [arg] (apply f arg))
-      (throw (ex-info "Cannot resolve function" {:name op})))))
+      "clojure.core" (fn [arg _] (apply f arg))
+      (do (accumulate-error env op :unresolved-function)
+          (fn [_ _] ())))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]
   (let [ast (dsl-parser dsl-code)]
     (if (insta/failure? ast)
       (throw (ex-info "Parse error" {:error ast}))
-      (transform-ast ast (make-env)))))
+      (let [result (transform-ast ast (make-env))]
+        (if (instance? FilterGraph result)
+          result
+          (error-processing result))))))

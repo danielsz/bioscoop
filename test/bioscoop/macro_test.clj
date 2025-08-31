@@ -4,7 +4,8 @@
             [bioscoop.render :refer [to-ffmpeg]]
             [clojure.test :refer [deftest is testing use-fixtures]]
             [bioscoop.registry :refer [clear-registry! get-graph]]
-            [bioscoop.built-in])
+            [bioscoop.built-in]
+            [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
 (defn once-fixture [f]
@@ -63,7 +64,7 @@
       (is (= "scale=width=1920:height=1080,crop=out_w=800:w=600:out_h=10:h=20,overlay" (to-ffmpeg structures)))))
 
   (testing "undefined function"
-    (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Cannot resolve function" (bioscoop (undefined-function 123)))))
+    (is (= :unresolved-function (:error-type (bioscoop (undefined-function 123))))))
 
   (testing "Macro produces same results as text parsing"
     (let [text-result (dsl/compile-dsl "(scale 1920 1080)")
@@ -181,11 +182,12 @@
   (testing "the name following defgraph cannot be a known clojure.core name"
     (is (thrown? AssertionError (defgraph map (split)))))
   (testing "defgraph is idempotent"
-    (do (defgraph foo (let [shade "red"
-                            background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
-                        (chain background-color (scale 450 300))))
-        (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))
-        (defgraph foo (let [shade "red"
-                            background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
-                        (chain background-color (scale 450 300))))
-        (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300")))))
+    (defgraph foo (let [shade "red"
+                        background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
+                    (chain background-color (scale 450 300))))
+    (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))
+    (log/debug (bioscoop.registry/debug))
+    (defgraph foo (let [shade "red"
+                        background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
+                    (chain background-color (scale 450 300))))
+    (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))))

@@ -33,144 +33,142 @@
    [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
-   [bioscoop.domain.specs.shared.image-size :as image-size]))
+   [bioscoop.domain.specs.shared.image-size :as image-size]
+   [bioscoop.error-handling :refer [accumulate-error]]))
 
-(defn template [arg spec]
+(defn template [arg spec env]
   (if (seq arg)
     (if (map? (first arg))
       (let [m (first arg)]
         (if (s/valid? spec m)
           (make-filter (name spec) (spec/spec-aware-namespace-map spec m))
-          (s/explain-data spec m)))
+          (accumulate-error env m spec :invalid-parameter)))
       (let [formal-keys (last (s/form spec))
             m (zipmap formal-keys arg)]
         (if (s/valid? spec m)
           (make-filter (name spec) m)
-          (s/explain-data spec m))))
+          (accumulate-error env m spec :invalid-parameter))))
     (make-filter (name spec))))
 
-(defn scale [arg]
-  (template arg ::scale/scale))
+(defn scale [arg env]
+  (template arg ::scale/scale env))
 
-(defn crop [arg]
-  (template arg ::crop/crop))
+(defn crop [arg env]
+  (template arg ::crop/crop env))
 
-(defn fade [arg]
-  (template arg ::fade/fade))
+(defn fade [arg env]
+  (template arg ::fade/fade env))
 
-(defn overlay [arg]
-  (template arg ::overlay/overlay))
+(defn overlay [arg env]
+  (template arg ::overlay/overlay env))
 
-(defn hflip [arg]
-  (template arg ::flip/hflip))
+(defn hflip [arg env]
+  (template arg ::flip/hflip env))
 
-(defn vflip [arg]
-  (template arg ::flip/vflip))
+(defn vflip [arg env]
+  (template arg ::flip/vflip env))
 
-(defn color [arg]
-  (template arg ::color/color))
+(defn color [arg env]
+  (template arg ::color/color env))
 
-(defn format [arg]
-  (template arg ::format/format))
+(defn format [arg env]
+  (template arg ::format/format env))
 
-(defn drawtext
-  [arg]
-  (template arg ::drawtext/drawtext))
+(defn drawtext [arg env]
+  (template arg ::drawtext/drawtext env))
 
-(defn zoompan
-  [arg]
-  (template arg ::zoompan/zoompan))
+(defn zoompan [arg env]
+  (template arg ::zoompan/zoompan env))
 
-(defn concat
-  [arg]
-  (template arg ::concat/concat))
+(defn concat [arg env]
+  (template arg ::concat/concat env))
 
-(defn pad [arg]
-  (template arg ::pad/pad))
+(defn pad [arg env]
+  (template arg ::pad/pad env))
 
-(defn testsrc [arg]
-  (template arg ::sources/testsrc))
+(defn testsrc [arg env]
+  (template arg ::sources/testsrc env))
 
-(defn rgbtestsrc [arg]
-  (template arg ::sources/rgbtestsrc))
+(defn rgbtestsrc [arg env]
+  (template arg ::sources/rgbtestsrc env))
 
-(defn smptebars [arg]
-  (template arg ::sources/smptebars))
+(defn smptebars [arg env]
+  (template arg ::sources/smptebars env))
 
-(defn smptehdbars [arg]
-  (template arg ::sources/smptehdbars))
+(defn smptehdbars [arg env]
+  (template arg ::sources/smptehdbars env))
 
-(defn haldclutsrc [arg]
-  (template arg ::sources/haldclutsrc))
+(defn haldclutsrc [arg env]
+  (template arg ::sources/haldclutsrc env))
 
-(defn yuvtestsrc [arg]
-  (template arg ::sources/yuvtestsrc))
+(defn yuvtestsrc [arg env]
+  (template arg ::sources/yuvtestsrc env))
 
-(defn hstack [arg]
-  (template arg ::layout/hstack))
+(defn hstack [arg env]
+  (template arg ::layout/hstack env))
 
-(defn vstack [arg]
-  (template arg ::layout/vstack))
+(defn vstack [arg env]
+  (template arg ::layout/vstack env))
 
-(defn xstack [arg]
-  (template arg ::layout/xstack))
+(defn xstack [arg env]
+  (template arg ::layout/xstack env))
 
-(defn tile [arg]
-  (template arg ::layout/tile))
+(defn tile [arg env]
+  (template arg ::layout/tile env))
 
-(defn xfade [arg]
-  (template arg ::effects/xfade))
+(defn xfade [arg env]
+  (template arg ::effects/xfade env))
 
-(defn loop [arg]
-  (template arg ::loop/loop))
+(defn loop [arg env]
+  (template arg ::loop/loop env))
 
-(defn fps [arg]
-  (template arg ::fps/fps))
+(defn fps [arg env]
+  (template arg ::fps/fps env))
 
-(defn split [arg]
-  (template arg ::split/split))
+(defn split [arg env]
+  (template arg ::split/split env))
 
-(defn trim [arg]
-  (template arg ::trim/trim))
+(defn trim [arg env]
+  (template arg ::trim/trim env))
 
-(defn setdar [arg]
-  (template arg ::image-size/setdar))
+(defn setdar [arg env]
+  (template arg ::image-size/setdar env))
 
-(defn setsar [arg]
-  (template arg ::image-size/setsar))
+(defn setsar [arg env]
+  (template arg ::image-size/setsar env))
 
-(defn setpts [arg]
-  (template arg ::setpts/setpts))
+(defn setpts [arg env]
+  (template arg ::setpts/setpts env))
 
-(defn hue [arg]
-  (template arg ::hue/hue))
+(defn hue [arg env]
+  (template arg ::hue/hue env))
 
-(defn negate [arg]
-  (template arg ::negate/negate))
+(defn negate [arg env]
+  (template arg ::negate/negate env))
 
-(defn edgedetect [arg]
-  (template arg ::edgedetect/edgedetect))
+(defn edgedetect [arg env]
+  (template arg ::edgedetect/edgedetect env))
 
-(defn gradients [arg]
-  (template arg ::gradients/gradients))
+(defn gradients [arg env]
+  (template arg ::gradients/gradients env))
 
-(defn paletteuse [arg]
-  (template arg ::palette/paletteuse))
+(defn paletteuse [arg env]
+  (template arg ::palette/paletteuse env))
 
-(defn palettegen [arg]
-  (template arg ::palette/palettegen))
+(defn palettegen [arg env]
+  (template arg ::palette/palettegen env))
 
-(defn geq [arg]
-  (template arg ::geq/geq))
+(defn geq [arg env]
+  (template arg ::geq/geq env))
 
-(defn threshold [arg]
-  (template arg ::threshold/threshold))
+(defn threshold [arg env]
+  (template arg ::threshold/threshold env))
 
-(defn curves [arg]
-  (template arg ::curves/curves))
+(defn curves [arg env]
+  (template arg ::curves/curves env))
 
-(defn blend [arg]
-  (template arg ::blend/blend))
+(defn blend [arg env]
+  (template arg ::blend/blend env))
 
-(defn lumakey [arg]
-  (template arg ::lumakey/lumakey))
+(defn lumakey [arg env]
+  (template arg ::lumakey/lumakey env))
