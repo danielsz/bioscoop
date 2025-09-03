@@ -188,6 +188,8 @@
     (is (= 1 (count (dsl-parses ":input"))))
     (is (= 1 (count (dsl-parses "-6"))))
     (is (= 1 (count (dsl-parses "-6.6"))))
+    (is (= 1 (count (dsl-parses "[[in] foo [out]]"))))
+    (is (= 1 (count (dsl-parses "[[v:0][v:1] foo [out]]"))))
     (is (= 1 (count (dsl-parses "{:input \"tmp\"}"))))
     (is (= 1 (count (dsl-parses "{:input \"tmp\",}"))))
     (is (= 1 (count (dsl-parses "{:input \"tmp\" :output \"right\"}"))))

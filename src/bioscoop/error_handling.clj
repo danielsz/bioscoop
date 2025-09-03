@@ -22,7 +22,11 @@
              :invalid-parameter (fn [sym spec] (ex-info "Not a valid parameter" {:symbol sym
                                                                                 :error-type :invalid-parameter
                                                                                 :explanation (s/explain-str spec sym)
-                                                                                :explanation-data (s/explain-data spec sym)}))} )
+                                                                                :explanation-data (s/explain-data spec sym)}))
+             :padded-graph (fn [sym] (ex-info "You can only label pads one filterchain at the time"
+                                              {:symbol sym
+                                               :error-type :padded-graph
+                                               :explanation "Multiple filtechains found. You can only label pads one filterchain at the time"}))})
 
 (defn accumulate-error* [env error]
   (swap! (:errors env) conj error))

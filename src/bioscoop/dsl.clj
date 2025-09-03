@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain join-filtergraphs compose+]]
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose+]]
             [bioscoop.registry :as registry]
             [bioscoop.error-handling :refer [accumulate-error error-processing]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
@@ -89,6 +89,29 @@
       (registry/register-graph! (symbol graph-name) graph))
     graph))
 
+(defn padded-graph-helper [body]
+  (loop [xs body
+         result {:input [] :expr nil :output []}
+         flag false]
+    (if (empty? xs)
+      result
+      (let [[label _ :as x] (first xs)]
+        (cond
+          (and (= label :label) (not flag)) (recur (next xs) (update  result :input conj x) flag)
+          (and (= label :label) flag) (recur (next xs) (update  result :output conj x) flag)
+          :else (recur (next xs) (assoc result :expr x) true)))) ))
+
+(defmethod transform-ast :padded-graph [[_ & body] env]
+  (let [{:keys [input expr output]} (padded-graph-helper body)
+        filtergraph (transform-ast expr env)]
+    (if (= 1 (count (.-chains filtergraph)))
+      (let [filters (.-filters (first (.-chains filtergraph)))]
+        (if (= (first filters) (last filters))
+          (with-labels (first filters) (mapv #(transform-ast % env) input) (mapv #(transform-ast % env) output))
+          (make-filterchain nil)))
+      (do (accumulate-error env filtergraph :padded-graph)
+          filtergraph))))
+
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
@@ -163,6 +186,9 @@
 
 (defmethod transform-ast :string [[_ s] env]
   s)
+
+(defmethod transform-ast :label [[_ label] env]
+  label)
 
 (defmethod transform-ast :number [[_ n] env]
   (if (str/includes? n ".")

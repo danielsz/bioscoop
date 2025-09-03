@@ -1,17 +1,19 @@
-program = (expression | graph-definition)*
+program = expression*
 
-<expression> = atom | list | let-binding | map | compose
+<expression> = atom | list | let-binding | map | compose | graph-definition | padded-graph
 
 let-binding = <'('> <'let'> binding-vector expression+ <')'>
 <binding-vector> = <'['> binding* <']'>
 binding = symbol expression
 
 graph-definition = <'('> <'defgraph'> symbol expression* <')'>
+padded-graph = <'['> label+ expression* label+ <']'>
 compose = <'('> 'compose' expression+ <')'>
 
 list = <'('> expression* <')'>
 <mapentry> = keyword atom [<','>]
 map = <'{'> mapentry* <'}'>
+label = <'['> #'[a-zA-Z0-9_:]+' <']'>
 <atom> = number | boolean | !boolean !number symbol | string | keyword
 
 number = #'-?\d+(\.\d+)?'
