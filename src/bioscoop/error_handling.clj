@@ -23,10 +23,14 @@
                                                                                 :error-type :invalid-parameter
                                                                                 :explanation (s/explain-str spec sym)
                                                                                 :explanation-data (s/explain-data spec sym)}))
-             :padded-graph (fn [sym] (ex-info "You can only label pads one filterchain at the time"
-                                              {:symbol sym
-                                               :error-type :padded-graph
-                                               :explanation "Multiple filtechains found. You can only label pads one filterchain at the time"}))})
+             :padded-graph-multiple-filterchains (fn [sym] (ex-info "You can only label pads on a filtergraph that consists of one and only one filterchain."
+                                                                   {:symbol sym
+                                                                    :error-type :padded-graph
+                                                                    :explanation "Multiple filterchains found. You can only label pads one filterchain at the time"}))
+             :padded-graph-not-a-filtergraph (fn [sym] (ex-info "You can only label pads on a filtergraph expression. "
+                                                               {:symbol sym
+                                                                :error-type :padded-graph
+                                                                :explanation "Not a filtergraph expression. You can only label pads on a filtergraph expression."}))})
 
 (defn accumulate-error* [env error]
   (swap! (:errors env) conj error))

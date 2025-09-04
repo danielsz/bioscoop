@@ -191,3 +191,18 @@
                         background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
                     (chain background-color (scale 450 300))))
     (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))))
+
+(deftest padded-graph
+  (testing "single filter"
+    (do (defgraph my-crop (crop "220"))
+        (let [structures (bioscoop [["in"]["off"] my-crop ["out"]])]
+          (is (= "[in][off]crop=out_w=220[out]" (to-ffmpeg structures))))))
+  (testing "inline filterchain"
+    (let [structures (bioscoop [["in"]["off"] (chain (scale 1920 1080) (crop "220")) ["out"]])]
+      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg structures)))))
+  (testing "multiple filters"
+    (defgraph foo (let [shade "red"
+                        background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
+                    (chain background-color (scale 450 300))))
+    (let [structures (bioscoop [["in"]["off"] foo ["out"]])]
+      (is (= "[in][off]color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300[out]" (to-ffmpeg structures))))))

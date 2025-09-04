@@ -222,3 +222,16 @@
     (testing "built-in Clojure names"
       (let [dsl "(let [map red] (color {:c map}))"]
         (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))
+
+(deftest padded-graph
+  (testing "single filter"
+    (let [dsl1 (compile-dsl "(defgraph my-crop (crop \"220\"))")
+          dsl2 (compile-dsl "[[in][off] my-crop [out]]")]
+      (is (= "[in][off]crop=out_w=220[out]" (to-ffmpeg dsl2)))))
+  (testing "filterchain with two filters"
+    (let [_ (compile-dsl "(defgraph my-scale (chain (scale 1920 1080) (crop \"220\")))")
+          dsl2 (compile-dsl "[[in][off] my-scale [out]]")]
+      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl2)))))
+  (testing "inline filterchain"
+    (let [dsl (compile-dsl "[[in][off] (chain (scale 1920 1080) (crop \"220\")) [out]]")]
+      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl))))))

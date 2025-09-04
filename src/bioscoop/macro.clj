@@ -53,9 +53,9 @@
     (or (= form true) (= form false))
     [:boolean (str form)]
 
-    ;; Handle vectors by treating them as binding vectors (for let syntax)
+    ;; Handle padded graphs
     (vector? form)
-    form ; Return as-is, this handles binding vectors in let expressions
+    (into [:padded-graph] (map #(if (vector? %) [:label (str (first %))] (form->ast %)) form))
 
     (map? form)
     (let [kw (map form->ast (keys form))
@@ -67,8 +67,7 @@
 
 (defmacro bioscoop
   "Macro that takes Clojure DSL forms and produces the same AST as Instaparse parsing.
-  
-  Example:
+    Example:
   (bioscoop (let [width 1920] (scale width 1080)))
   
   This produces the same result as:

@@ -103,14 +103,17 @@
 
 (defmethod transform-ast :padded-graph [[_ & body] env]
   (let [{:keys [input expr output]} (padded-graph-helper body)
-        filtergraph (transform-ast expr env)]
-    (if (= 1 (count (.-chains filtergraph)))
-      (let [filters (.-filters (first (.-chains filtergraph)))]
-        (if (= (first filters) (last filters))
-          (with-labels (first filters) (mapv #(transform-ast % env) input) (mapv #(transform-ast % env) output))
-          (make-filterchain nil)))
-      (do (accumulate-error env filtergraph :padded-graph)
-          filtergraph))))
+        filtergraph (transform-ast expr env)
+        f (fn [filters] (make-filterchain (-> filters
+                                            (update 0 with-input-labels (mapv #(transform-ast % env) input))
+                                            (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output)))))]    
+    (cond
+      (instance? FilterChain filtergraph) (let [filters (.-filters filtergraph)]
+                                            (f filters))
+      (and (instance? FilterGraph filtergraph) (> 1 (count (.-chains filtergraph)))) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
+      (instance? FilterGraph filtergraph) (let [filters (.-filters (first (.-chains filtergraph)))]
+                                            (f filters))
+      :else (accumulate-error env filtergraph :padded-graph-not-a-filtergraph))))
 
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
