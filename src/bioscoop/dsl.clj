@@ -104,9 +104,9 @@
 (defmethod transform-ast :padded-graph [[_ & body] env]
   (let [{:keys [input expr output]} (padded-graph-helper body)
         filtergraph (transform-ast expr env)
-        f (fn [filters] (make-filterchain (-> filters
-                                            (update 0 with-input-labels (mapv #(transform-ast % env) input))
-                                            (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output)))))]    
+        f (fn [filters] (make-filtergraph [(make-filterchain (-> filters
+                                                               (update 0 with-input-labels (mapv #(transform-ast % env) input))
+                                                               (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output))))]))]    
     (cond
       (instance? FilterChain filtergraph) (let [filters (.-filters filtergraph)]
                                             (f filters))
