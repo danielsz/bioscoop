@@ -27,6 +27,7 @@
                 (into (interpose "-i" inputs))
                 (conj "-filter_complex" filter "-map" out "output.mp4"))
          pb (ProcessBuilder. cmd)]
+     (log/info cmd)
      (.redirectOutput pb log)
      (.redirectError pb log)
      (.directory pb (io/file (System/getProperty "java.io.tmpdir")))

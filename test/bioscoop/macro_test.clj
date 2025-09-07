@@ -218,4 +218,14 @@
         (let [result (bioscoop (let [a [["0:v"] my-scale ["v0a"] ["v0b"]]
                                      b [["v0a"] my-crop ["v0"]]]
                                  (compose a b)))]
-            (is (= 2 (count (.-chains result))))))))
+          (is (= 2 (count (.-chains result)))))
+        (let [result (bioscoop (compose [["0:v"] my-scale ["v0a"] ["v0b"]]
+                                        [["v0a"] my-crop ["v0"]]))]
+          (is (= 2 (count (.-chains result)))))))
+  (testing "we can compose inline filtergraphs"
+    (let [result (bioscoop (compose [["0:v"] (chain (scale 1920 1080) (crop "222")) ["v01"]]
+                                    [["v0a"] my-crop ["v0"]]))]
+      (is (= 2 (count (.-chains result)))))
+    (let [result (bioscoop (compose  [["0:v"] (scale 1920 1080) ["v01"]]
+                                     [["v0a"] my-crop ["v0"]]))]
+      (is (= 2 (count (.-chains result)))))))

@@ -7,13 +7,7 @@
 ;; Core data structures for our DSL
 (defrecord Filter [name args])
 (defrecord FilterChain [filters])
-(defrecord FilterGraph [chains]
-  Composable
-  (compose [this others]
-    (apply join-filtergraphs (conj others this))))
-
-(defn compose+ [& filtergraphs]
-  (compose (first filtergraphs) (rest filtergraphs)))
+(defrecord FilterGraph [chains])
 
 ;; Filter construction functions
 
@@ -33,5 +27,5 @@
 (defn parallel-filters [& chains]
   (make-filtergraph chains))
 
-(defn join-filtergraphs [& filtergraphs]
+(defn compose-filtergraphs [& filtergraphs]
   (make-filtergraph (mapcat #(.-chains %) filtergraphs)))

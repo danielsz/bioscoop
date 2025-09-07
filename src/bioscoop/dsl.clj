@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose+]]
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs]]
             [bioscoop.registry :as registry]
             [bioscoop.error-handling :refer [accumulate-error error-processing]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
@@ -79,7 +79,7 @@
 
 (defmethod transform-ast :compose [[_ & content] env]
   (let [children (mapv #(transform-ast % env) (rest content))]
-    (apply compose+ children)))
+    (apply compose-filtergraphs children)))
 
 (defmethod transform-ast :graph-definition [[_ graph-name & body] env]
   (let [graph-name (transform-ast graph-name env)
@@ -108,6 +108,7 @@
                                                                (update 0 with-input-labels (mapv #(transform-ast % env) input))
                                                                (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output))))]))]    
     (cond
+      (instance? Filter filtergraph) (f [filtergraph])
       (instance? FilterChain filtergraph) (let [filters (.-filters filtergraph)]
                                             (f filters))
       (and (instance? FilterGraph filtergraph) (> 1 (count (.-chains filtergraph)))) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
