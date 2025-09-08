@@ -228,4 +228,8 @@
       (is (= 2 (count (.-chains result)))))
     (let [result (bioscoop (compose  [["0:v"] (scale 1920 1080) ["v01"]]
                                      [["v0a"] my-crop ["v0"]]))]
-      (is (= 2 (count (.-chains result)))))))
+      (is (= 2 (count (.-chains result))))))
+  (testing "normal form"
+    (let [result (bioscoop (compose [[0] (chain (scale 133 220)) [1]] [[0] (crop "111") [1]]))]
+      (is (= "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]" (to-ffmpeg result))))))
+

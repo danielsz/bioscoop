@@ -234,4 +234,9 @@
       (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl2)))))
   (testing "inline filterchain"
     (let [dsl (compile-dsl "[[in][off] (chain (scale 1920 1080) (crop \"220\")) [out]]")]
-      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl))))))
+      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl)))))
+  (testing "composing"
+    (let [dsl (compile-dsl "(compose [[0] (chain (scale 133 220)) [1]] [[0] (crop \"111\") [1]])")]
+      (is (= "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]" (to-ffmpeg dsl))))))
+
+
