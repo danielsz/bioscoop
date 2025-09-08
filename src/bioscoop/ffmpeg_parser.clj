@@ -4,8 +4,7 @@
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
             [clojure.pprint]
-            [bioscoop.dsl :refer [with-input-labels with-output-labels]]
-            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph]]))
+            [bioscoop.domain.records :refer [make-filter make-filterchain make-filtergraph with-input-labels with-output-labels]]))
 
 (def ffmpeg-parser
   (insta/parser (io/resource "ffmpeg-grammar.bnf") :auto-whitespace :standard))

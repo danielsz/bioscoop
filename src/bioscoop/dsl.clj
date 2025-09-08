@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs]]
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels with-labels get-input-labels get-output-labels]]
             [bioscoop.registry :as registry]
             [bioscoop.error-handling :refer [accumulate-error error-processing]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
@@ -25,24 +25,6 @@
 
 (defn env-put [env sym val]
   (assoc env sym val))
-
-;; Label metadata helper functions
-(defn with-input-labels [filter labels]
-  (with-meta filter (assoc (meta filter) :input-labels (vec labels))))
-
-(defn with-output-labels [filter labels]
-  (with-meta filter (assoc (meta filter) :output-labels (vec labels))))
-
-(defn with-labels [filter input-labels output-labels]
-  (-> filter
-      (with-input-labels input-labels)
-      (with-output-labels output-labels)))
-
-(defn get-input-labels [filter]
-  (:input-labels (meta filter) []))
-
-(defn get-output-labels [filter]
-  (:output-labels (meta filter) []))
 
 (declare resolve-function)
 (defmulti transform-ast (fn [node env]
