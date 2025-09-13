@@ -19,13 +19,13 @@
 
 (defn with-inputs
   "It's possible to destroy the process if we keep a handle on the Process instance"
-  ([filter inputs]
-   (apply (partial with-inputs filter "[out]") inputs))
-  ([filter out & inputs]
+  ([filtergraph inputs]
+   (apply (partial with-inputs filtergraph "[out]") inputs))
+  ([filtergraph out & inputs]
    (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
          cmd (-> [ffmpeg-bin "-y" "-i"]
                 (into (interpose "-i" inputs))
-                (conj "-filter_complex" filter "-map" out "output.mp4"))
+                (conj "-filter_complex" filtergraph "-map" out "output.mp4"))
          pb (ProcessBuilder. cmd)]
      (log/info cmd)
      (.redirectOutput pb log)
@@ -33,15 +33,4 @@
      (.directory pb (io/file (System/getProperty "java.io.tmpdir")))
      (.start pb))))
 
-(defn with-looping-inputs
-  "It's possible to destroy the process if we keep a handle on the Process instance"
-  [filter & inputs]
-  (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
-        cmd (-> [ffmpeg-bin "-y" "-loop" "1" "-t" "5" "-i"]
-               (into (interpose "-loop 1 -t 5 -i" inputs))
-               (conj "-filter_complex" filter "-map" "[out]" "output.mp4"))
-        pb (ProcessBuilder. cmd)]
-    (.redirectOutput pb log)
-    (.redirectError pb log)
-    (.directory pb (io/file (System/getProperty "java.io.tmpdir")))
-    (.start pb)))
+
