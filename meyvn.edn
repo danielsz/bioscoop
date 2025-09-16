@@ -16,6 +16,7 @@
                                                  {:includeClasses "clojure.lang.Reflector"}]}}}}
              :jar {:enabled true}}
  :interactive {:enabled true
+               :clojure-vmargs "-Djdk.attach.allowAttachSelf"
                :reload-on-save true
                :repl-port 7888
                :repl-host "127.0.0.1"}

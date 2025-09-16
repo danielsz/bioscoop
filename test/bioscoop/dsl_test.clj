@@ -218,7 +218,7 @@
   (testing "When we use a the name of built-in function in a let binding, we shadow the built-in function so reject it"
     (testing "built-in reserved words"
       (let [dsl "(let [color red] (color {:c color}))"]
-        (is (= :reserved-word (:error-type  (compile-dsl dsl))))))
+        (is (= :reserved-word (:error-type (compile-dsl dsl))))))
     (testing "built-in Clojure names"
       (let [dsl "(let [map red] (color {:c map}))"]
         (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))

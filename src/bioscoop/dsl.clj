@@ -104,7 +104,7 @@
         validate (fn [sym] (when-let [resolved (ns-resolve 'bioscoop.built-in (symbol sym))]
                             (let [namespace (str (ns-name (:ns (meta resolved))))]
                               (case namespace
-                                "clojure.core" (log/warn "You are binding a clojure.core name in the let binding. Caution advised")
+                                "clojure.core" (accumulate-error env sym :clj-reserved-word)
                                 "bioscoop.built-in" (accumulate-error env sym :reserved-word)))))
         new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
                           (validate sym-name)
@@ -156,13 +156,8 @@
   (let [env-val (env-get env sym)
         graph-val (registry/get-graph (symbol sym))]
     (cond
-      (and env-val graph-val) (throw (ex-info (str "Ambiguous symbol reference: '" sym "'\n"
-                                                   "This symbol exists as both a local binding and a graph definition.\n"
-                                                   "To resolve this ambiguity, please use a different name for either one of them.")
-                                              {:symbol sym
-                                               :local-value env-val
-                                               :graph-value graph-val
-                                               :type :ambiguous-symbol}))
+      (and env-val graph-val) (do (accumulate-error env sym :ambiguous-symbol)
+                                  env-val)
       graph-val graph-val
       env-val env-val
       :else sym)))

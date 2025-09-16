@@ -233,3 +233,11 @@
     (let [result (bioscoop (compose [[0] (chain (scale 133 220)) [1]] [[0] (crop "111") [1]]))]
       (is (= "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]" (to-ffmpeg result))))))
 
+(deftest ambiguity
+  (testing "detect name shadowing in let binding"
+    (do (defgraph foo (scale 1920 1080))
+        (bioscoop (let [foo 1]
+                    (scale {:width 1920 :height foo}))))
+    (do (defgraph foo (scale 1920 1080))
+        (is (thrown? Exception (bioscoop (let [foo 1]
+                                 (compose [[0] (graph (chain (scale {:width 1920 :height foo}))) [1]] [[0] foo [1]]))))))))

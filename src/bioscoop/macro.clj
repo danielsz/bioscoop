@@ -65,6 +65,11 @@
     :else
     form))
 
+(defn process [result]
+  (if (instance? FilterGraph result)
+       result
+      (error-processing result)))
+
 (defmacro bioscoop
   "Macro that takes Clojure DSL forms and produces the same AST as Instaparse parsing.
     Example:
@@ -76,9 +81,7 @@
   (let [ast-nodes (mapv form->ast forms)
         program-ast (vec (concat [:program] ast-nodes))
         result# `(dsl/transform-ast ~program-ast (dsl/make-env))]
-    `(if (instance? FilterGraph ~result#)
-       ~result#
-      (error-processing ~result#))))
+    `(process ~result#)))
 
 (defmacro defgraph [name & body]
   `(let [graph# (bioscoop ~@body)]
