@@ -50,6 +50,15 @@
           (accumulate-error env m spec :invalid-parameter))))
     (make-filter (name spec))))
 
+(defn help [s]
+  (let [spec (keyword (str "bioscoop.domain.specs." s) s)]
+    (when (s/get-spec spec)
+      (let [ks (last (s/describe spec))
+            xs (reduce (fn [x y] (conj x y (s/describe y))) [] ks)]
+        (apply array-map xs)))))
+
+(def h help)
+
 (defn scale [arg env]
   (template arg ::scale/scale env))
 

@@ -4,9 +4,9 @@
             [clojure.tools.logging :as log])
   (:import [java.lang ProcessBuilder]))
 
-(def ffmpeg-bin "/usr/bin/ffmpeg")
-(def ffplay-bin "/usr/bin/ffplay")
-(def ffprobe-bin "/usr/bin/ffprobe")
+(def ffmpeg-bin (System/getProperty "ffmpeg.bin" "/usr/bin/ffmpeg"))
+(def ffplay-bin (System/getProperty "ffplay.bin" "/usr/bin/ffplay"))
+(def ffprobe-bin (System/getProperty "ffprobe.bin" "/usr/bin/ffprobe") )
 
 (defn filter-complex [filter & {:keys [working-dir output] :or {working-dir (System/getProperty "java.io.tmpdir") output "output.mp4"}}]
   (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
@@ -27,10 +27,7 @@
                 (into (interpose "-i" inputs))
                 (conj "-filter_complex" filtergraph "-map" out "output.mp4"))
          pb (ProcessBuilder. cmd)]
-     (log/info cmd)
      (.redirectOutput pb log)
      (.redirectError pb log)
      (.directory pb (io/file (System/getProperty "java.io.tmpdir")))
      (.start pb))))
-
-

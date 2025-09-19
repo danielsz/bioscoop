@@ -1,5 +1,137 @@
 * Bioscoop
 
+Bioscoop is a Domain Specific Language (DSL) that transforms how
+developers work with FFmpeg filtergraphs. By replacing FFmpeg's
+notoriously complex and error-prone string-based syntax with a
+structured, data-first approach, Bioscoop delivers dramatic
+improvements in developer productivity, code maintainability, and
+system reliability.
+
+* Key Improvements Over Native FFmpeg Syntax
+
+** *Structural Integrity Through Data-First Design*
+
+*Problem*: FFmpeg filtergraphs are fragile string concatenations where a
+single misplaced comma or bracket can cause cryptic failures.
+
+*Solution*: Bioscoop represents filtergraphs as immutable data structures:
+
+#+begin_src clojure
+;; Instead of: "scale=1920:1080,overlay"
+(make-filterchain [(scale {:width 1920 :height 1080})
+                   (overlay)])
+#+end_src
+
+Users conveniently write:
+
+#+begin_src clojure
+(defgraph foo (chain (scale {:width 1920 :height 1080})
+                     (overlay)))
+#+end_src
+
+*Benefits*:
+- *Type safety*: Parameters are validated before execution
+- *Immutability*: Filtergraphs can be safely composed and transformed
+- *Structural validation*: Invalid connections are caught at compile time
+
+*** *Composable Architecture*
+
+*Problem*: FFmpeg lacks native composition mechanisms, forcing
+developers to manually manage complex filtergraph concatenation.
+
+*Solution*: Built-in composition protocol:
+
+#+begin_src clojure
+;; Seamless composition
+(compose scale-graph overlay-graph crop-graph)
+#+end_src
+
+*Benefits*:
+- *Modular design*: Complex pipelines built from simple components
+- *Reusability*: Filtergraphs become first-class composable units
+- *Testability*: Individual components can be tested in isolation
+
+
+*** *Decoupled Label Management*
+
+*Problem*: FFmpeg's label management is tightly coupled with
+filtergraphs. Users have to manually label filtergraphs, it is
+error-prone and difficult to debug.
+
+*Solution*: Decoupling of labels and filtergraphs.
+
+This is achieved internally by implementing labels as metadata on filters:
+
+#+begin_src clojure
+(-> (make-filter 'scale {:width 1920 :height 1080})
+    (with-labels ["in"] ["out"]))
+#+end_src
+
+Bioscoop espouses the format of FFmpeg to label filter chains. 
+
+#+begin_src clojure
+;; This is equivalent: "[in]scale=1920:1080[scaled]"
+(bioscoop [["in"] (scale {:width 1920 :height 1080}) ["out"]])
+#+end_src
+
+However, because filtergraphs are first-class, we can now write:
+
+#+begin_src clojure
+(defgraph scaled (scale {:with 1920 :height 1080})) ;; first-class filtergraph, independent of labels
+
+(bioscoop [["in"] scaled ["out"]]) ;; attach labels to filtergraph
+#+end_src
+
+*Benefits*:
+- *Decoupling:* Labels and filtergraphs can be handled separately
+- *Automatic label generation*: No more manual label tracking
+- *Label validation*: Prevents duplicate or missing labels
+- *Metadata preservation*: Labels persist through transformations
+
+*** *Bidirectional Transformation*
+
+*Problem*: FFmpeg filtergraphs are one-way - once created as strings,
+they can't be easily analyzed or modified.
+
+*Solution*: Round-trip transformation capabilities:
+
+#+begin_src clojure
+;; Parse FFmpeg string to data structure
+(def parsed (ffmpeg/parse "scale=1920:1080,overlay"))
+
+;; Modify the data structure
+(def modified (update-in parsed [:chains 0 :filters] conj (crop {:width 800})))
+
+;; Render back to FFmpeg string
+(to-ffmpeg modified) ; => "scale=1920:1080,overlay,crop=width=800"
+#+end_src
+
+*Benefits*:
+- *Analysis*: Programmatically inspect and analyze existing filtergraphs
+- *Transformation*: Modify filtergraphs without string manipulation
+- *Migration*: Update old filtergraph syntax to new patterns
+
+*** *Advanced Error Handling*
+
+*Problem*: FFmpeg provides cryptic error messages that are difficult to
+trace back to specific filtergraph issues.
+
+*Solution*: Structured error reporting with context:
+
+#+begin_src clojure
+(defprotocol ErrorHandling
+  (accumulate-error [env value error-type]))
+  
+;; Detailed error information instead of "Invalid filter specification"
+#+end_src
+
+*Benefits*:
+- *Precise error localization*: Know exactly which filter failed
+- *Contextual information*: Error messages include surrounding filter context
+- *Validation before execution*: Catch errors before invoking FFmpeg
+
+
+
 ** Motivation 
 
 Yes, FFmpeg is everywhere and it is amazing, but it is mainly used for

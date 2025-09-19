@@ -39,9 +39,9 @@
 
 
 (s/def ::scale
-  (s/keys :opt-un [::width ::height ::eval ::flags ::interl
+  (s/keys :opt-un [::width ::height ::flags ::interl ::size
                    ::in_color_matrix ::out_color_matrix ::in_range ::out_range
-                   ::in_chroma_loc ::out_chroma_loc ::force_original_aspect_ratio
-                   ::force_divisible_by ::param0 ::param1 ::size
+                   ::in_chroma_loc ::out_chroma_loc
                    ::in_v_chr_pos ::in_h_chr_pos ::out_v_chr_pos ::out_h_chr_pos
-                   ::sws_flags ::src_range ::dst_range]))
+                   ::force_original_aspect_ratio
+                   ::force_divisible_by ::param0 ::param1 ::eval ]))

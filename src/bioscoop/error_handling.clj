@@ -1,7 +1,8 @@
 (ns bioscoop.error-handling
   (:require [clojure.spec.alpha :as s]
             [clojure.walk :refer [postwalk]]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [bioscoop.config :refer [*debug-mode* *warn-verbose*]]))
 
 (def errors {:not-a-filtergraph (fn [sym] (ex-info "Not a valid ffmpeg program (filtergraph)"
                                                 {:symbol sym
@@ -45,7 +46,7 @@
                                                   :explanation "This symbol exists as both a local binding and a graph definition. To resolve this ambiguity, please use a different name for either one of them."}))})
 
 (defn accumulate-error* [env error]
-  (log/warn (ex-data error))
+  (let [info (ex-data error)] (log/warn (if *warn-verbose* info (:error-type info))))
   (swap! (:errors env) conj error))
 
 (defn accumulate-error
@@ -55,7 +56,7 @@
    (accumulate-error* env ((err-code errors) sym spec))))
 
 (defn error-processing [env]
-  (log/debug env)
+  (when *debug-mode* (log/debug env))
   (case (count @(:errors env))    
     1 (ex-data (first @(:errors env)))
     (ex-data (first @(:errors env)))))
