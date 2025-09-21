@@ -3,9 +3,10 @@
 Bioscoop is a Domain Specific Language (DSL) that transforms how
 developers work with FFmpeg filtergraphs. By replacing FFmpeg's
 notoriously complex and error-prone string-based syntax with a
-structured, data-first approach, Bioscoop delivers dramatic
-improvements in developer productivity, code maintainability, and
-system reliability.
+structured, data-first approach, Bioscoop reinterprets FFMpeg's
+filtergaph as a first-class composable unit. This in turn enables
+(dramatic) improvements in developer productivity, code
+maintainability, and system reliability.
 
 * Key Improvements Over Native FFmpeg Syntax
 
@@ -25,8 +26,8 @@ single misplaced comma or bracket can cause cryptic failures.
 Users conveniently write:
 
 #+begin_src clojure
-(defgraph foo (chain (scale {:width 1920 :height 1080})
-                     (overlay)))
+(defgraph my-filterchain (chain (scale {:width 1920 :height 1080})
+                                (overlay)))
 #+end_src
 
 *Benefits*:
@@ -67,7 +68,8 @@ This is achieved internally by implementing labels as metadata on filters:
     (with-labels ["in"] ["out"]))
 #+end_src
 
-Bioscoop espouses the format of FFmpeg to label filter chains. 
+Bioscoop espouses the format of FFmpeg to label filter chains, input
+labels at the left of a filterchain, output labels at the right. 
 
 #+begin_src clojure
 ;; This is equivalent: "[in]scale=1920:1080[scaled]"
@@ -130,6 +132,25 @@ trace back to specific filtergraph issues.
 - *Contextual information*: Error messages include surrounding filter context
 - *Validation before execution*: Catch errors before invoking FFmpeg
 
+*** *Spec-Driven Validation*
+
+*Problem*: FFmpeg parameters are validated at runtime, often with
+unclear error messages.
+
+*Solution*: Pre-execution validation using Clojure spec:
+
+#+begin_src clojure
+(s/def ::width (s/and int? pos?))
+(s/def ::height (s/and int? pos?))
+(s/def ::scale-args (s/keys :req-un [::width ::height]))
+
+;; Validation happens before FFmpeg execution
+#+end_src
+
+*Benefits*:
+- *Early error detection*: Catch invalid parameters before FFmpeg runs
+- *Clear error messages*: Know exactly which parameter failed validation
+- *Documentation*: Specs serve as living documentation for filter parameters
 
 
 ** Motivation 

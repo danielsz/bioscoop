@@ -31,6 +31,8 @@
    [bioscoop.domain.specs.trim :as trim]
    [bioscoop.domain.specs.fps :as fps]
    [bioscoop.domain.specs.setpts :as setpts]
+   [bioscoop.domain.specs.life :as life]
+   [bioscoop.domain.specs.boxblur :as boxblur]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
@@ -181,3 +183,9 @@
 
 (defn lumakey [arg env]
   (template arg ::lumakey/lumakey env))
+
+(defn life [arg env]
+  (template arg ::life/life env))
+
+(defn boxblur [arg env]
+  (template arg ::boxblur/boxblur env))
