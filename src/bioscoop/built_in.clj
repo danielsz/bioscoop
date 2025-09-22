@@ -33,6 +33,7 @@
    [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.life :as life]
    [bioscoop.domain.specs.boxblur :as boxblur]
+   [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
@@ -189,3 +190,6 @@
 
 (defn boxblur [arg env]
   (template arg ::boxblur/boxblur env))
+
+(defn colorchannelmixer [arg env]
+  (template arg ::colorchannelmixer/colorchannelmixer env))

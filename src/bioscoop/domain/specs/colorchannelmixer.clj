@@ -1,0 +1,23 @@
+(ns bioscoop.domain.specs.colorchannelmixer
+  (:require [clojure.spec.alpha :as s]))
+
+(s/def ::rr (s/double-in :min -2 :max 2))
+(s/def ::rg (s/double-in :min -2 :max 2))
+(s/def ::rg (s/double-in :min -2 :max 2))
+(s/def ::ra (s/double-in :min -2 :max 2))
+(s/def ::gr (s/double-in :min -2 :max 2))
+(s/def ::gg (s/double-in :min -2 :max 2))
+(s/def ::gg (s/double-in :min -2 :max 2))
+(s/def ::ga (s/double-in :min -2 :max 2))
+(s/def ::br (s/double-in :min -2 :max 2))
+(s/def ::bg (s/double-in :min -2 :max 2))
+(s/def ::bg (s/double-in :min -2 :max 2))
+(s/def ::ba (s/double-in :min -2 :max 2))
+(s/def ::ar (s/double-in :min -2 :max 2))
+(s/def ::ag (s/double-in :min -2 :max 2))
+(s/def ::ag (s/double-in :min -2 :max 2))
+(s/def ::aa (s/double-in :min -2 :max 2))
+(s/def ::pc #{"none" "lum" "max" "avg" "sum" "nrm" "pwr"})
+(s/def ::pa (s/double-in :min 0 :max 1))
+(s/def ::colorchannelmixer
+  (s/keys :opt-un [::rr ::rg ::rb ::ra ::gr ::gg ::gb ::ga ::br ::bg ::bb ::ba ::ar ::ag ::ab ::aa ::pc ::pa]))
