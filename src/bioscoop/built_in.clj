@@ -32,6 +32,7 @@
    [bioscoop.domain.specs.fps :as fps]
    [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.life :as life]
+   [bioscoop.domain.specs.cellauto :as cellauto]
    [bioscoop.domain.specs.boxblur :as boxblur]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
    [bioscoop.domain.specs.effects :as effects]
@@ -187,6 +188,9 @@
 
 (defn life [arg env]
   (template arg ::life/life env))
+
+(defn cellauto [arg env]
+  (template arg ::cellauto/cellauto env))
 
 (defn boxblur [arg env]
   (template arg ::boxblur/boxblur env))
