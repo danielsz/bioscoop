@@ -1,80 +1,40 @@
-* Bioscoop
 
 [[file:resources/logo.svg]]
-#+begin_quote
-The acts of the mind, wherein it exerts its power over simple ideas,
-are chiefly these three:
 
-1. Combining several simple ideas into one compound one, and thus all complex ideas are made.
-2. The second is bringing two ideas, whether simple or complex,
-   together, and setting them by one another so as to take a view of
-   them at once, without uniting them into one, by which it gets all its ideas of
-relations.
-3. The third is separating them from all other ideas that accompany
-   them in their real existence: this is called abstraction, and thus all its general ideas are made.
-—John Locke, An Essay Concerning Human Understanding (1690)
-#+end_quote
+A DSL for FFmpgeg's filtegraph.
 
-* Motivation
+[[https://danielsz.github.io/bioscoop/][Documentation]].
 
-Historically, video editing has progressed from destructive techniques
-(cutting the negative) to non-destructive ones (non-linear
-editing). In both cases, the creative process is manual
-(mouse-based). A different approach, often overlooked, is
-programmatic, whereby the editor spells out the edits he wants to
-apply, and those instructions are then further processed by the
-framework.
-
-
-no less promising,
-
-Programming videos in a different exercise, 
-
-model 
-
-Non-linear editing is the 
-
-Bioscoop puts programmability in the center of the creative process in tis a  to program videos
-(instead of non-linear editing). It is a Domain Specific Language
-(DSL) builds upon that transforms how
-developers work with FFmpeg filtergraphs. By replacing FFmpeg's
-notoriously complex and error-prone string-based syntax with a
-structured, data-first approach, Bioscoop reinterprets FFMpeg's
-filtergaph as a first-class composable unit. This in turn enables
-(dramatic) improvements in developer productivity, code
+By replacing FFmpeg's notoriously complex and error-prone string-based
+syntax with a structured, data-first approach, Bioscoop reifies
+FFMpeg's filtergaph into a first-class, composable unit. This in turn
+enables (dramatic) improvements in developer productivity, code
 maintainability, and system reliability.
 
-* Key Improvements Over Native FFmpeg Syntax
+** Key Improvements Over Native FFmpeg Syntax
 
-** *Structural Integrity Through Data-First Design*
+*** *Structural Integrity Through Data-First Design*
 
 *Problem*: FFmpeg filtergraphs are fragile string concatenations where a
 single misplaced comma or bracket can cause cryptic failures.
 
 *Solution*: Bioscoop represents filtergraphs as immutable data structures:
 
-#+begin_src clojure
-;; Instead of: "scale=1920:1080,overlay"
-(make-filterchain [(scale {:width 1920 :height 1080})
-                   (overlay)])
-#+end_src
-
-Users conveniently write:
+Instead of ~"scale=1920:1080,overlay"~, users write:
 
 #+begin_src clojure
-(defgraph my-filterchain (chain (scale {:width 1920 :height 1080})
-                                (overlay)))
+(chain (scale {:width 1920 :height 1080})
+       (overlay))
 #+end_src
 
 *Benefits*:
 - *Type safety*: Parameters are validated before execution
 - *Immutability*: Filtergraphs can be safely composed and transformed
-- *Structural validation*: Invalid connections are caught at compile time
 
 *** *Composable Architecture*
 
 *Problem*: FFmpeg lacks native composition mechanisms, forcing
-developers to manually manage complex filtergraph concatenation.
+developers to manually manage complex filter concatenation.
 
 *Solution*: Built-in composition protocol:
 
@@ -87,7 +47,6 @@ developers to manually manage complex filtergraph concatenation.
 - *Modular design*: Complex pipelines built from simple components
 - *Reusability*: Filtergraphs become first-class composable units
 - *Testability*: Individual components can be tested in isolation
-
 
 *** *Decoupled Label Management*
 
@@ -104,12 +63,12 @@ This is achieved internally by implementing labels as metadata on filters:
     (with-labels ["in"] ["out"]))
 #+end_src
 
-Bioscoop espouses the format of FFmpeg to label filterchains, input
-labels at the left of a filterchain, output labels at the right. 
+User-facing syntax stays close the FFmpeg convention: input labels at
+the left of a filterchain, output labels at the right.
 
 #+begin_src clojure
 ;; This is equivalent: "[in]scale=1920:1080[scaled]"
-(bioscoop [["in"] (scale {:width 1920 :height 1080}) ["out"]])
+[["in"] (scale {:width 1920 :height 1080}) ["out"]]
 #+end_src
 
 However, because filtergraphs are first-class, we can now write:
@@ -152,11 +111,19 @@ they can't be easily analyzed or modified.
 *** Parameterization
 
 In Ffmpeg, filters take parameters. This is what makes them flexible,
-expressive and powerful. Those parameters need to be hard-coded in the
-filtergraph expression. Not so with bioscoop.
+expressive and powerful. However, those parameters need to be
+hard-coded in the filtergraph expression. Not so with bioscoop.
 
+#+begin_src clojure
+(defgraph transition (xfade {:transition "fade" :duration 1 :offset 9}))
 
-*** *Advanced Error Handling*
+(defn n-transition [n offset] (for [i (range n)]
+                       (-> transition
+                          (update-in [:chains 0 :filters 0 :args] assoc :bioscoop.domain.specs.effects/offset (+ i offset (* i offset)))
+                          (update-in [:chains 0 :filters 0] with-labels [(if (zero? i) (str "out" i) (str "t" i)) (str "out" (inc i))] [(str "t" (inc i))]))))
+#+end_src
+
+*** Advanced Error Handling*
 
 *Problem*: FFmpeg provides cryptic error messages that are difficult to
 trace back to specific filtergraph issues.

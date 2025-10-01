@@ -7,17 +7,35 @@
 #+HTML_HEAD: <link rel="stylesheet" href="css/post.css" type="text/css" media="screen" />
 #+HTML_HEAD:  <script type="text/javascript" src="js/navigation.js"></script>
 
-* Description
+* Motivation
 
-Bioscoop gives you a macro that transforms code like this:
+Historically, video editing has progressed from destructive techniques, ie. cutting the negative, to non-destructive ones, ie. non-linear
+editing. The latter has become possible due to film being no longer analog but digital. In both cases, however, the creative process is manual, or mouse-based. A different approach, often overlooked, is programmatic: the editor spells out the edits he wants to apply, and those are being carried out by an underlying system. 
+FFmpeg is such a system; capable of carrying pretty much any editing instruction you can think of. 
 
-#+BEGIN_SRC clojure
-(let [logbook (get-logbook entity)]
-  (when (some pred logbook)
-    (let [response (body)]
-      (when (success? response)
-        (write logbook)))))
-#+END_SRC
+Bioscoop puts programmability in the center of the creative process in tis a  to program videos
+(instead of non-linear editing). It is a Domain Specific Language
+(DSL) builds upon that transforms how
+developers work with FFmpeg filtergraphs.
 
-Testing.
+* Inspiration
+
+#+begin_quote
+The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
+
+1. Combining several simple ideas into one compound one, and thus all
+   complex ideas are made.
+
+2. The second is bringing two ideas, whether simple or complex,
+   together, and setting them by one another so as to take a view of
+   them at once, without uniting them into one, by which it gets all
+   its ideas of relations.
+
+3. The third is separating them from all other ideas that accompany
+   them in their real existence: this is called abstraction, and thus
+   all its general ideas are made.
+
+—John Locke, An Essay Concerning Human Understanding (1690)
+#+end_quote
+
 
