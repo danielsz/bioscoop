@@ -1,5 +1,6 @@
 * Bioscoop
 
+[[file:resources/logo.svg]]
 #+begin_quote
 The acts of the mind, wherein it exerts its power over simple ideas,
 are chiefly these three:
