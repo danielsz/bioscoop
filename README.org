@@ -1,6 +1,41 @@
 * Bioscoop
 
-Bioscoop is a Domain Specific Language (DSL) that transforms how
+#+begin_quote
+The acts of the mind, wherein it exerts its power over simple ideas,
+are chiefly these three:
+
+1. Combining several simple ideas into one compound one, and thus all complex ideas are made.
+2. The second is bringing two ideas, whether simple or complex,
+   together, and setting them by one another so as to take a view of
+   them at once, without uniting them into one, by which it gets all its ideas of
+relations.
+3. The third is separating them from all other ideas that accompany
+   them in their real existence: this is called abstraction, and thus all its general ideas are made.
+—John Locke, An Essay Concerning Human Understanding (1690)
+#+end_quote
+
+* Motivation
+
+Historically, video editing has progressed from destructive techniques
+(cutting the negative) to non-destructive ones (non-linear
+editing). In both cases, the creative process is manual
+(mouse-based). A different approach, often overlooked, is
+programmatic, whereby the editor spells out the edits he wants to
+apply, and those instructions are then further processed by the
+framework.
+
+
+no less promising,
+
+Programming videos in a different exercise, 
+
+model 
+
+Non-linear editing is the 
+
+Bioscoop puts programmability in the center of the creative process in tis a  to program videos
+(instead of non-linear editing). It is a Domain Specific Language
+(DSL) builds upon that transforms how
 developers work with FFmpeg filtergraphs. By replacing FFmpeg's
 notoriously complex and error-prone string-based syntax with a
 structured, data-first approach, Bioscoop reinterprets FFMpeg's
@@ -68,7 +103,7 @@ This is achieved internally by implementing labels as metadata on filters:
     (with-labels ["in"] ["out"]))
 #+end_src
 
-Bioscoop espouses the format of FFmpeg to label filter chains, input
+Bioscoop espouses the format of FFmpeg to label filterchains, input
 labels at the left of a filterchain, output labels at the right. 
 
 #+begin_src clojure
@@ -112,6 +147,13 @@ they can't be easily analyzed or modified.
 - *Analysis*: Programmatically inspect and analyze existing filtergraphs
 - *Transformation*: Modify filtergraphs without string manipulation
 - *Migration*: Update old filtergraph syntax to new patterns
+
+*** Parameterization
+
+In Ffmpeg, filters take parameters. This is what makes them flexible,
+expressive and powerful. Those parameters need to be hard-coded in the
+filtergraph expression. Not so with bioscoop.
+
 
 *** *Advanced Error Handling*
 

@@ -14,6 +14,6 @@
 (s/def ::life_color ::color/color)
 (s/def ::death_color ::color/color)
 (s/def ::mold_color ::color/color)
-
+(s/def ::stitch boolean?)
 (s/def ::life
   (s/keys :opt-un [::filename ::size ::rate ::rule ::random_fill_ratio ::random_seed ::stitch ::mold ::life_color ::death_color ::mold_color]))
