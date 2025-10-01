@@ -1,5 +1,5 @@
 #+TITLE: Bioscoop
-#+SUBTITLE: FFmpeg DSL to enhance video programming
+#+SUBTITLE: Creative coding for videos
 #+OPTIONS: toc:1 num:nil
 #+HTML_HEAD: <link rel="stylesheet" href="css/et-book.css" type="text/css" media="screen" />
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,600&display=swap" rel="stylesheet">
@@ -9,7 +9,7 @@
 
 * Description
 
-Bioscoo gives you a macro that transforms code like this:
+Bioscoop gives you a macro that transforms code like this:
 
 #+BEGIN_SRC clojure
 (let [logbook (get-logbook entity)]
@@ -18,3 +18,6 @@ Bioscoo gives you a macro that transforms code like this:
       (when (success? response)
         (write logbook)))))
 #+END_SRC
+
+Testing.
+
