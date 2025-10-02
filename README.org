@@ -1,9 +1,10 @@
 
 [[file:resources/logo.svg]]
 
-* A DSL for FFmpgeg.
+* A DSL for FFmpeg.
 
-[[https://danielsz.github.io/bioscoop/][Documentation]].
++ [[https://danielsz.github.io/bioscoop/][Documentation]].
++ Gallery
 
 By replacing FFmpeg's notoriously complex and error-prone string-based
 syntax with a structured, data-first approach, Bioscoop reifies
@@ -180,7 +181,7 @@ Unleash the power of FFmpeg in the creative process, beyond its
 dominance in the post-processing 
 
 
-[file:resources/itsallaboutfilters.jpeg]
+[[[file:gallery/itsallaboutfilters.jpeg]]]
 
 
 #+HTML: <img src="resources/itsallaboutfilters.jpeg" width="867" height="499"/>
@@ -192,7 +193,7 @@ abstractions. They do not allow for composition, which is a key
 principle when designing a system.
 
 
-#+HTML: <video controls width="400"><source src="resources/output.mp4" type="video/mp4/></video>
+#+HTML: <video controls width="400"><source src="gallery/output.mp4" type="video/mp4/></video>
 
 #+begin_src clojure
 
@@ -202,4 +203,14 @@ Told in the words of communties:
 
 - Clojurians: a dsl that compiles Lisp forms to FFmpeg's filtergraph
 - PLT: A context-free grammar describing a simple Lisp language -> AST transformation into data structues
--   
+-
+  
+[[file:gallery/output.gif]]
+
+#+begin_src clojure
+(defgraph cellular (cellauto {:rule 110 :start_full false :stitch true :size "1024x1024"}))
+
+(defgraph presentation (compose [cellular ["cell"]]
+                                [["0:v" ] (format {:pix_fmts "yuva420p"}) ["img"]]
+                                [["cell"] ["img"] (overlay)]))
+#+end_src
