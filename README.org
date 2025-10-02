@@ -204,6 +204,14 @@ Told in the words of communties:
 
 [[file:gallery/cellauto.gif]]
 
+Original syntax:
+
+#+begin_src sh
+"cellauto=rule=110:start_full=false:stitch=true:size=1024x1024[cell];[0:v]format=pix_fmts=yuva420p[img];[cell][img]overlay"
+#+end_src
+
+Bioscoop program:
+
 #+begin_src clojure
 (defgraph cellular (cellauto {:rule 110 :start_full false :stitch true :size "1024x1024"}))
 
@@ -212,14 +220,51 @@ Told in the words of communties:
                                 [["cell"] ["img"] (overlay)]))
 #+end_src
 
-Output:
-#+begin_src sh
-"cellauto=rule=110:start_full=false:stitch=true:size=1024x1024[cell];[0:v]format=pix_fmts=yuva420p[img];[cell][img]overlay"
-#+end_src
 
 ****** Bitplanes
 
+[[file:gallery/jumpinjackflash.gif]]
 
+Ffmpeg syntax:
+
+Instead of:
 #+begin_src sh
 "format=yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le,split=10[b0][b1][b2][b3][b4][b5][b6][b7][b8][b9];[b0]crop=iw/10:ih:(iw/10)*0:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-1))*pow(2\,1)[b0c];[b1]crop=iw/10:ih:(iw/10)*1:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-2))*pow(2\,2)[b1c];[b2]crop=iw/10:ih:(iw/10)*2:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-3))*pow(2\,3)[b2c];[b3]crop=iw/10:ih:(iw/10)*3:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-4))*pow(2\,4)[b3c];[b4]crop=iw/10:ih:(iw/10)*4:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-5))*pow(2\,5)[b4c];[b5]crop=iw/10:ih:(iw/10)*5:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-6))*pow(2\,6)[b5c];[b6]crop=iw/10:ih:(iw/10)*6:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-7))*pow(2\,7)[b6c];[b7]crop=iw/10:ih:(iw/10)*7:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-8))*pow(2\,8)[b7c]; [b8]crop=iw/10:ih:(iw/10)*8:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-9))*pow(2\,9)[b8c];[b9]crop=iw/10:ih:(iw/10)*9:0,lutyuv=y=512:u=512:v=512:y=bitand(val\,pow(2\,10-10))*pow(2\,10)[b9c]; [b0c][b1c][b2c][b3c][b4c][b5c][b6c][b7c][b8c][b9c]hstack=10,format=yuv422p10le,drawgrid=w=iw/10:h=ih:t=2:c=cyan@1"
 #+end_src
+
+Bioscoop program:
+
+#+begin_src clojure
+(defgraph formatting (chain (format {:pix_fmts "yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le"})
+                            (split {:outputs 10})))
+
+(defgraph bitplane (chain (crop {:out_w "iw/10" :out_h "ih" :x "(iw/10)*0" :y "0"})
+                          (lutyuv {:y "'bitand(val,pow(2,10-1))*pow(2,1)'" :u "512" :v "512"})))
+
+(defgraph stacking (chain (hstack {:inputs 10})
+                          (format {:pix_fmts "yuv422p10le"})
+                          (drawgrid {:width "iw/10" :height "ih" :thickness "2" :color "cyan@1"})))
+
+(defn n-formatting [n]
+  (list (-> formatting
+           (update-in [:chains 0 :filters 1] with-output-labels (into [] (for [i (range n)] (str "b" i)))))))
+
+(defn n-stack [n]
+  (list (-> stacking
+           (update-in [:chains 0 :filters 0] with-input-labels (into [] (for [i (range n)] (str "b" i "c")))))))
+
+(defn n-bitplane [n]
+  (for [i (range n)]
+    (-> bitplane
+       (update-in [:chains 0 :filters 0 :args] assoc :bioscoop.domain.specs.crop/x (str "(iw/10)*" i))
+       (update-in [:chains 0 :filters 1 :args] assoc :bioscoop.domain.specs.lut/y  (str "'bitand(val,pow(2,10-" (inc i) "))*pow(2," (inc i) ")'"))
+       (update-in [:chains 0 :filters 0] with-input-labels [(str "b" i)])
+       (update-in [:chains 0 :filters 1] with-output-labels [(str "b" i "c")]))))
+
+
+(defn filtergraph [& {:keys [n] :or {n 10}}]
+  (to-ffmpeg (apply compose-filtergraphs (concat (n-formatting n) (n-bitplane n) (n-stack n)))))
+(defgraph formatting (chain (format {:pix_fmts "yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le"})
+                            (split {:outputs 10})))
+#+end_src
+
