@@ -181,17 +181,13 @@ Unleash the power of FFmpeg in the creative process, beyond its
 dominance in the post-processing 
 
 
-[[[file:gallery/itsallaboutfilters.jpeg]]]
+[[file:gallery/itsallaboutfilters.jpeg]]
 
 It is a language-focused solution to the information density problem
 of FFmpeg's filtergraph syntax.
 It's not only that they are dense and terse, they lack
 abstractions. They do not allow for composition, which is a key
 principle when designing a system.
-
-
-#+HTML: <video controls width="400"><source src="gallery/output.mp4" type="video/mp4/></video>
-
 
 Told in the words of communties:
 
@@ -208,3 +204,6 @@ Told in the words of communties:
                                 [["0:v" ] (format {:pix_fmts "yuva420p"}) ["img"]]
                                 [["cell"] ["img"] (overlay)]))
 #+end_src
+
+
+#+HTML: <video controls width="400"><source src="gallery/output.mp4" type="video/mp4/></video>
