@@ -7,6 +7,10 @@ FFMpeg's filtergaph into a first-class, composable unit. This in turn
 enables (dramatic) improvements in developer productivity, code
 maintainability, and system reliability.
 
+
+[[file:gallery/itsallaboutfilters.jpeg]]
+
+
 * Creative coding with video
 
 + [[https://danielsz.github.io/bioscoop/][Documentation]].
@@ -162,38 +166,6 @@ unclear error messages.
 - *Early error detection*: Catch invalid parameters before FFmpeg runs
 - *Clear error messages*: Know exactly which parameter failed validation
 - *Documentation*: Specs serve as living documentation for filter parameters
-
-
-** Motivation 
-
-Yes, FFmpeg is everywhere and it is amazing, but it is mainly used for
-post-processing. Bioscoop is an attempt to unleash the power of FFmpeg
-in the creative process. It offers an alternative to Non-Linear
-editing of videos in favor of a programmatic approach.
-
-FFmpeg offers a wealth of filters that can be
-terseness, information density
-
-
-FFmpeg has asserted its dominance in the post-processing phase of
-video 
-Unleash the power of FFmpeg in the creative process, beyond its
-dominance in the post-processing 
-
-
-[[file:gallery/itsallaboutfilters.jpeg]]
-
-It is a language-focused solution to the information density problem
-of FFmpeg's filtergraph syntax.
-It's not only that they are dense and terse, they lack
-abstractions. They do not allow for composition, which is a key
-principle when designing a system.
-
-Told in the words of communties:
-
-- Clojurians: a dsl that compiles Lisp forms to FFmpeg's filtergraph
-- PLT: A context-free grammar describing a simple Lisp language -> AST transformation into data structues
--
 
 ** Gallery
 :PROPERTIES:

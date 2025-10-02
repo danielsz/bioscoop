@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-03 Fri 00:21 -->
+<!-- 2025-10-03 Fri 00:27 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -209,15 +209,15 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org2f27b5d">Motivation</a></li>
-<li><a href="#orgd5e576e">The filtergraph</a></li>
-<li><a href="#orge589599">Inspiration</a></li>
+<li><a href="#org485dad8">Motivation</a></li>
+<li><a href="#orgadf1213">The filtergraph</a></li>
+<li><a href="#orgacf7d54">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org2f27b5d" class="outline-2">
-<h2 id="org2f27b5d">Motivation</h2>
-<div class="outline-text-2" id="text-org2f27b5d">
+<div id="outline-container-org485dad8" class="outline-2">
+<h2 id="org485dad8">Motivation</h2>
+<div class="outline-text-2" id="text-org485dad8">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -244,11 +244,50 @@ in the center of the creative process.  It is a Domain Specific
 Language (DSL) builds upon that transforms how developers work with
 FFmpeg filtergraphs.
 </p>
+
+
+<p>
+Yes, FFmpeg is everywhere and it is amazing, but it is mainly used for
+post-processing. Bioscoop is an attempt to unleash the power of FFmpeg
+in the creative process. It offers an alternative to Non-Linear
+editing of videos in favor of a programmatic approach.
+</p>
+
+<p>
+FFmpeg offers a wealth of filters that can be
+terseness, information density
+</p>
+
+
+<p>
+FFmpeg has asserted its dominance in the post-processing phase of
+video 
+Unleash the power of FFmpeg in the creative process, beyond its
+dominance in the post-processing 
+</p>
+
+<p>
+It is a language-focused solution to the information density problem
+of FFmpeg's filtergraph syntax.
+It's not only that they are dense and terse, they lack
+abstractions. They do not allow for composition, which is a key
+principle when designing a system.
+</p>
+
+<p>
+Told in the words of communties:
+</p>
+
+<ul class="org-ul">
+<li>Clojurians: a dsl that compiles Lisp forms to FFmpeg's filtergraph</li>
+<li>PLT: A context-free grammar describing a simple Lisp language -&gt; AST transformation into data structues</li>
+<li></li>
+</ul>
 </div>
 </div>
-<div id="outline-container-orgd5e576e" class="outline-2">
-<h2 id="orgd5e576e">The filtergraph</h2>
-<div class="outline-text-2" id="text-orgd5e576e">
+<div id="outline-container-orgadf1213" class="outline-2">
+<h2 id="orgadf1213">The filtergraph</h2>
+<div class="outline-text-2" id="text-orgadf1213">
 <p>
 In FFmpeg, atomic editing tasks like scaling, cropping, blending,
 coloring, etc. are captured in filters. FFmpeg has more than 500 of
@@ -262,9 +301,9 @@ a filtergraph. Filtergraphs are being passed to FFmpeg in the
 </p>
 </div>
 </div>
-<div id="outline-container-orge589599" class="outline-2">
-<h2 id="orge589599">Inspiration</h2>
-<div class="outline-text-2" id="text-orge589599">
+<div id="outline-container-orgacf7d54" class="outline-2">
+<h2 id="orgacf7d54">Inspiration</h2>
+<div class="outline-text-2" id="text-orgacf7d54">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -293,7 +332,7 @@ all its general ideas are made.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Daniel Szmulewicz</p>
-<p class="date">Created: 2025-10-03 Fri 00:21</p>
+<p class="date">Created: 2025-10-03 Fri 00:27</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
