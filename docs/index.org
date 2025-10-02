@@ -30,6 +30,18 @@ in the center of the creative process.  It is a Domain Specific
 Language (DSL) builds upon that transforms how developers work with
 FFmpeg filtergraphs.
 
+* The filtergraph
+
+In FFmpeg, atomic editing tasks like scaling, cropping, blending,
+coloring, etc. are captured in filters. FFmpeg has more than 500 of
+them. When applying filters in sequence on source material, filters
+are being written in sequence, separated by a coma. Those are called
+filterchains. Filterchains can be labeled at both ends, so that their
+output can serve as input to another filterchain. Filterchains form a
+structure known as a directed acyclic graph (DAG), and FFmpeg calls it
+a filtergraph. Filtergraphs are being passed to FFmpeg in the
+~-filter_complex~ parameter.
+
 * Inspiration
 
 #+begin_quote

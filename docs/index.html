@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-03 Fri 00:20 -->
+<!-- 2025-10-03 Fri 00:21 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -209,14 +209,15 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgcb67b5f">Motivation</a></li>
-<li><a href="#org3ad352c">Inspiration</a></li>
+<li><a href="#org2f27b5d">Motivation</a></li>
+<li><a href="#orgd5e576e">The filtergraph</a></li>
+<li><a href="#orge589599">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgcb67b5f" class="outline-2">
-<h2 id="orgcb67b5f">Motivation</h2>
-<div class="outline-text-2" id="text-orgcb67b5f">
+<div id="outline-container-org2f27b5d" class="outline-2">
+<h2 id="org2f27b5d">Motivation</h2>
+<div class="outline-text-2" id="text-org2f27b5d">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -245,9 +246,25 @@ FFmpeg filtergraphs.
 </p>
 </div>
 </div>
-<div id="outline-container-org3ad352c" class="outline-2">
-<h2 id="org3ad352c">Inspiration</h2>
-<div class="outline-text-2" id="text-org3ad352c">
+<div id="outline-container-orgd5e576e" class="outline-2">
+<h2 id="orgd5e576e">The filtergraph</h2>
+<div class="outline-text-2" id="text-orgd5e576e">
+<p>
+In FFmpeg, atomic editing tasks like scaling, cropping, blending,
+coloring, etc. are captured in filters. FFmpeg has more than 500 of
+them. When applying filters in sequence on source material, filters
+are being written in sequence, separated by a coma. Those are called
+filterchains. Filterchains can be labeled at both ends, so that their
+output can serve as input to another filterchain. Filterchains form a
+structure known as a directed acyclic graph (DAG), and FFmpeg calls it
+a filtergraph. Filtergraphs are being passed to FFmpeg in the
+<code>-filter_complex</code> parameter.
+</p>
+</div>
+</div>
+<div id="outline-container-orge589599" class="outline-2">
+<h2 id="orge589599">Inspiration</h2>
+<div class="outline-text-2" id="text-orge589599">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -276,7 +293,7 @@ all its general ideas are made.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Daniel Szmulewicz</p>
-<p class="date">Created: 2025-10-03 Fri 00:20</p>
+<p class="date">Created: 2025-10-03 Fri 00:21</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
