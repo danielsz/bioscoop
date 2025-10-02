@@ -1,7 +1,7 @@
 
 [[file:resources/logo.svg]]
 
-A DSL for FFmpgeg's filtegraph.
+* A DSL for FFmpgeg.
 
 [[https://danielsz.github.io/bioscoop/][Documentation]].
 
@@ -123,7 +123,7 @@ hard-coded in the filtergraph expression. Not so with bioscoop.
                           (update-in [:chains 0 :filters 0] with-labels [(if (zero? i) (str "out" i) (str "t" i)) (str "out" (inc i))] [(str "t" (inc i))]))))
 #+end_src
 
-*** Advanced Error Handling*
+*** Advanced Error Handling
 
 *Problem*: FFmpeg provides cryptic error messages that are difficult to
 trace back to specific filtergraph issues.
