@@ -34,6 +34,7 @@
    [bioscoop.domain.specs.life :as life]
    [bioscoop.domain.specs.cellauto :as cellauto]
    [bioscoop.domain.specs.boxblur :as boxblur]
+   [bioscoop.domain.specs.lut :as lut]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
@@ -197,3 +198,12 @@
 
 (defn colorchannelmixer [arg env]
   (template arg ::colorchannelmixer/colorchannelmixer env))
+
+(defn lut [arg env]
+  (template arg ::lut/lut env))
+
+(defn lutrgb [arg env]
+  (template arg ::lut/lutrgb env))
+
+(defn lutyuv [arg env]
+  (template arg ::lut/lutyuv env))
