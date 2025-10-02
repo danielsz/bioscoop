@@ -4,8 +4,8 @@
 * A DSL for FFmpeg.
 
 + [[https://danielsz.github.io/bioscoop/][Documentation]].
-+ Gallery
-
++ [[#gallery][Gallery]]
+ 
 By replacing FFmpeg's notoriously complex and error-prone string-based
 syntax with a structured, data-first approach, Bioscoop reifies
 FFMpeg's filtergaph into a first-class, composable unit. This in turn
@@ -194,6 +194,11 @@ Told in the words of communties:
 - Clojurians: a dsl that compiles Lisp forms to FFmpeg's filtergraph
 - PLT: A context-free grammar describing a simple Lisp language -> AST transformation into data structues
 -
+
+** Gallery
+:PROPERTIES:
+:CUSTOM_ID: gallery
+:END:
   
 [[file:gallery/output.gif]]
 
@@ -205,5 +210,3 @@ Told in the words of communties:
                                 [["cell"] ["img"] (overlay)]))
 #+end_src
 
-
-#+HTML: <video controls width="400"><source src="gallery/output.mp4" type="video/mp4/></video>
