@@ -1,17 +1,17 @@
 
 [[file:resources/logo.svg]]
 
-* A DSL for FFmpeg.
-
-+ [[https://danielsz.github.io/bioscoop/][Documentation]].
-+ [[#gallery][Gallery]]
- 
 By replacing FFmpeg's notoriously complex and error-prone string-based
 syntax with a structured, data-first approach, Bioscoop reifies
 FFMpeg's filtergaph into a first-class, composable unit. This in turn
 enables (dramatic) improvements in developer productivity, code
 maintainability, and system reliability.
 
+* Creative coding with video
+
++ [[https://danielsz.github.io/bioscoop/][Documentation]].
++ [[#gallery][Gallery]]
+ 
 ** Key Improvements Over Native FFmpeg Syntax
 
 *** *Structural Integrity Through Data-First Design*

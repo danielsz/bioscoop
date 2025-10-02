@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-01 Wed 15:41 -->
+<!-- 2025-10-03 Fri 00:20 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -203,41 +203,80 @@
 <div id="content" class="content">
 <h1 class="title">Bioscoop
 <br />
-<span class="subtitle">Creative coding for videos</span>
+<span class="subtitle">Creative coding with video</span>
 </h1>
 <div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org50f4db8">Description</a></li>
+<li><a href="#orgcb67b5f">Motivation</a></li>
+<li><a href="#org3ad352c">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org50f4db8" class="outline-2">
-<h2 id="org50f4db8">Description</h2>
-<div class="outline-text-2" id="text-org50f4db8">
+<div id="outline-container-orgcb67b5f" class="outline-2">
+<h2 id="orgcb67b5f">Motivation</h2>
+<div class="outline-text-2" id="text-orgcb67b5f">
 <p>
-Bioscoop gives you a macro that transforms code like this:
+Historically, video editing has progressed from destructive
+techniques, ie. cutting the negative, to non-destructive ones,
+ie. non-linear editing. The latter has become possible due to film
+being no longer analog but digital. In both cases, however, the
+creative process is manual, or mouse-based. A different approach,
+often overlooked, is programmatic: the editor spells out the edits he
+wants to apply, and those are being carried out by an underlying
+system.  FFmpeg is such a system; capable of carrying pretty much any
+editing instruction you can think of.
 </p>
 
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">let</span> <span style="color: #7388d6;">[</span>logbook <span style="color: #909183;">(</span>get-logbook entity<span style="color: #909183;">)</span><span style="color: #7388d6;">]</span>
-  <span style="color: #7388d6;">(</span><span style="color: #a020f0;">when</span> <span style="color: #909183;">(</span>some pred logbook<span style="color: #909183;">)</span>
-    <span style="color: #909183;">(</span><span style="color: #a020f0;">let</span> <span style="color: #709870;">[</span>response <span style="color: #907373;">(</span>body<span style="color: #907373;">)</span><span style="color: #709870;">]</span>
-      <span style="color: #709870;">(</span><span style="color: #a020f0;">when</span> <span style="color: #907373;">(</span>success? response<span style="color: #907373;">)</span>
-        <span style="color: #907373;">(</span>write logbook<span style="color: #907373;">)</span><span style="color: #709870;">)</span><span style="color: #909183;">)</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
-</pre>
+<p>
+While ffmpeg is being used in the creative coding community to make
+video art, most video professionals prefer to stay away from the
+notoriously complex and error-prone string-based syntax. Indeed, its
+usability is hindered by the information density of its textual
+interface.
+</p>
+
+<p>
+Bioscoop unleashes FFmpeg from its shackles and puts programmability
+in the center of the creative process.  It is a Domain Specific
+Language (DSL) builds upon that transforms how developers work with
+FFmpeg filtergraphs.
+</p>
 </div>
+</div>
+<div id="outline-container-org3ad352c" class="outline-2">
+<h2 id="org3ad352c">Inspiration</h2>
+<div class="outline-text-2" id="text-org3ad352c">
+<blockquote>
+<p>
+The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
+</p>
+
+<ol class="org-ol">
+<li>Combining several simple ideas into one compound one, and thus all
+complex ideas are made.</li>
+
+<li>The second is bringing two ideas, whether simple or complex,
+together, and setting them by one another so as to take a view of
+them at once, without uniting them into one, by which it gets all
+its ideas of relations.</li>
+
+<li>The third is separating them from all other ideas that accompany
+them in their real existence: this is called abstraction, and thus
+all its general ideas are made.</li>
+</ol>
 
 <p>
-Testing.
+—John Locke, An Essay Concerning Human Understanding (1690)
 </p>
+</blockquote>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Daniel Szmulewicz</p>
-<p class="date">Created: 2025-10-01 Wed 15:41</p>
+<p class="date">Created: 2025-10-03 Fri 00:20</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

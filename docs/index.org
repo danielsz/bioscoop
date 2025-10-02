@@ -1,5 +1,5 @@
 #+TITLE: Bioscoop
-#+SUBTITLE: Creative coding for videos
+#+SUBTITLE: Creative coding with video
 #+OPTIONS: toc:1 num:nil
 #+HTML_HEAD: <link rel="stylesheet" href="css/et-book.css" type="text/css" media="screen" />
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,600&display=swap" rel="stylesheet">
@@ -9,14 +9,26 @@
 
 * Motivation
 
-Historically, video editing has progressed from destructive techniques, ie. cutting the negative, to non-destructive ones, ie. non-linear
-editing. The latter has become possible due to film being no longer analog but digital. In both cases, however, the creative process is manual, or mouse-based. A different approach, often overlooked, is programmatic: the editor spells out the edits he wants to apply, and those are being carried out by an underlying system. 
-FFmpeg is such a system; capable of carrying pretty much any editing instruction you can think of. 
+Historically, video editing has progressed from destructive
+techniques, ie. cutting the negative, to non-destructive ones,
+ie. non-linear editing. The latter has become possible due to film
+being no longer analog but digital. In both cases, however, the
+creative process is manual, or mouse-based. A different approach,
+often overlooked, is programmatic: the editor spells out the edits he
+wants to apply, and those are being carried out by an underlying
+system.  FFmpeg is such a system; capable of carrying pretty much any
+editing instruction you can think of.
 
-Bioscoop puts programmability in the center of the creative process in tis a  to program videos
-(instead of non-linear editing). It is a Domain Specific Language
-(DSL) builds upon that transforms how
-developers work with FFmpeg filtergraphs.
+While ffmpeg is being used in the creative coding community to make
+video art, most video professionals prefer to stay away from the
+notoriously complex and error-prone string-based syntax. Indeed, its
+usability is hindered by the information density of its textual
+interface.
+
+Bioscoop unleashes FFmpeg from its shackles and puts programmability
+in the center of the creative process.  It is a Domain Specific
+Language (DSL) builds upon that transforms how developers work with
+FFmpeg filtergraphs.
 
 * Inspiration
 
