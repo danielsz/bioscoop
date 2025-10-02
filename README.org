@@ -183,9 +183,6 @@ dominance in the post-processing
 
 [[[file:gallery/itsallaboutfilters.jpeg]]]
 
-
-#+HTML: <img src="resources/itsallaboutfilters.jpeg" width="867" height="499"/>
-
 It is a language-focused solution to the information density problem
 of FFmpeg's filtergraph syntax.
 It's not only that they are dense and terse, they lack
@@ -195,9 +192,6 @@ principle when designing a system.
 
 #+HTML: <video controls width="400"><source src="gallery/output.mp4" type="video/mp4/></video>
 
-#+begin_src clojure
-
-#+end_src
 
 Told in the words of communties:
 
