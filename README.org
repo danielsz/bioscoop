@@ -7,13 +7,13 @@ FFMpeg's filtergaph into a first-class, composable unit. This in turn
 enables (dramatic) improvements in developer productivity, code
 maintainability, and system reliability.
 
-#+HTML: <img src="gallery/itsallaboutfilters.jpeg" width="400"/>
-
 * Creative coding with video
 
 + [[https://danielsz.github.io/bioscoop/][Documentation]].
 + [[#gallery][Gallery]]
- 
+
+#+HTML: <img src="gallery/itsallaboutfilters.jpeg" width="400"/>
+  
 ** Key Improvements Over Native FFmpeg Syntax
 
 *** *Structural Integrity Through Data-First Design*
