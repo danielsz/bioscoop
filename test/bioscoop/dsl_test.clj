@@ -215,7 +215,7 @@
           (is (= 2 (count (.-chains result))))))))
 
 (deftest name-shadowing
-  (testing "When we use a the name of built-in function in a let binding, we shadow the built-in function so reject it"
+  (testing "When we use the name of built-in function in a let binding, we shadow the built-in function so reject it"
     (testing "built-in reserved words"
       (let [dsl "(let [color red] (color {:c color}))"]
         (is (= :reserved-word (:error-type (compile-dsl dsl))))))

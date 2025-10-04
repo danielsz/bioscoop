@@ -5,6 +5,7 @@
             [clojure.test :refer [deftest is testing use-fixtures]]
             [bioscoop.registry :refer [clear-registry! get-graph]]
             [bioscoop.built-in]
+            [bioscoop.domain.records :refer [with-labels]]
             [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
@@ -241,3 +242,5 @@
     (do (defgraph foo (scale 1920 1080))
         (is (thrown? Exception (bioscoop (let [foo 1]
                                  (compose [[0] (graph (chain (scale {:width 1920 :height foo}))) [1]] [[0] foo [1]]))))))))
+
+

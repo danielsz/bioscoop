@@ -12,7 +12,6 @@
 
 (def dsl-parses (partial insta/parses dsl-parser))
 
-;; Environment for let bindings
 (defn make-env
   ([] {:errors (atom [])})
   ([parent] (assoc {:errors (atom [])} :parent parent)))
@@ -40,6 +39,7 @@
       0 (make-filtergraph [])
       1 (let [single (first transformed)]
           (cond
+            (and (seq? single) (seq single) (every? #(instance? FilterGraph %) single)) (apply compose-filtergraphs single)
             (instance? FilterGraph single) single
             (instance? FilterChain single) (make-filtergraph [single])
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
@@ -184,8 +184,10 @@
     (case (str (:ns (meta f)))
       "bioscoop.built-in" f
       "clojure.core" (fn [arg _] (apply f arg))
-      (do (accumulate-error env op :unresolved-function)
-          (fn [_ _] ())))))
+      (if-let [f (ns-resolve *ns* (symbol op))]
+        (fn [arg _] (apply f arg)) ;; user-defined function, must return filtergraph(s)
+        (do (accumulate-error env op :unresolved-function)
+            (fn [_ _] ()))))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]
