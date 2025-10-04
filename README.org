@@ -9,7 +9,7 @@ maintainability, and system reliability.
 
 * Creative coding with video
 
-+ [[https://danielsz.github.io/bioscoop/][Documentation]].
++ [[https://danielsz.github.io/bioscoop/][Documentation]]
 + [[#gallery][Gallery]]
 
 #+HTML: <img src="gallery/itsallaboutfilters.jpeg" width="400"/>
@@ -235,3 +235,36 @@ Bioscoop program:
   (to-ffmpeg (apply compose-filtergraphs (concat (n-formatting n) (n-bitplane n) (n-stack n)))))
 #+end_src
 
+****** Lagfun
+
+[[file:gallery/lagfun.gif]]
+
+Ffmpeg syntax:
+
+#+begin_src sh
+"format=gbrp10[formatted];[formatted]split[a][b];[a]lagfun=decay=.99:planes=1[a];[b]lagfun=decay=.98:planes=2[b];[a][b]blend=all_mode=screen:c0_opacity=.5:c1_opacity=.5,format=yuv422p10le[out]"
+#+end_src
+
+Bioscoop program:
+
+#+begin_src clojure
+(defgraph formatting [(chain (format {:pix_fmts "gbrp10"})
+                             (split {:outputs 2})) ["i0"] ["i1"]])
+
+(defgraph fun (lagfun {:decay 0.99 :planes 1}))
+
+(defn n-fun [n]
+  (for [i (range n)]
+    (-> fun
+       (update-in [:chains 0 :filters 0 :args] assoc
+                  :bioscoop.domain.specs.lagfun/decay (/ (- 99 i) 100)
+                  :bioscoop.domain.specs.lagfun/planes (inc i))
+       (update-in [:chains 0 :filters 0] with-labels [(str "i" i)] [(str "o" i )]))))
+
+(defgraph blending [["o0"] ["o1"] (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
+                                         (format {:pix_fmts "yuv422p10le"}))])
+
+(defn filtergraph [] (to-ffmpeg (apply compose-filtergraphs `[~formatting
+                                                              ~@(n-fun 2)
+                                                              ~blending])))
+#+end_src

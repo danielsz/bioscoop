@@ -36,6 +36,7 @@
    [bioscoop.domain.specs.cellauto :as cellauto]
    [bioscoop.domain.specs.boxblur :as boxblur]
    [bioscoop.domain.specs.lut :as lut]
+   [bioscoop.domain.specs.lagfun :as lagfun]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
    [bioscoop.domain.specs.effects :as effects]
    [clojure.spec.alpha :as s]
@@ -211,3 +212,6 @@
 
 (defn lutyuv [arg env]
   (template arg ::lut/lutyuv env))
+
+(defn lagfun [arg env]
+  (template arg ::lagfun/lagfun env))
