@@ -170,7 +170,7 @@ unclear error messages.
 :CUSTOM_ID: gallery
 :END:
 
-****** Cellular automata
+***** Cellular automata
 
 [[file:gallery/cellauto.gif]]
 
@@ -193,7 +193,7 @@ Bioscoop program:
 #+end_src
 
 
-****** Bitplanes
+***** Bitplanes
 
 [[file:gallery/jumpinjackflash.gif]]
 
@@ -237,7 +237,7 @@ Bioscoop program:
   (to-ffmpeg (apply compose-filtergraphs (concat (n-formatting n) (n-bitplane n) (n-stack n)))))
 #+end_src
 
-****** Lagfun
+***** Lagfun
 
 [[file:gallery/lagfun.gif]]
 
@@ -271,8 +271,8 @@ Bioscoop program:
                                                               ~blending])))
 #+end_src
 
-******* Dance Me to the End of Love
+***** Dance Me to the End of Love
 
-A photography series produced and presented with Bioscoop.
+Presentation of photography work with the Ken Burns effect. 
 
 #+HTML: <a href="http://www.youtube.com/watch?feature=player_embedded&v=CWdZ3-Xh3vQ" target="_blank"><img src="http://img.youtube.com/vi/CWdZ3-Xh3vQ/0.jpg" alt="Dance Me to the End of Love" width="560" height="315" border="10" />
