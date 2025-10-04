@@ -4,8 +4,8 @@
 By replacing FFmpeg's notoriously complex and error-prone string-based
 syntax with a structured, data-first approach, Bioscoop reifies
 FFMpeg's filtergaph into a first-class, composable unit. This in turn
-enables (dramatic) improvements in developer productivity, code
-maintainability, and system reliability.
+enables (dramatic) improvements in creative freedom, programmability,
+maintainability and reliability.
 
 * Creative coding with video
 
@@ -188,6 +188,8 @@ Bioscoop program:
 (defgraph presentation (compose [cellular ["cell"]]
                                 [["0:v" ] (format {:pix_fmts "yuva420p"}) ["img"]]
                                 [["cell"] ["img"] (overlay)]))
+
+(def filtergraph #(to-ffmpeg presentation))
 #+end_src
 
 
@@ -268,3 +270,9 @@ Bioscoop program:
                                                               ~@(n-fun 2)
                                                               ~blending])))
 #+end_src
+
+******* Dance Me to the End of Love
+
+A photography series entirely produced and presented with Bioscoop.
+
+#+HTML <iframe width="560" height="315" src="https://www.youtube.com/embed/CWdZ3-Xh3vQ?si=_7A5EUHObvNdR1ii" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
