@@ -39,7 +39,6 @@
       0 (make-filtergraph [])
       1 (let [single (first transformed)]
           (cond
-            (and (seq? single) (seq single) (every? #(instance? FilterGraph %) single)) (apply compose-filtergraphs single)
             (instance? FilterGraph single) single
             (instance? FilterChain single) (make-filtergraph [single])
             (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
@@ -185,7 +184,7 @@
       "bioscoop.built-in" f
       "clojure.core" (fn [arg _] (apply f arg))
       (if-let [f (ns-resolve *ns* (symbol op))]
-        (fn [arg _] (apply f arg)) ;; user-defined function, must return filtergraph(s)
+        (fn [arg _] (apply compose-filtergraphs (apply f arg))) ;; user-defined function, must return filtergraph(s)
         (do (accumulate-error env op :unresolved-function)
             (fn [_ _] ()))))))
 
