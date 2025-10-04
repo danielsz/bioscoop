@@ -271,6 +271,18 @@ Bioscoop program:
                                                     [["o0"] ["o1"] blending]))))
 #+end_src
 
+The following bioscoop program uses a ~let~ binding but is otherwise equivalent:
+
+#+begin_src clojure
+(def alternate #(to-ffmpeg (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
+                                                             (split {:outputs 2}))
+                                           blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
+                                                           (format {:pix_fmts "yuv422p10le"}))]
+                                       (compose [formatting ["i0"] ["i1"]]
+                                                (n-fun 2)
+                                                [["o0"] ["o1"] blending])))))
+#+end_src
+
 ***** Dance Me to the End of Love
 
 Presentation of photography work with the Ken Burns effect. 
