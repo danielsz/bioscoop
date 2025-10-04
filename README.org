@@ -273,6 +273,6 @@ Bioscoop program:
 
 ******* Dance Me to the End of Love
 
-A photography series entirely produced and presented with Bioscoop.
+A photography series produced and presented with Bioscoop.
 
-#+HTML: <iframe width="560" height="315" src="https://www.youtube.com/embed/CWdZ3-Xh3vQ?si=_7A5EUHObvNdR1ii" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+#+HTML: <a href="http://www.youtube.com/watch?feature=player_embedded&v=CWdZ3-Xh3vQ" target="_blank"><img src="http://img.youtube.com/vi/CWdZ3-Xh3vQ/0.jpg" alt="Dance Me to the End of Love" width="560" height="315" border="10" />
