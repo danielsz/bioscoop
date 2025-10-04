@@ -233,8 +233,8 @@ Bioscoop program:
        (update-in [:chains 0 :filters 1] with-output-labels [(str "b" i "c")]))))
 
 
-(defn filtergraph [& {:keys [n] :or {n 10}}]
-  (to-ffmpeg (apply compose-filtergraphs (concat (n-formatting n) (n-bitplane n) (n-stack n)))))
+(defn filtergraph []
+  (to-ffmpeg (bioscoop (compose (n-formatting 10) (n-bitplane 10) (n-stack 10)))))
 #+end_src
 
 ***** Lagfun
@@ -250,8 +250,8 @@ Ffmpeg syntax:
 Bioscoop program:
 
 #+begin_src clojure
-(defgraph formatting [(chain (format {:pix_fmts "gbrp10"})
-                             (split {:outputs 2})) ["i0"] ["i1"]])
+(defgraph formatting (chain (format {:pix_fmts "gbrp10"})
+                            (split {:outputs 2})) )
 
 (defgraph fun (lagfun {:decay 0.99 :planes 1}))
 
@@ -263,12 +263,12 @@ Bioscoop program:
                   :bioscoop.domain.specs.lagfun/planes (inc i))
        (update-in [:chains 0 :filters 0] with-labels [(str "i" i)] [(str "o" i )]))))
 
-(defgraph blending [["o0"] ["o1"] (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
-                                         (format {:pix_fmts "yuv422p10le"}))])
+(defgraph blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
+                          (format {:pix_fmts "yuv422p10le"})))
 
-(defn filtergraph [] (to-ffmpeg (apply compose-filtergraphs `[~formatting
-                                                              ~@(n-fun 2)
-                                                              ~blending])))
+(defn filtergraph [] (to-ffmpeg (bioscoop (compose [formatting ["i0"] ["i1"]]
+                                                    (n-fun 2)
+                                                    [["o0"] ["o1"] blending]))))
 #+end_src
 
 ***** Dance Me to the End of Love
