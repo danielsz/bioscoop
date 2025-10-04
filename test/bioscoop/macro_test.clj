@@ -244,3 +244,28 @@
                                  (compose [[0] (graph (chain (scale {:width 1920 :height foo}))) [1]] [[0] foo [1]]))))))))
 
 
+(defn n-fun [n]
+  (for [i (range n)]
+    (-> (bioscoop (lagfun {:decay 0.99 :planes 1}))
+       (update-in [:chains 0 :filters 0 :args] assoc
+                  :bioscoop.domain.specs.lagfun/decay (/ (- 99 i) 100)
+                  :bioscoop.domain.specs.lagfun/planes (inc i))
+       (update-in [:chains 0 :filters 0] with-labels [(str "i" i)] [(str "o" i )]))))
+
+(deftest fn-returning-filtergraphs
+  (testing "user defined functions that return filtergraphs"
+    (in-ns 'user)
+    (intern *ns* 'n-fun #'bioscoop.macro-test/n-fun)
+    (let [result (bioscoop (n-fun 3))]
+      (is (instance? FilterGraph result))
+      (is (= (to-ffmpeg result) "[i0]lagfun=decay=99/100:planes=1[o0];[i1]lagfun=decay=49/50:planes=2[o1];[i2]lagfun=decay=97/100:planes=3[o2]"))))
+  (testing "user defined functions can be composed"
+    (let [result (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
+                                                   (split {:outputs 2}))
+                                 blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
+                                                 (format {:pix_fmts "yuv422p10le"}))]
+                             (compose [formatting ["i0"] ["i1"]]
+                                      (n-fun 2)
+                                      [["o0"] ["o1"] blending])))]
+      (is (instance? FilterGraph result))
+      (is (= (to-ffmpeg result) "format=pix_fmts=gbrp10,split=outputs=2[i0][i1];[i0]lagfun=decay=99/100:planes=1[o0];[i1]lagfun=decay=49/50:planes=2[o1];[o0][o1]blend=all_mode=screen:c0_opacity=0.5:c1_opacity=0.6,format=pix_fmts=yuv422p10le")))))
