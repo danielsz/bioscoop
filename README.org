@@ -2,12 +2,11 @@
 [[file:resources/logo.svg]]
 
 This repository contains a language toolchain that processes a
-simplified Lisp language and outputs FFmpeg's filtergaphs. By
-replacing FFmpeg's notoriously complex and error-prone string-based
-syntax with a structured, data-first approach, Bioscoop reifies the
-filtergaph into a first-class, composable unit. This in turn enables
-(dramatic) improvements in creative freedom, programmability,
-maintainability and reliability.
+simplified Lisp language and outputs FFmpeg's filtergaphs. From the
+notoriously complex and error-prone string-based syntax, Bioscoop
+reifies the filtergaph into a first-class, composable unit. This in
+turn enables (dramatic) improvements in creative freedom,
+programmability, maintainability and reliability.
 
 * Creative coding with video
 
@@ -15,11 +14,11 @@ maintainability and reliability.
 + [[#gallery][Gallery]]
 + [[#roadmap][Roadmap]]
 
-#+HTML: <img src="gallery/itsallaboutfilters.jpeg" width="400"/>
+#+HTML: <div style="text-align:center;"><img src="gallery/itsallaboutfilters.jpeg" width="400"/></div>
 
-This is not a wrapper for FFmpeg (or bindings). This is a compiler
-that emits filtergraphs. It is a language solution for a language
-problem, ie. the excessive information density of FFmpeg's syntax.
+/Note/: This is not a wrapper for FFmpeg (or bindings). This is a language
+solution for a language problem, ie. the excessive information density
+of FFmpeg's syntax.
 
 ** Key Improvements Over Native FFmpeg Syntax
 
