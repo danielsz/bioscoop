@@ -170,6 +170,10 @@ unclear error messages.
 :CUSTOM_ID: gallery
 :END:
 
+The Association of Moving Image Archivists (AMIA) provides Open Source
+resources that support their mission. The following examples were
+largely inspired by one such resource, the [[https://amiaopensource.github.io/ffmpeg-artschool/][FFmpeg artschool]].
+
 **** Cellular automata
 
 [[file:gallery/cellauto.gif]]
@@ -295,7 +299,7 @@ Bioscoop program:
                                                 [["o0"] ["o1"] blending]))))
 #+end_src
 
-Instead of the top-level ~defgraph~, Bioscoop also allows for local bindings with a ~let~.
+/Note/: Instead of the top-level ~defgraph~, Bioscoop also allows for local bindings with a ~let~.
 
 #+begin_src clojure
 (def filtergraph #(to-ffmpeg (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
@@ -307,8 +311,15 @@ Instead of the top-level ~defgraph~, Bioscoop also allows for local bindings wit
                                                 [["o0"] ["o1"] blending])))))
 #+end_src
 
-***** Dance Me to the End of Love
+***** Published projects
 
-Presentation of photography work with the Ken Burns effect. 
+If you have done something with Bioscoop, please send me a link to
+your project and I will list it below.
+
+**** Dance Me to the End of Love
+
+Presentation of photography work with the Ken Burns effect. Click to
+play the Youtube video.
 
 #+HTML: <a href="http://www.youtube.com/watch?feature=player_embedded&v=CWdZ3-Xh3vQ" target="_blank"><img src="http://img.youtube.com/vi/CWdZ3-Xh3vQ/0.jpg" alt="Dance Me to the End of Love" width="560" height="315" border="10" />
+
