@@ -194,7 +194,7 @@ Bioscoop program:
 
 **** Blend
 
-file:gallery/blend.gif
+[[file:gallery/blend.gif]]
 
 FFmpeg syntax:
 
