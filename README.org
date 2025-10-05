@@ -202,6 +202,8 @@ FFmpeg syntax:
 "[1:v]format=gbrp10le[v1];[0:v]format=gbrp10le[v0];[v1][v0]scale2ref[v1][v0];[v0][v1]blend=all_mode=pinlight,format=yuv422p10le[v]"
 #+end_src
 
+Bioscoop program:
+
 #+begin_src clojure
 (defgraph formatting (format {:pix_fmts "gbrp10le"}))
 (defgraph blending (chain (blend {:all_mode "pinlight"})
@@ -293,7 +295,7 @@ Bioscoop program:
                                                 [["o0"] ["o1"] blending]))))
 #+end_src
 
-Or use a ~let~ binding instead of ~defgraph~.
+Instead of the top-level ~defgraph~, Bioscoop also allows for local bindings with a ~let~.
 
 #+begin_src clojure
 (def filtergraph #(to-ffmpeg (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
