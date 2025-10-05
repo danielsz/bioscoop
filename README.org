@@ -135,25 +135,6 @@ hard-coded in the filtergraph expression. Not so with bioscoop.
                           (update-in [:chains 0 :filters 0] with-labels [(if (zero? i) (str "out" i) (str "t" i)) (str "out" (inc i))] [(str "t" (inc i))]))))
 #+end_src
 
-*** Advanced Error Handling
-
-*Problem*: FFmpeg provides cryptic error messages that are difficult to
-trace back to specific filtergraph issues.
-
-*Solution*: Structured error reporting with context:
-
-#+begin_src clojure
-(defprotocol ErrorHandling
-  (accumulate-error [env value error-type]))
-  
-;; Detailed error information instead of "Invalid filter specification"
-#+end_src
-
-*Benefits*:
-- *Precise error localization*: Know exactly which filter failed
-- *Contextual information*: Error messages include surrounding filter context
-- *Validation before execution*: Catch errors before invoking FFmpeg
-
 *** *Spec-Driven Validation*
 
 *Problem*: FFmpeg parameters are validated at runtime, often with
@@ -269,9 +250,9 @@ Bioscoop program:
        (update-in [:chains 0 :filters 0] with-input-labels [(str "b" i)])
        (update-in [:chains 0 :filters 1] with-output-labels [(str "b" i "c")]))))
 
-
-(defn filtergraph []
-  (to-ffmpeg (bioscoop (compose (n-formatting 10) (n-bitplane 10) (n-stack 10)))))
+(def filtergraph
+  #(to-ffmpeg (bioscoop (let [n 10]
+                          (compose (n-formatting n) (n-bitplane n) (n-stack n))))))
 #+end_src
 
 
@@ -352,4 +333,4 @@ N.B: Bioscoop was designed to run as a standalone language toolchain.
 
 ☑ Bioscoop language toolchain
 ☐ More filters
-☐ GraalVM standalone binary (compiler)
+☐ Standalone compiler (GraalVM binary)
