@@ -31,8 +31,6 @@ in the center of the creative process.
 
 * Internals
 
-**** Core Architecture
-
 The project is structured around several key components:
 
 **** 1. *DSL Parser (=src/bioscoop/dsl.clj=)*
