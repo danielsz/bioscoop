@@ -14,7 +14,7 @@ programmability, maintainability and reliability.
 + [[#gallery][Gallery]]
 + [[#roadmap][Roadmap]]
 
-#+HTML: <div style="text-align:center;"><img src="gallery/itsallaboutfilters.jpeg" width="400"/></div>
+#+HTML: <img src="gallery/itsallaboutfilters.jpeg" width="400"/>
 
 /Note/: This is not a wrapper for FFmpeg (or bindings). This is a language
 solution for a language problem, ie. the excessive information density
@@ -328,8 +328,7 @@ work with the standalone compiler, please let me know that you are
 interested. Please consider becoming a sponsor to voice that
 interest. Thank you!
 
-N.B: Bioscoop was designed to run as a standalone language toolchain.
 
-☑ Bioscoop language toolchain
-☐ More filters
-☐ Standalone compiler (GraalVM binary)
++ ☑ Bioscoop language toolchain
++ ☐ More filters
++ ☐ Standalone compiler (GraalVM binary)
