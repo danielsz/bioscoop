@@ -170,7 +170,7 @@ unclear error messages.
 :CUSTOM_ID: gallery
 :END:
 
-***** Cellular automata
+**** Cellular automata
 
 [[file:gallery/cellauto.gif]]
 
@@ -192,8 +192,29 @@ Bioscoop program:
 (def filtergraph #(to-ffmpeg presentation))
 #+end_src
 
+**** Blend
 
-***** Bitplanes
+file:gallery/blend.gif
+
+FFmpeg syntax:
+
+#+begin_src sh
+"[1:v]format=gbrp10le[v1];[0:v]format=gbrp10le[v0];[v1][v0]scale2ref[v1][v0];[v0][v1]blend=all_mode=pinlight,format=yuv422p10le[v]"
+#+end_src
+
+#+begin_src clojure
+(defgraph formatting (format {:pix_fmts "gbrp10le"}))
+(defgraph blending (chain (blend {:all_mode "pinlight"})
+                          (format {:pix_fmts "yuv422p10le"})))
+
+(def filtergraph #(to-ffmpeg (bioscoop (compose [["0:v"] formatting ["v0"]]
+                                                [["1:v"] formatting ["v1"]]
+                                                [["v1"] ["v0"] (scale2ref) ["s1"] ["s0"]]
+                                                [["s0"] ["s1"] blending]))))
+
+#+end_src
+
+**** Bitplanes
 
 [[file:gallery/jumpinjackflash.gif]]
 
@@ -237,7 +258,8 @@ Bioscoop program:
   (to-ffmpeg (bioscoop (compose (n-formatting 10) (n-bitplane 10) (n-stack 10)))))
 #+end_src
 
-***** Lagfun
+
+**** Lagfun
 
 [[file:gallery/lagfun.gif]]
 
@@ -266,15 +288,15 @@ Bioscoop program:
 (defgraph blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
                           (format {:pix_fmts "yuv422p10le"})))
 
-(defn filtergraph [] (to-ffmpeg (bioscoop (compose [formatting ["i0"] ["i1"]]
-                                                    (n-fun 2)
-                                                    [["o0"] ["o1"] blending]))))
+(def filtergraph #(to-ffmpeg (bioscoop (compose [formatting ["i0"] ["i1"]]
+                                                (n-fun 2)
+                                                [["o0"] ["o1"] blending]))))
 #+end_src
 
-The following bioscoop program uses a ~let~ binding but is otherwise equivalent:
+Or use a ~let~ binding instead of ~defgraph~.
 
 #+begin_src clojure
-(def alternate #(to-ffmpeg (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
+(def filtergraph #(to-ffmpeg (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
                                                              (split {:outputs 2}))
                                            blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
                                                            (format {:pix_fmts "yuv422p10le"}))]

@@ -45,3 +45,5 @@
                    ::in_v_chr_pos ::in_h_chr_pos ::out_v_chr_pos ::out_h_chr_pos
                    ::force_original_aspect_ratio
                    ::force_divisible_by ::param0 ::param1 ::eval ]))
+
+(s/def ::scale2ref ::scale)

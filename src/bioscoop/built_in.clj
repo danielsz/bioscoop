@@ -69,6 +69,9 @@
 (defn scale [arg env]
   (template arg ::scale/scale env))
 
+(defn scale2ref [arg env]
+  (template arg ::scale/scale2ref env))
+
 (defn crop [arg env]
   (template arg ::crop/crop env))
 
