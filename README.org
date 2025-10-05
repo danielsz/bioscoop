@@ -1,19 +1,26 @@
 
 [[file:resources/logo.svg]]
 
-By replacing FFmpeg's notoriously complex and error-prone string-based
-syntax with a structured, data-first approach, Bioscoop reifies
-FFMpeg's filtergaph into a first-class, composable unit. This in turn
-enables (dramatic) improvements in creative freedom, programmability,
+This repository contains a language toolchain that processes a
+simplified Lisp language and outputs FFmpeg's filtergaphs. By
+replacing FFmpeg's notoriously complex and error-prone string-based
+syntax with a structured, data-first approach, Bioscoop reifies the
+filtergaph into a first-class, composable unit. This in turn enables
+(dramatic) improvements in creative freedom, programmability,
 maintainability and reliability.
 
 * Creative coding with video
 
 + [[https://danielsz.github.io/bioscoop/][Documentation]]
 + [[#gallery][Gallery]]
++ [[#roadmap][Roadmap]]
 
 #+HTML: <img src="gallery/itsallaboutfilters.jpeg" width="400"/>
-  
+
+This is not a wrapper for FFmpeg (or bindings). This is a compiler
+that emits filtergraphs. It is a language solution for a language
+problem, ie. the excessive information density of FFmpeg's syntax.
+
 ** Key Improvements Over Native FFmpeg Syntax
 
 *** *Structural Integrity Through Data-First Design*
@@ -33,6 +40,8 @@ Instead of ~"scale=1920:1080,overlay"~, users write:
 *Benefits*:
 - *Type safety*: Parameters are validated before execution
 - *Immutability*: Filtergraphs can be safely composed and transformed
+- *Explicitness*: Parameter names are spelled out (compare and contrast
+  with FFmpeg's positional arguments).
 
 *** *Composable Architecture*
 
@@ -150,12 +159,12 @@ trace back to specific filtergraph issues.
 *Problem*: FFmpeg parameters are validated at runtime, often with
 unclear error messages.
 
-*Solution*: Pre-execution validation using Clojure spec:
+*Solution*: Values passed to the filters are validated through specs.
 
 #+begin_src clojure
 (s/def ::width (s/and int? pos?))
 (s/def ::height (s/and int? pos?))
-(s/def ::scale-args (s/keys :req-un [::width ::height]))
+(s/def ::scale (s/keys :req-un [::width ::height]))
 
 ;; Validation happens before FFmpeg execution
 #+end_src
@@ -163,7 +172,8 @@ unclear error messages.
 *Benefits*:
 - *Early error detection*: Catch invalid parameters before FFmpeg runs
 - *Clear error messages*: Know exactly which parameter failed validation
-- *Documentation*: Specs serve as living documentation for filter parameters
+- *Documentation*: Specs serve as living documentation for filter
+  parameters (type help and the name of the filter to see the spec).
 
 ** Gallery
 :PROPERTIES:
@@ -320,8 +330,26 @@ your project for inclusion below.
 
 **** Dance Me to the End of Love
 
-Presentation of photography work with the Ken Burns effect. Click to
-play the Youtube video.
+Presentation of photography work with the Ken Burns effect. Click on
+the image below to play a Youtube video.
 
 #+HTML: <a href="http://www.youtube.com/watch?feature=player_embedded&v=CWdZ3-Xh3vQ" target="_blank"><img src="http://img.youtube.com/vi/CWdZ3-Xh3vQ/0.jpg" alt="Dance Me to the End of Love" width="560" height="315" border="10" />
 
+** Roadmap
+:PROPERTIES:
+:CUSTOM_ID: roadmap
+:END:
+
+While the language proper is feature-complete, no binary is shipping
+yet. The ~bioscoop~ macro wraps the compiler in a Clojure environment,
+and exposes the functionality in a REPL. If you are familiar with
+Clojure, then your needs are met. If you are not and wished you could
+work with the standalone compiler, please let me know that you are
+interested. Please consider becoming a sponsor to voice that
+interest. Thank you!
+
+N.B: Bioscoop was designed to run as a standalone language toolchain.
+
+☑ Bioscoop language toolchain
+☐ More filters
+☐ GraalVM standalone binary (compiler)
