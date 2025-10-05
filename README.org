@@ -172,7 +172,7 @@ unclear error messages.
 
 The Association of Moving Image Archivists ([[https://amianet.org/][AMIA]]) provides Open Source
 resources that support their mission. The following examples were
-largely inspired by one such resource, the [[https://amiaopensource.github.io/ffmpeg-artschool/][FFmpeg artschool]].
+largely inspired by the [[https://amiaopensource.github.io/ffmpeg-artschool/][FFmpeg artschool]].
 
 **** Cellular automata
 
@@ -302,13 +302,15 @@ Bioscoop program:
 /Note/: Instead of the top-level ~defgraph~, Bioscoop also allows for local bindings with a ~let~.
 
 #+begin_src clojure
-(def filtergraph #(to-ffmpeg (bioscoop (let [formatting (chain (format {:pix_fmts "gbrp10"})
-                                                             (split {:outputs 2}))
-                                           blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
-                                                           (format {:pix_fmts "yuv422p10le"}))]
-                                       (compose [formatting ["i0"] ["i1"]]
-                                                (n-fun 2)
-                                                [["o0"] ["o1"] blending])))))
+(def filtergraph #(to-ffmpeg
+                   (bioscoop
+                     (let [formatting (chain (format {:pix_fmts "gbrp10"})
+                                             (split {:outputs 2}))
+                           blending (chain (blend {:all_mode "screen" :c0_opacity 0.5 :c1_opacity 0.6})
+                                           (format {:pix_fmts "yuv422p10le"}))]
+                       (compose [formatting ["i0"] ["i1"]]
+                                (n-fun 2)
+                                [["o0"] ["o1"] blending])))))
 #+end_src
 
 *** Published projects
