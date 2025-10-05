@@ -19,44 +19,55 @@ wants to apply, and those are being carried out by an underlying
 system.  FFmpeg is such a system; capable of carrying pretty much any
 editing instruction you can think of.
 
-While ffmpeg is being used in the creative coding community to make
-video art, most video professionals prefer to stay away from the
-notoriously complex and error-prone string-based syntax. Indeed, its
-usability is hindered by the information density of its textual
-interface.
+FFmpeg is embedded in virtually every major platform and application
+that handles media, yet its use in the creative coding community to
+make video art is limited. Most video creators prefer to stay away
+from the notoriously complex and error-prone string-based
+syntax. Indeed, its usability is hindered by the information density
+of its textual interface.
 
 Bioscoop unleashes FFmpeg from its shackles and puts programmability
-in the center of the creative process.  It is a Domain Specific
-Language (DSL) builds upon that transforms how developers work with
-FFmpeg filtergraphs.
+in the center of the creative process.
+
+* Internals
+
+** Bioscoop: FFmpeg Filtergraph DSL
+
+*Bioscoop* is a Clojure library that provides a domain-specific language
+(DSL) for building FFmpeg filtergraphs. It allows you to write
+video/audio filter operations in a Lisp-like syntax that compiles down
+to FFmpeg's native filtergraph format.
+
+*** Core Architecture
+
+The project is structured around several key components:
+
+**** 1. *DSL Parser (=src/bioscoop/dsl.clj=)*
+- Uses *Instaparse* to parse a Lisp-like syntax defined in =resources/lisp-grammar.bnf=
+- Supports typical Lisp constructs: functions, let bindings, symbols, keywords, strings, numbers, booleans
+- Grammar allows for expressions like =(scale 1920 1080)= and =(let [width 1920] (scale width 1080))=
+
+**** 2. *Domain Model (=src/bioscoop/domain/records.clj=)*
+- Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs
+- Provides validation for the core data structures
+
+**** 3. *Core Data Structures*
+Three main records represent FFmpeg concepts:
+- *=Filter=*: A single filter operation (e.g., scale, overlay, crop)
+- *=FilterChain=*: A sequence of filters connected in series (comma-separated in FFmpeg)
+- *=FilterGraph=*: Multiple filter chains running in parallel (semicolon-separated in FFmpeg)
+
+**** 4. *Rendering Engine (=src/bioscoop/render.clj=)*
+- Implements the =FFmpegRenderable= protocol to convert data structures to FFmpeg syntax
+- Handles input/output labels for complex filtergraphs 
+- Ensures proper escaping and formatting
+
+**** 5. /Bidirectional Translation/
+- /=src/bioscoop/render.clj=*: Converts DSL → FFmpeg filtergraph strings
+- /=src/bioscoop/ffmpeg.clj=*: Parses existing FFmpeg filtergraph strings → DSL structures
 
 
-Yes, FFmpeg is everywhere and it is amazing, but it is mainly used for
-post-processing. Bioscoop is an attempt to unleash the power of FFmpeg
-in the creative process. It offers an alternative to Non-Linear
-editing of videos in favor of a programmatic approach.
 
-FFmpeg offers a wealth of filters that can be
-terseness, information density
-
-
-FFmpeg has asserted its dominance in the post-processing phase of
-video 
-Unleash the power of FFmpeg in the creative process, beyond its
-dominance in the post-processing 
-
-It is a language-focused solution to the information density problem
-of FFmpeg's filtergraph syntax.
-It's not only that they are dense and terse, they lack
-abstractions. They do not allow for composition, which is a key
-principle when designing a system.
-
-Told in the words of communties:
-
-- Clojurians: a dsl that compiles Lisp forms to FFmpeg's filtergraph
-- PLT: A context-free grammar describing a simple Lisp language -> AST transformation into data structues
--
-  
 * The filtergraph
 
 In FFmpeg, atomic editing tasks like scaling, cropping, blending,
@@ -68,6 +79,7 @@ output can serve as input to another filterchain. Filterchains form a
 structure known as a directed acyclic graph (DAG), and FFmpeg calls it
 a filtergraph. Filtergraphs are being passed to FFmpeg in the
 ~-filter_complex~ parameter.
+
 
 * Inspiration
 
