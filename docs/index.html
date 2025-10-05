@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-06 Mon 01:18 -->
+<!-- 2025-10-06 Mon 03:24 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -209,16 +209,16 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org2f35f8a">Motivation</a></li>
-<li><a href="#org9192b56">Internals</a></li>
-<li><a href="#orgc2a7fb9">The filtergraph</a></li>
-<li><a href="#orga0e0eb4">Inspiration</a></li>
+<li><a href="#org326308d">Motivation</a></li>
+<li><a href="#org0865270">Internals</a></li>
+<li><a href="#org45903ff">The filtergraph</a></li>
+<li><a href="#org6cfb0ee">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org2f35f8a" class="outline-2">
-<h2 id="org2f35f8a">Motivation</h2>
-<div class="outline-text-2" id="text-org2f35f8a">
+<div id="outline-container-org326308d" class="outline-2">
+<h2 id="org326308d">Motivation</h2>
+<div class="outline-text-2" id="text-org326308d">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -246,30 +246,20 @@ in the center of the creative process.
 </p>
 </div>
 </div>
-<div id="outline-container-org9192b56" class="outline-2">
-<h2 id="org9192b56">Internals</h2>
-<div class="outline-text-2" id="text-org9192b56">
+<div id="outline-container-org0865270" class="outline-2">
+<h2 id="org0865270">Internals</h2>
+<div class="outline-text-2" id="text-org0865270">
 </div>
-<div id="outline-container-org99c3b58" class="outline-3">
-<h3 id="org99c3b58">Bioscoop: FFmpeg Filtergraph DSL</h3>
-<div class="outline-text-3" id="text-org99c3b58">
-<p>
-<b>Bioscoop</b> is a Clojure library that provides a domain-specific language
-(DSL) for building FFmpeg filtergraphs. It allows you to write
-video/audio filter operations in a Lisp-like syntax that compiles down
-to FFmpeg's native filtergraph format.
-</p>
-</div>
-<div id="outline-container-org607fb3c" class="outline-4">
-<h4 id="org607fb3c">Core Architecture</h4>
-<div class="outline-text-4" id="text-org607fb3c">
+<ul class="org-ul">
+<li><a id="org3cd071d"></a>Core Architecture<br />
+<div class="outline-text-5" id="text-org3cd071d">
 <p>
 The project is structured around several key components:
 </p>
 </div>
-<ul class="org-ul">
-<li><a id="org1fbb823"></a>1. <b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b><br />
-<div class="outline-text-5" id="text-org1fbb823">
+</li>
+<li><a id="org9a0c9fd"></a>1. <b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b><br />
+<div class="outline-text-5" id="text-org9a0c9fd">
 <ul class="org-ul">
 <li>Uses <b>Instaparse</b> to parse a Lisp-like syntax defined in <code>resources/lisp-grammar.bnf</code></li>
 <li>Supports typical Lisp constructs: functions, let bindings, symbols, keywords, strings, numbers, booleans</li>
@@ -277,16 +267,16 @@ The project is structured around several key components:
 </ul>
 </div>
 </li>
-<li><a id="org07a5379"></a>2. <b>Domain Model (<code>src/bioscoop/domain/records.clj</code>)</b><br />
-<div class="outline-text-5" id="text-org07a5379">
+<li><a id="org940a2a5"></a>2. <b>Domain Model (<code>src/bioscoop/domain/</code>)</b><br />
+<div class="outline-text-5" id="text-org940a2a5">
 <ul class="org-ul">
 <li>Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs</li>
 <li>Provides validation for the core data structures</li>
 </ul>
 </div>
 </li>
-<li><a id="org45b795f"></a>3. <b>Core Data Structures</b><br />
-<div class="outline-text-5" id="text-org45b795f">
+<li><a id="orgd5992d0"></a>3. <b>Core Data Structures</b><br />
+<div class="outline-text-5" id="text-orgd5992d0">
 <p>
 Three main records represent FFmpeg concepts:
 </p>
@@ -297,8 +287,8 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </li>
-<li><a id="org1c296fb"></a>4. <b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b><br />
-<div class="outline-text-5" id="text-org1c296fb">
+<li><a id="orgf20da5f"></a>4. <b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b><br />
+<div class="outline-text-5" id="text-orgf20da5f">
 <ul class="org-ul">
 <li>Implements the <code>FFmpegRenderable</code> protocol to convert data structures to FFmpeg syntax</li>
 <li>Handles input/output labels for complex filtergraphs</li>
@@ -306,21 +296,19 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </li>
-<li><a id="org479069a"></a>5. <i>Bidirectional Translation</i><br />
-<div class="outline-text-5" id="text-org479069a">
+<li><a id="orgdea7928"></a>5. Bidirectional Translation<br />
+<div class="outline-text-5" id="text-orgdea7928">
 <ul class="org-ul">
-<li>/=src/bioscoop/render.clj=*: Converts DSL → FFmpeg filtergraph strings</li>
-<li>/=src/bioscoop/ffmpeg.clj=*: Parses existing FFmpeg filtergraph strings → DSL structures</li>
+<li><i>src/bioscoop/render.clj</i>: Converts DSL → FFmpeg filtergraph strings</li>
+<li><i>src/bioscoop/ffmpeg.clj</i>: Parses existing FFmpeg filtergraph strings → DSL structures</li>
 </ul>
 </div>
 </li>
 </ul>
 </div>
-</div>
-</div>
-<div id="outline-container-orgc2a7fb9" class="outline-2">
-<h2 id="orgc2a7fb9">The filtergraph</h2>
-<div class="outline-text-2" id="text-orgc2a7fb9">
+<div id="outline-container-org45903ff" class="outline-2">
+<h2 id="org45903ff">The filtergraph</h2>
+<div class="outline-text-2" id="text-org45903ff">
 <p>
 In FFmpeg, atomic editing tasks like scaling, cropping, blending,
 coloring, etc. are captured in filters. FFmpeg has more than 500 of
@@ -334,9 +322,9 @@ a filtergraph. Filtergraphs are being passed to FFmpeg in the
 </p>
 </div>
 </div>
-<div id="outline-container-orga0e0eb4" class="outline-2">
-<h2 id="orga0e0eb4">Inspiration</h2>
-<div class="outline-text-2" id="text-orga0e0eb4">
+<div id="outline-container-org6cfb0ee" class="outline-2">
+<h2 id="org6cfb0ee">Inspiration</h2>
+<div class="outline-text-2" id="text-org6cfb0ee">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -365,7 +353,7 @@ all its general ideas are made.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Daniel Szmulewicz</p>
-<p class="date">Created: 2025-10-06 Mon 01:18</p>
+<p class="date">Created: 2025-10-06 Mon 03:24</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

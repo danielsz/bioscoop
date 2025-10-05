@@ -10,7 +10,7 @@ programmability, maintainability and reliability.
 
 * Creative coding with video
 
-+ [[https://danielsz.github.io/bioscoop/][Documentation]]
++ [[https://danielsz.github.io/bioscoop/][Documentation]] (wip)
 + [[#gallery][Gallery]]
 + [[#roadmap][Roadmap]]
 
