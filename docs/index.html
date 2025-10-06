@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-06 Mon 15:05 -->
+<!-- 2025-10-06 Mon 15:07 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -209,16 +209,16 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org7c7c96b">Motivation</a></li>
-<li><a href="#org24778b8">Internals</a></li>
-<li><a href="#orgfcff201">The filtergraph</a></li>
-<li><a href="#orgd344eba">Inspiration</a></li>
+<li><a href="#org5e23505">Motivation</a></li>
+<li><a href="#orgb997f2b">Internals</a></li>
+<li><a href="#org3b1899f">The filtergraph</a></li>
+<li><a href="#orgb9a56f2">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org7c7c96b" class="outline-2">
-<h2 id="org7c7c96b">Motivation</h2>
-<div class="outline-text-2" id="text-org7c7c96b">
+<div id="outline-container-org5e23505" class="outline-2">
+<h2 id="org5e23505">Motivation</h2>
+<div class="outline-text-2" id="text-org5e23505">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -246,16 +246,16 @@ in the center of the creative process.
 </p>
 </div>
 </div>
-<div id="outline-container-org24778b8" class="outline-2">
-<h2 id="org24778b8">Internals</h2>
-<div class="outline-text-2" id="text-org24778b8">
+<div id="outline-container-orgb997f2b" class="outline-2">
+<h2 id="orgb997f2b">Internals</h2>
+<div class="outline-text-2" id="text-orgb997f2b">
 <p>
 The project is structured around several key components:
 </p>
 </div>
-<div id="outline-container-org6b3d39f" class="outline-4">
-<h4 id="org6b3d39f">1. <b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b></h4>
-<div class="outline-text-4" id="text-org6b3d39f">
+<div id="outline-container-org255a833" class="outline-4">
+<h4 id="org255a833"><b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b></h4>
+<div class="outline-text-4" id="text-org255a833">
 <ul class="org-ul">
 <li>Uses <b>Instaparse</b> to parse a Lisp-like syntax defined in <code>resources/lisp-grammar.bnf</code></li>
 <li>Grammar allows for expressions like <code>(scale 1920 1080)</code> and <code>(let [width 1920] (scale width 1080))</code></li>
@@ -264,9 +264,9 @@ The project is structured around several key components:
 </ul>
 </div>
 </div>
-<div id="outline-container-org8eb65f8" class="outline-4">
-<h4 id="org8eb65f8">2. <b>Core Data Structures</b></h4>
-<div class="outline-text-4" id="text-org8eb65f8">
+<div id="outline-container-org551c686" class="outline-4">
+<h4 id="org551c686"><b>Core Data Structures</b></h4>
+<div class="outline-text-4" id="text-org551c686">
 <p>
 Three main records represent FFmpeg concepts:
 </p>
@@ -277,18 +277,18 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </div>
-<div id="outline-container-orgefa4023" class="outline-4">
-<h4 id="orgefa4023">3. <b>Domain Model (<code>src/bioscoop/domain/</code>)</b></h4>
-<div class="outline-text-4" id="text-orgefa4023">
+<div id="outline-container-org5b0c85c" class="outline-4">
+<h4 id="org5b0c85c"><b>Domain Model (<code>src/bioscoop/domain/</code>)</b></h4>
+<div class="outline-text-4" id="text-org5b0c85c">
 <ul class="org-ul">
 <li>Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs</li>
 <li>Provides validation for the core data structures</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgf4eb8d5" class="outline-4">
-<h4 id="orgf4eb8d5">4. <b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b></h4>
-<div class="outline-text-4" id="text-orgf4eb8d5">
+<div id="outline-container-orged94dfb" class="outline-4">
+<h4 id="orged94dfb"><b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b></h4>
+<div class="outline-text-4" id="text-orged94dfb">
 <ul class="org-ul">
 <li>Implements the <code>FFmpegRenderable</code> protocol to convert data structures to FFmpeg syntax</li>
 <li>Handles input/output labels for complex filtergraphs</li>
@@ -296,9 +296,9 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </div>
-<div id="outline-container-orgae3ed7e" class="outline-4">
-<h4 id="orgae3ed7e">5. Bidirectional Translation</h4>
-<div class="outline-text-4" id="text-orgae3ed7e">
+<div id="outline-container-org94b353c" class="outline-4">
+<h4 id="org94b353c">Bidirectional Translation</h4>
+<div class="outline-text-4" id="text-org94b353c">
 <ul class="org-ul">
 <li><i>src/bioscoop/render.clj</i>: Converts DSL → FFmpeg filtergraph strings</li>
 <li><i>src/bioscoop/ffmpeg.clj</i>: Parses existing FFmpeg filtergraph strings → DSL structures</li>
@@ -306,9 +306,9 @@ Three main records represent FFmpeg concepts:
 </div>
 </div>
 </div>
-<div id="outline-container-orgfcff201" class="outline-2">
-<h2 id="orgfcff201">The filtergraph</h2>
-<div class="outline-text-2" id="text-orgfcff201">
+<div id="outline-container-org3b1899f" class="outline-2">
+<h2 id="org3b1899f">The filtergraph</h2>
+<div class="outline-text-2" id="text-org3b1899f">
 <p>
 In FFmpeg, atomic editing operations—such as scaling, cropping,
 blending, and color correction—are implemented as filters. With over
@@ -373,9 +373,9 @@ generate at scale.
 </p>
 </div>
 </div>
-<div id="outline-container-orgd344eba" class="outline-2">
-<h2 id="orgd344eba">Inspiration</h2>
-<div class="outline-text-2" id="text-orgd344eba">
+<div id="outline-container-orgb9a56f2" class="outline-2">
+<h2 id="orgb9a56f2">Inspiration</h2>
+<div class="outline-text-2" id="text-orgb9a56f2">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -404,7 +404,7 @@ all its general ideas are made.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Daniel Szmulewicz</p>
-<p class="date">Created: 2025-10-06 Mon 15:05</p>
+<p class="date">Created: 2025-10-06 Mon 15:07</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
