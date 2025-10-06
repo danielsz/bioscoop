@@ -53,7 +53,6 @@ Traditional DSL Implementation*:
 - Internal DSL: Macro → Direct Code Generation
 - *Problem*: Transformation logic is duplicated.
 
-
 In Bioscoop, a single =transform-ast= multimethod handles both external
 and internal DSLs. The external parser processes text strings into a
 parse tree, which is then transformed into AST nodes. The internal
@@ -73,7 +72,9 @@ internal DSL macro system produce *identical abstract syntax trees*,
 enabling a single transformation pipeline to handle both input
 modalities.
 
-A paper is ready for submission.
+A camera-ready /LaTeX/ paper (for conference submissions) is available
+in the repository. It elaborates further on the concept of AST
+convergence.
 
 * Internals
 
