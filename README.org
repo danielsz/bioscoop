@@ -2,9 +2,10 @@
 [[file:resources/logo.svg]]
 
 This repository contains a language toolchain that processes a
-simplified Lisp language and outputs FFmpeg's filtergaphs. From the
-notoriously complex and error-prone string-based syntax, Bioscoop
-reifies the filtergaph into a first-class, composable unit. This in
+simplified Lisp language and outputs FFmpeg's filtergaphs.
+
+From a notoriously complex and error-prone string-based syntax, the
+filtergraph is reified into a first-class, composable unit. This in
 turn enables (dramatic) improvements in creative freedom,
 programmability, maintainability and reliability.
 
