@@ -29,13 +29,53 @@ of its textual interface.
 Bioscoop unleashes FFmpeg from its shackles and puts programmability
 in the center of the creative process.
 
-* AST convergence (internals)
+* AST convergence
 
 The standout feature in terms of implementation and design is that
 Bioscoop does both standalone compilation and macro expansion without
-code duplication. Early in the project, after the grammar for the
+code duplication. Early in the project, as soon as the grammar for the
 language was defined, I realized that I didn't want to choose between
 an internal or external DSL. I wanted both.
+
+Typically, external DSLs use a parser that produces a custom abstract
+syntax tree (AST), which then gets processed by a dedicated
+transformation pipeline specific to that parser. Meanwhile, internal
+DSLs use macros that directly generate target code without going
+through an intermediate AST structure. This creates two completely
+separate code generation paths - one for parsed text and another for
+macro-expanded forms - leading to duplicated transformation logic,
+potential behavioral inconsistencies between the two modalities, and
+significant maintenance overhead as changes must be applied to both
+transformation systems independently.
+
+Traditional DSL Implementation*:
+- External DSL: Parser → AST → Transformer
+- Internal DSL: Macro → Direct Code Generation
+- *Problem*: Transformation logic is duplicated.
+
+
+In Bioscoop, a single =transform-ast= multimethod handles both external
+and internal DSLs. The external parser processes text strings into a
+parse tree, which is then transformed into AST nodes. The internal
+macro converts Clojure forms into the exact same parse tree structure,
+enabling both input modalities to share the single transformation
+logic that converts the parse tree into the final AST structure. This
+convergence at the parse tree level ensures behavioral consistency
+while eliminating redundant transformation implementations.
+
+*AST Convergence Approach*:
+- External DSL: Parser → AST → Transformer  
+- Internal DSL: Macro → AST → Transformer
+- *Solution*: Single transformation logic.
+
+*AST Convergence* occurs when both the external DSL parser and the
+internal DSL macro system produce *identical abstract syntax trees*,
+enabling a single transformation pipeline to handle both input
+modalities.
+
+A paper is ready for submission.
+
+* Internals
 
 The project is structured around several key components:
 
@@ -51,7 +91,6 @@ Three main records represent FFmpeg concepts:
 - *FilterChain*: A sequence of filters connected in series (comma-separated in FFmpeg)
 - *FilterGraph*: Multiple filter chains running in parallel (semicolon-separated in FFmpeg)
   
-
 *** *Domain Model (=src/bioscoop/domain/=)*
 - Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs
 - Provides validation for the core data structures
@@ -149,6 +188,170 @@ it hard to identify which filter or connection caused the problem.
 This string-only representation means filtergraphs are essentially
 "write-only" code—difficult to read, maintain, and programmatically
 generate at scale.
+
+* The Language
+
+The DSL accepts a Lisp-like syntax with the following core constructs:
+
+*** Basic Syntax Elements
+
+*Program Structure:*
+- A program consists of zero or more expressions
+- Multiple expressions are automatically composed into filter graphs
+
+*Atoms:*
+- *Numbers*: =42=, =-3.14=, =1920=
+- *Strings*: ="hello world"=, ="in"=, ="1920x1080"=
+- *Symbols*: =scale=, =my-filter=, =input-vid=
+- *Keywords*: =:input=, =:output=, =:color=
+- *Booleans*: =true=, =false=
+
+*** Core Language Constructs
+
+**** 1. *Function Calls (Lists)*
+#+begin_src clojure
+(scale 1920 1080)
+(overlay {:input "main"} {:input "overlay"})
+(drawtext "text='Hello World'" "x=100" "y=50")
+#+end_src
+
+**** 2. *Variable Binding (let)*
+#+begin_src clojure
+(let [width 1920
+      height 1080]
+  (scale width height))
+#+end_src
+
+**** 3. *Filter Chains*
+#+begin_src clojure
+(chain
+  (scale 1920 1080)
+  (crop "iw/2" "ih" "0" "0")
+  (hflip))
+#+end_src
+
+**** 4. *Filter Graphs (Parallel Processing)*
+#+begin_src clojure
+(graph
+  (chain (scale 1920 1080) (crop "220"))
+  (chain (hflip) (vflip)))
+#+end_src
+
+**** 5. *Graph Definitions (Reusable Components)*
+#+begin_src clojure
+(defgraph my-scale (scale 1920 1080))
+(defgraph mirror-pipeline 
+  (chain 
+    (crop "iw/2" "ih" "0" "0") 
+    (split {:output "left"} {:output "tmp"})
+    (hflip {:input "tmp"} {:output "right"})
+    (hstack {:input "left"} {:input "right"})))
+#+end_src
+
+**** 6. *Label Management*
+
+*Explicit Labels:*
+#+begin_src clojure
+(input-labels "in" "video0")
+(output-labels "out" "processed")
+#+end_src
+
+*Inline Labels (Map Syntax):*
+#+begin_src clojure
+(scale 1920 1080 {:input "in"} {:output "scaled"})
+#+end_src
+
+**** 7. *Padded Graphs (Complex Labeling)*
+#+begin_src clojure
+[[in][offset] (chain (scale 1920 1080) (crop "220")) [out]]
+[[v:0][v:1] my-complex-filter [processed]]
+#+end_src
+
+**** 8. *Composition*
+#+begin_src clojure
+(compose graph1 graph2 graph3)
+#+end_src
+
+*** Built-in Functions
+
+The DSL provides access to numerous FFmpeg filters including:
+
+- *Scaling & Cropping*: =scale=, =crop=, =pad=
+- *Color & Effects*: =color=, =hue=, =negate=, =curves=, =threshold=
+- *Layout & Composition*: =hstack=, =vstack=, =xstack=, =overlay=, =blend=
+- *Transforms*: =hflip=, =vflip=, =zoompan=
+- *Text & Drawing*: =drawtext=, =drawgrid=
+- *Sources*: =testsrc=, =rgbtestsrc=, =smptebars=
+- *Time-based*: =fade=, =loop=, =trim=, =setpts=
+- *Advanced*: =split=, =concat=, =lut=, =lagfun=, =cellauto=
+
+*** Parameter Passing
+
+*Positional Parameters:*
+#+begin_src clojure
+(scale 1920 1080)
+(crop "iw/2" "ih" "0" "0")
+#+end_src
+
+*Named Parameters (Maps):*
+#+begin_src clojure
+(color {:color "blue" :size "1920x1080" :rate 24 :duration "10"})
+(drawtext {:text "Hello World" :x 100 :y 50 :fontsize 24})
+#+end_src
+
+*** Advanced Features
+
+**** Mathematical Expressions
+#+begin_src clojure
+(let [width (mod 10 6)
+      size (max 1920 1080)
+      next (inc 1919)]
+  (scale width size))
+#+end_src
+
+**** Complex Pipeline Example
+#+begin_src clojure
+(let [out-left-tmp (output-labels "left" "tmp")
+      in-tmp (input-labels "tmp") 
+      out-right (output-labels "right")
+      in-left-right (input-labels "left" "right")]
+  (graph
+    (chain
+      (crop "iw/2" "ih" "0" "0")
+      (split out-left-tmp))
+    (hflip in-tmp out-right)
+    (hstack in-left-right)))
+#+end_src
+
+This compiles to the FFmpeg filter graph:
+#+begin_src 
+crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack
+#+end_src
+
+*** Language Design Principles
+
+1. *Composability*: Every construct can be composed with others
+2. *Immutability*: Variables are bound once and cannot be reassigned
+3. *Explicit Labeling*: Stream labels are first-class citizens
+4. *Structural Equivalence*: The DSL produces the same internal structures as parsing FFmpeg commands directly
+5. *Error Handling*: Comprehensive error reporting for invalid parameters and syntax
+
+*** Grammar Rules (BNF Summary)
+
+The language follows these production rules:
+
+#+begin_src 
+program = expression*
+expression = atom | list | let-binding | map | compose | graph-definition | padded-graph
+let-binding = '(' 'let' binding-vector expression+ ')'
+graph-definition = '(' 'defgraph' symbol expression* ')'
+padded-graph = '[' label+ expression* label+ ']'
+compose = '(' 'compose' expression+ ')'
+list = '(' expression* ')'
+map = '{' mapentry* '}'
+atom = number | boolean | symbol | string | keyword
+#+end_src
+
 
 * Inspiration
 
