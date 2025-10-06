@@ -35,6 +35,7 @@ The project is structured around several key components:
 
 **** 1. *DSL Parser (=src/bioscoop/dsl.clj=)*
 - Uses *Instaparse* to parse a Lisp-like syntax defined in =resources/lisp-grammar.bnf=
+- Transformation of the parse tree into internal representation
 - Supports typical Lisp constructs: functions, let bindings, symbols, keywords, strings, numbers, booleans
 - Grammar allows for expressions like =(scale 1920 1080)= and =(let [width 1920] (scale width 1080))=
 
@@ -58,19 +59,52 @@ Three main records represent FFmpeg concepts:
 - /src/bioscoop/ffmpeg.clj/: Parses existing FFmpeg filtergraph strings → DSL structures
 
 
-
 * The filtergraph
 
-In FFmpeg, atomic editing tasks like scaling, cropping, blending,
-coloring, etc. are captured in filters. FFmpeg has more than 500 of
-them. When applying filters in sequence on source material, filters
-are being written in sequence, separated by a coma. Those are called
-filterchains. Filterchains can be labeled at both ends, so that their
-output can serve as input to another filterchain. Filterchains form a
-structure known as a directed acyclic graph (DAG), and FFmpeg calls it
-a filtergraph. Filtergraphs are being passed to FFmpeg in the
-~-filter_complex~ parameter.
+In FFmpeg, atomic editing operations—such as scaling, cropping,
+blending, and color correction—are implemented as filters. With over
+500 filters available, FFmpeg provides extensive transformation
+capabilities.
 
+When multiple filters are applied sequentially to source material,
+they form a filterchain, written as comma-separated
+commands. Filterchains can be labeled at their input and output
+points, allowing one chain's output to serve as another's input. These
+interconnected filterchains create a directed acyclic graph (DAG)
+structure, which FFmpeg calls a filtergraph.  Filtergraphs are passed
+to FFmpeg using the ~-filter_complex~ parameter.
+
+A key limitation of FFmpeg filtergraphs is that they exist only as
+strings—there is no structured data format or intermediate
+representation. Filtergraphs are hard-coded directly as text strings
+passed to the -filter_complex parameter, with no abstraction layer
+between the user and the final syntax.
+
+This creates several challenges:
+
+*No programmatic structure*: Unlike many modern tools that use JSON,
+YAML, or object-based APIs, filtergraphs cannot be easily constructed,
+validated, or manipulated programmatically. There's no schema to
+reference, no type checking, and no ability to introspect the graph
+structure before execution.
+
+*String concatenation dependency*: Building dynamic filtergraphs
+requires manual string concatenation, making the code fragile and
+error-prone. A single misplaced comma, semicolon, or bracket can break
+the entire pipeline, with errors only surfacing at runtime.
+
+*Limited tooling support*: Because filtergraphs lack a formal
+representation, IDEs cannot provide syntax highlighting,
+auto-completion, or validation. Developers must memorize the syntax or
+constantly reference documentation.
+
+*Debugging difficulty*: When a filtergraph fails, error messages
+reference the string position rather than logical components, making
+it hard to identify which filter or connection caused the problem.
+
+This string-only representation means filtergraphs are essentially
+"write-only" code—difficult to read, maintain, and programmatically
+generate at scale.
 
 * Inspiration
 
@@ -91,5 +125,3 @@ The acts of the mind, wherein it exerts its power over simple ideas, are chiefly
 
 —John Locke, An Essay Concerning Human Understanding (1690)
 #+end_quote
-
-

@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-06 Mon 03:43 -->
+<!-- 2025-10-06 Mon 14:55 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -209,16 +209,16 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org880b293">Motivation</a></li>
-<li><a href="#orgf743b52">Internals</a></li>
-<li><a href="#org9c232d2">The filtergraph</a></li>
-<li><a href="#orgf5e45ca">Inspiration</a></li>
+<li><a href="#orgd972212">Motivation</a></li>
+<li><a href="#org8bd5985">Internals</a></li>
+<li><a href="#orgf3fe38a">The filtergraph</a></li>
+<li><a href="#org1b166ab">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org880b293" class="outline-2">
-<h2 id="org880b293">Motivation</h2>
-<div class="outline-text-2" id="text-org880b293">
+<div id="outline-container-orgd972212" class="outline-2">
+<h2 id="orgd972212">Motivation</h2>
+<div class="outline-text-2" id="text-orgd972212">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -246,33 +246,34 @@ in the center of the creative process.
 </p>
 </div>
 </div>
-<div id="outline-container-orgf743b52" class="outline-2">
-<h2 id="orgf743b52">Internals</h2>
-<div class="outline-text-2" id="text-orgf743b52">
+<div id="outline-container-org8bd5985" class="outline-2">
+<h2 id="org8bd5985">Internals</h2>
+<div class="outline-text-2" id="text-org8bd5985">
 <p>
 The project is structured around several key components:
 </p>
 </div>
 <ul class="org-ul">
-<li><a id="orge305040"></a>1. <b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b><br />
-<div class="outline-text-5" id="text-orge305040">
+<li><a id="orgccd1382"></a>1. <b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b><br />
+<div class="outline-text-5" id="text-orgccd1382">
 <ul class="org-ul">
 <li>Uses <b>Instaparse</b> to parse a Lisp-like syntax defined in <code>resources/lisp-grammar.bnf</code></li>
+<li>Transformation of the parse tree into internal representation</li>
 <li>Supports typical Lisp constructs: functions, let bindings, symbols, keywords, strings, numbers, booleans</li>
 <li>Grammar allows for expressions like <code>(scale 1920 1080)</code> and <code>(let [width 1920] (scale width 1080))</code></li>
 </ul>
 </div>
 </li>
-<li><a id="org0df8dbd"></a>2. <b>Domain Model (<code>src/bioscoop/domain/</code>)</b><br />
-<div class="outline-text-5" id="text-org0df8dbd">
+<li><a id="org29e6afe"></a>2. <b>Domain Model (<code>src/bioscoop/domain/</code>)</b><br />
+<div class="outline-text-5" id="text-org29e6afe">
 <ul class="org-ul">
 <li>Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs</li>
 <li>Provides validation for the core data structures</li>
 </ul>
 </div>
 </li>
-<li><a id="org2b38378"></a>3. <b>Core Data Structures</b><br />
-<div class="outline-text-5" id="text-org2b38378">
+<li><a id="orgdf9bbac"></a>3. <b>Core Data Structures</b><br />
+<div class="outline-text-5" id="text-orgdf9bbac">
 <p>
 Three main records represent FFmpeg concepts:
 </p>
@@ -283,8 +284,8 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </li>
-<li><a id="org56c57ef"></a>4. <b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b><br />
-<div class="outline-text-5" id="text-org56c57ef">
+<li><a id="orgc1fab06"></a>4. <b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b><br />
+<div class="outline-text-5" id="text-orgc1fab06">
 <ul class="org-ul">
 <li>Implements the <code>FFmpegRenderable</code> protocol to convert data structures to FFmpeg syntax</li>
 <li>Handles input/output labels for complex filtergraphs</li>
@@ -292,8 +293,8 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </li>
-<li><a id="org7120312"></a>5. Bidirectional Translation<br />
-<div class="outline-text-5" id="text-org7120312">
+<li><a id="org824357d"></a>5. Bidirectional Translation<br />
+<div class="outline-text-5" id="text-org824357d">
 <ul class="org-ul">
 <li><i>src/bioscoop/render.clj</i>: Converts DSL → FFmpeg filtergraph strings</li>
 <li><i>src/bioscoop/ffmpeg.clj</i>: Parses existing FFmpeg filtergraph strings → DSL structures</li>
@@ -302,25 +303,76 @@ Three main records represent FFmpeg concepts:
 </li>
 </ul>
 </div>
-<div id="outline-container-org9c232d2" class="outline-2">
-<h2 id="org9c232d2">The filtergraph</h2>
-<div class="outline-text-2" id="text-org9c232d2">
+<div id="outline-container-orgf3fe38a" class="outline-2">
+<h2 id="orgf3fe38a">The filtergraph</h2>
+<div class="outline-text-2" id="text-orgf3fe38a">
 <p>
-In FFmpeg, atomic editing tasks like scaling, cropping, blending,
-coloring, etc. are captured in filters. FFmpeg has more than 500 of
-them. When applying filters in sequence on source material, filters
-are being written in sequence, separated by a coma. Those are called
-filterchains. Filterchains can be labeled at both ends, so that their
-output can serve as input to another filterchain. Filterchains form a
-structure known as a directed acyclic graph (DAG), and FFmpeg calls it
-a filtergraph. Filtergraphs are being passed to FFmpeg in the
-<code>-filter_complex</code> parameter.
+In FFmpeg, atomic editing operations—such as scaling, cropping,
+blending, and color correction—are implemented as filters. With over
+500 filters available, FFmpeg provides extensive transformation
+capabilities.
+</p>
+
+<p>
+When multiple filters are applied sequentially to source material,
+they form a filterchain, written as comma-separated
+commands. Filterchains can be labeled at their input and output
+points, allowing one chain's output to serve as another's input. These
+interconnected filterchains create a directed acyclic graph (DAG)
+structure, which FFmpeg calls a filtergraph.  Filtergraphs are passed
+to FFmpeg using the <code>-filter_complex</code> parameter.
+</p>
+
+<p>
+A key limitation of FFmpeg filtergraphs is that they exist only as
+strings—there is no structured data format or intermediate
+representation. Filtergraphs are hard-coded directly as text strings
+passed to the -filter<sub>complex</sub> parameter, with no abstraction layer
+between the user and the final syntax.
+</p>
+
+<p>
+This creates several challenges:
+</p>
+
+<p>
+<b>No programmatic structure</b>: Unlike many modern tools that use JSON,
+YAML, or object-based APIs, filtergraphs cannot be easily constructed,
+validated, or manipulated programmatically. There's no schema to
+reference, no type checking, and no ability to introspect the graph
+structure before execution.
+</p>
+
+<p>
+<b>String concatenation dependency</b>: Building dynamic filtergraphs
+requires manual string concatenation, making the code fragile and
+error-prone. A single misplaced comma, semicolon, or bracket can break
+the entire pipeline, with errors only surfacing at runtime.
+</p>
+
+<p>
+<b>Limited tooling support</b>: Because filtergraphs lack a formal
+representation, IDEs cannot provide syntax highlighting,
+auto-completion, or validation. Developers must memorize the syntax or
+constantly reference documentation.
+</p>
+
+<p>
+<b>Debugging difficulty</b>: When a filtergraph fails, error messages
+reference the string position rather than logical components, making
+it hard to identify which filter or connection caused the problem.
+</p>
+
+<p>
+This string-only representation means filtergraphs are essentially
+"write-only" code—difficult to read, maintain, and programmatically
+generate at scale.
 </p>
 </div>
 </div>
-<div id="outline-container-orgf5e45ca" class="outline-2">
-<h2 id="orgf5e45ca">Inspiration</h2>
-<div class="outline-text-2" id="text-orgf5e45ca">
+<div id="outline-container-org1b166ab" class="outline-2">
+<h2 id="org1b166ab">Inspiration</h2>
+<div class="outline-text-2" id="text-org1b166ab">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -349,7 +401,7 @@ all its general ideas are made.</li>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Daniel Szmulewicz</p>
-<p class="date">Created: 2025-10-06 Mon 03:43</p>
+<p class="date">Created: 2025-10-06 Mon 14:55</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
