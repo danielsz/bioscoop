@@ -72,7 +72,7 @@ internal DSL macro system produce *identical abstract syntax trees*,
 enabling a single transformation pipeline to handle both input
 modalities.
 
-A camera-ready /LaTeX/ paper (for conference submissions) is available
+A camera-ready /LaTeX/ [[file:~/Clojure/bioscoop/paper/ast_convergence_paper.pdf][paper]] (for conference submissions) is available
 in the repository. It elaborates further on the concept of AST
 convergence.
 

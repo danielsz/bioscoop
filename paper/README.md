@@ -45,4 +45,4 @@ Domain Specific Languages, AST, Multi-modal Processing, Code Generation, Clojure
 
 ## About the Author
 
-Daniel Szmulewicz is an independent researcher based in Paris, France, specializing in programming language theory and DSL implementation.
+Daniel Szmulewicz is an independent researcher, developer and artist.
