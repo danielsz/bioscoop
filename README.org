@@ -171,10 +171,12 @@ macro expansion without code duplication. This is achieved by having
 the macro emitting the same parse tree than the parser.
 
 1. *External DSL Path*: Text → Instaparse Parser → AST → =transform-ast=
-2. *Internal DSL Path*: Clojure Forms → =form->ast= Macro → AST → =transform-ast=
+2. *Internal DSL Path*: Clojure Forms → Macro → AST → =transform-ast=
 
-The key is that both paths converge on the same AST structure before
-the transformation phase.
+In classic Lisp systems, external DSLs would typically use a separate
+parser (like a PEG parser) while internal DSLs use macros that
+directly generate target code. The key here is that both paths
+converge on the same AST structure before the transformation phase.
      
 ** Gallery
 :PROPERTIES:
