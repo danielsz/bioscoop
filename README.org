@@ -11,8 +11,8 @@ programmability, maintainability and reliability.
 
 * Creative coding with video
 
-+ AST convergence
 + [[https://danielsz.github.io/bioscoop/][Documentation]]
++ [[#ast-convergence][AST convergence]]
 + [[#gallery][Gallery]]
 + [[#roadmap][Roadmap]]
 
@@ -158,6 +158,9 @@ unclear error messages.
   parameters (type help and the name of the filter to see the spec).
 
 ** AST convergence
+:PROPERTIES:
+:CUSTOM_ID: ast-convergence
+:END:
 
 An IEEE Conference [[file:paper/ast_convergence_paper.pdf][paper]] is available that expounds the concept. In a
 nutshell, AST convergence is a technique to enable a single
