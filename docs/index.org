@@ -33,28 +33,29 @@ in the center of the creative process.
 
 The project is structured around several key components:
 
-**** 1. *DSL Parser (=src/bioscoop/dsl.clj=)*
+*** 1. *DSL Parser (=src/bioscoop/dsl.clj=)*
 - Uses *Instaparse* to parse a Lisp-like syntax defined in =resources/lisp-grammar.bnf=
-- Transformation of the parse tree into internal representation
-- Supports typical Lisp constructs: functions, let bindings, symbols, keywords, strings, numbers, booleans
 - Grammar allows for expressions like =(scale 1920 1080)= and =(let [width 1920] (scale width 1080))=
+- Supports typical Lisp constructs: functions, let bindings, symbols, keywords, strings, numbers, booleans
+- Transformation of the parse tree into internal representation
+  
+*** 2. *Core Data Structures*
+Three main records represent FFmpeg concepts:
+- *Filter*: A single filter operation (e.g., scale, overlay, crop)
+- *FilterChain*: A sequence of filters connected in series (comma-separated in FFmpeg)
+- *FilterGraph*: Multiple filter chains running in parallel (semicolon-separated in FFmpeg)
+  
 
-**** 2. *Domain Model (=src/bioscoop/domain/=)*
+*** 3. *Domain Model (=src/bioscoop/domain/=)*
 - Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs
 - Provides validation for the core data structures
 
-**** 3. *Core Data Structures*
-Three main records represent FFmpeg concepts:
-- *=Filter=*: A single filter operation (e.g., scale, overlay, crop)
-- *=FilterChain=*: A sequence of filters connected in series (comma-separated in FFmpeg)
-- *=FilterGraph=*: Multiple filter chains running in parallel (semicolon-separated in FFmpeg)
-
-**** 4. *Rendering Engine (=src/bioscoop/render.clj=)*
+*** 4. *Rendering Engine (=src/bioscoop/render.clj=)*
 - Implements the =FFmpegRenderable= protocol to convert data structures to FFmpeg syntax
 - Handles input/output labels for complex filtergraphs 
 - Ensures proper escaping and formatting
 
-**** 5. Bidirectional Translation
+*** 5. Bidirectional Translation
 - /src/bioscoop/render.clj/: Converts DSL → FFmpeg filtergraph strings
 - /src/bioscoop/ffmpeg.clj/: Parses existing FFmpeg filtergraph strings → DSL structures
 
