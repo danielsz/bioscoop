@@ -29,7 +29,13 @@ of its textual interface.
 Bioscoop unleashes FFmpeg from its shackles and puts programmability
 in the center of the creative process.
 
-* Internals
+* AST convergence (internals)
+
+The standout feature in terms of implementation and design is that
+Bioscoop does both standalone compilation and macro expansion without
+code duplication. Early in the project, after the grammar for the
+language was defined, I realized that I didn't want to choose between
+an internal or external DSL. I wanted both.
 
 The project is structured around several key components:
 
@@ -75,11 +81,48 @@ interconnected filterchains create a directed acyclic graph (DAG)
 structure, which FFmpeg calls a filtergraph.  Filtergraphs are passed
 to FFmpeg using the ~-filter_complex~ parameter.
 
-A key limitation of FFmpeg filtergraphs is that they exist only as
-strings—there is no structured data format or intermediate
-representation. Filtergraphs are hard-coded directly as text strings
-passed to the -filter_complex parameter, with no abstraction layer
-between the user and the final syntax.
+That string-based syntax maps closely with the underlying ~libavfilter~
+that parses it. What is happening is the following: the parser
+(~libavfilter/graphparser.c~) tokenizes the string, identifying
+individual filters, their parameters, and the connections between
+them.
+
+Each filter name in the string (like ~scale~, ~overlay~, ~colorkey~) maps to
+a registered filter implementation in ~libavfilter~. FFmpeg looks up
+these filters in its internal registry and instantiates them as
+~AVFilterContext~ objects. Key-value pairs within each filter
+specification are parsed and passed to the filter's initialization
+function, which validates and stores them in the filter's private
+context structure.
+
+The parser creates an AVFilterGraph object and connects the
+instantiated filters according to the semicolons (filterchain
+boundaries) and labels in the string. Each connection becomes an
+AVFilterLink that defines data flow between filter pads.
+
+FFmpeg validates the complete graph topology, checking that
+input/output pad counts match, media types are compatible (audio
+vs. video), and that there are no cycles.
+
++ Filter names → AVFilter structs registered in libavfilter
++ Parameters (key=value) → Filter-specific configuration passed to
+  AVFilter->init()
++ Filterchains (comma-separated) → Linked sequences of AVFilterContext nodes
++ Labels ([label]) → Named AVFilterLink references for graph routing
++ Semicolons → Graph branching points that create multiple parallel
+  paths
+
+This one-way translation from string to internal structures is the
+core problem: there's no inverse mapping. Once parsed, the
+~AVFilterGraph~ exists in memory, but there's no standardized way to
+serialize it back or manipulate it programmatically before the string
+parsing step. Developers must work in strings because ~libavfilter~'s
+graph construction API, while programmatically accessible, is complex
+and poorly documented compared to the string syntax.
+
+The string format is essentially a convenience layer over
+~libavfilter~'s C API—and it's become the /only/ practical interface,
+despite its limitations.
 
 This creates several challenges:
 
