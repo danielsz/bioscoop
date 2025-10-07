@@ -354,4 +354,4 @@ interest. Thank you!
 
 + ☑ Bioscoop language toolchain
 + ☐ More filters
-+ ☐ Standalone compiler (GraalVM binary)
++ ☐ CLI for the standalone compiler (GraalVM binary)
