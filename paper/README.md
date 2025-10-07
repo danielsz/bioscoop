@@ -42,7 +42,3 @@ This paper introduces *AST Convergence*, a novel architectural pattern for imple
 ## Keywords
 
 Domain Specific Languages, AST, Multi-modal Processing, Code Generation, Clojure, Language Implementation
-
-## About the Author
-
-Daniel Szmulewicz is an independent researcher, developer and artist.
