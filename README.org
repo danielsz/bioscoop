@@ -344,12 +344,12 @@ the image below to play a Youtube video.
 :END:
 
 While the language proper is feature-complete, no binary is shipping
-yet. The ~bioscoop~ macro wraps the compiler in a Clojure environment,
-and exposes the functionality in a REPL. If you are familiar with
-Clojure, then your needs are met. If you are not and wished you could
-work with the standalone compiler, please let me know that you are
-interested. Please consider becoming a sponsor to voice that
-interest. Thank you!
+yet (you can build it yourself). The ~bioscoop~ macro wraps the compiler
+in a Clojure environment, and exposes the functionality in a REPL. If
+you are familiar with Clojure, then your needs are met. If you are not
+and wished you could work with the standalone compiler, please let me
+know that you are interested. Please consider becoming a sponsor to
+voice that interest. Thank you!
 
 
 + ☑ Bioscoop language toolchain
