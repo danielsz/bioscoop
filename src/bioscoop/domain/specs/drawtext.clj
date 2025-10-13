@@ -41,6 +41,10 @@
 (s/def ::basetime number?)
 (s/def ::expansion #{"none" "normal" "strftime"})
 (s/def ::enable string?)
+(s/def ::boxw integer?)
+(s/def ::boxh integer?)
+(s/def ::tc24hmax boolean?)
+(s/def ::text_source string?)
 
 (s/def ::drawtext
   (s/keys :opt-un [::fontfile
