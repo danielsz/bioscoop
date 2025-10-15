@@ -12,9 +12,11 @@
 (s/def ::decimals (s/int-in 0 18))
 (s/def ::complement boolean?)
 (s/def ::level (s/int-in 1 17))
-
+(s/def ::alpha (s/int-in 0 256))
 
 (s/def ::testsrc (s/keys :opt-un [::size ::rate ::duration/duration ::sar ::decimals]))
+
+(s/def ::testsrc2 (s/keys :opt-un [::size ::rate ::duration/duration ::sar ::alpha]))
 
 (s/def ::rgbtestsrc (s/keys :opt-un [::size ::rate ::duration/duration ::sar ::complement]))
 

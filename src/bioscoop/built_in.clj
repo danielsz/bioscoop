@@ -111,6 +111,9 @@
 (defn testsrc [arg env]
   (template arg ::sources/testsrc env))
 
+(defn testsrc2 [arg env]
+  (template arg ::sources/testsrc2 env))
+
 (defn rgbtestsrc [arg env]
   (template arg ::sources/rgbtestsrc env))
 
