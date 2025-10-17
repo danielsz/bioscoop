@@ -1,3 +1,4 @@
+[[https://clojars.org/com.github.danielsz/bioscoop/latest-version.svg]]
 
 [[file:resources/logo.svg]]
 

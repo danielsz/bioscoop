@@ -1,7 +1,9 @@
-{:pom {:group-id "org.danielsz"
+{:pom {:group-id "com.github.danielsz"
        :artifact-id "bioscoop"
        :version "1.0.5"
-       :name "bioscoop"}
+       :name "bioscoop"
+       :licenses [{:name "MIT License"
+                   :url "https://mit-license.org/"}]}
  :packaging {:uberjar
              {:enabled false
               :build-properties {:main-class "bioscoop.core"}
@@ -20,4 +22,6 @@
                :reload-on-save true
                :repl-port 7888
                :repl-host "127.0.0.1"}
- :testing {:enabled true}}
+ :testing {:enabled true}
+ :distribution-management {:id "clojars",
+                           :url "https://clojars.org/repo"}}
