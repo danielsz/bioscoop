@@ -211,16 +211,16 @@ The DSL accepts a Lisp-like syntax with the following core constructs:
 
 **** 1. *Function Calls (Lists)*
 #+begin_src clojure
-(scale 1920 1080)
+(scale {:width 1920 :height 1080})
 (overlay {:input "main"} {:input "overlay"})
-(drawtext "text='Hello World'" "x=100" "y=50")
+(drawtext {:text 'Hello World' :x 100 :y 50})
 #+end_src
 
 **** 2. *Variable Binding (let)*
 #+begin_src clojure
 (let [width 1920
       height 1080]
-  (scale width height))
+  (scale {:width width :height height}))
 #+end_src
 
 **** 3. *Filter Chains*
