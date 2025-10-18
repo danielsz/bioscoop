@@ -253,6 +253,9 @@ Ffmpeg syntax:
 Bioscoop program:
 
 #+begin_src clojure
+(require '[bioscoop.macro :refer [bioscoop defgraph]]
+         '[bioscoop.built-in])
+
 (defgraph formatting (chain (format {:pix_fmts "yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le"})
                             (split {:outputs 10})))
 
