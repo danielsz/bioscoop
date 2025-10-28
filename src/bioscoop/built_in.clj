@@ -35,6 +35,7 @@
    [bioscoop.domain.specs.life :as life]
    [bioscoop.domain.specs.cellauto :as cellauto]
    [bioscoop.domain.specs.boxblur :as boxblur]
+   [bioscoop.domain.specs.gblur :as gblur]
    [bioscoop.domain.specs.lut :as lut]
    [bioscoop.domain.specs.lagfun :as lagfun]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
@@ -206,6 +207,9 @@
 
 (defn boxblur [arg env]
   (template arg ::boxblur/boxblur env))
+
+(defn gblur [arg env]
+  (template arg ::gblur/gblur env))
 
 (defn colorchannelmixer [arg env]
   (template arg ::colorchannelmixer/colorchannelmixer env))

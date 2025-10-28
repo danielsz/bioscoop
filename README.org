@@ -12,6 +12,7 @@ programmability, maintainability and reliability.
 
 * Creative coding with video
 
++ [[https://clojurecivitas.github.io/bioscoop/quickstart.html][Quickstart for Clojurians]]
 + [[https://danielsz.github.io/bioscoop/][Documentation]]
 + [[#ast-convergence][AST convergence]]
 + [[#gallery][Gallery]]
