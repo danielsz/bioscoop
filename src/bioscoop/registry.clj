@@ -1,5 +1,6 @@
 (ns bioscoop.registry
-  (:require [clojure.tools.logging :as log]))
+  (:require [clojure.tools.logging :as log])
+  (:import [bioscoop.domain.records FilterGraph]))
 
 (def ^:private graph-registry (atom {}))
 
@@ -8,8 +9,11 @@
   (swap! graph-registry assoc name graph))
 
 (defn get-graph [name]
-  (when-let [graph (get @graph-registry name)]
-    graph))
+  (if-let [graph (get @graph-registry name)]
+    graph
+    (when-let [v (resolve name)] ;; allows aliasing of filtergraph in defs
+      (when (and (bound? v) (instance? FilterGraph (var-get v)))
+        (var-get v)))))
 
 (defn clear-registry!
   "Clear registry (mainly for testing)"

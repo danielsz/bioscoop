@@ -269,3 +269,21 @@
                                       [["o0"] ["o1"] blending])))]
       (is (instance? FilterGraph result))
       (is (= (to-ffmpeg result) "format=pix_fmts=gbrp10,split=outputs=2[i0][i1];[i0]lagfun=decay=99/100:planes=1[o0];[i1]lagfun=decay=49/50:planes=2[o1];[o0][o1]blend=all_mode=screen:c0_opacity=0.5:c1_opacity=0.6,format=pix_fmts=yuv422p10le")))))
+
+(deftest vars
+  (testing "Able to resolve a Var in another namespace"
+    (create-ns 'bioscoop.masterpiece)
+    (binding [*ns* (the-ns 'bioscoop.masterpiece)]
+      (refer-clojure)
+      (require '[bioscoop.macro :refer [bioscoop defgraph]] '[bioscoop.built-in])
+      (eval '(defgraph masterpiece (testsrc))))
+    (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] bioscoop.masterpiece/masterpiece ["1"]] [["3"] (crop "111") ["2"]]))))))
+  (testing "Able to resolve another Var in another namespace"
+    (create-ns 'bioscoop.masterpiece)
+    (binding [*ns* (the-ns 'bioscoop.masterpiece)]
+      (refer-clojure)
+      (require '[bioscoop.macro :refer [bioscoop defgraph]] '[bioscoop.built-in])
+      (eval '(do
+               (defgraph masterpiece (testsrc))
+               (intern 'user 'qux masterpiece))))
+    (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] user/qux ["1"]] [["3"] (crop "111") ["2"]])))))))
