@@ -196,6 +196,9 @@
 (defn blend [arg env]
   (template arg ::blend/blend env))
 
+(defn tblend [arg env]
+  (template arg ::blend/tblend env))
+
 (defn lumakey [arg env]
   (template arg ::lumakey/lumakey env))
 
