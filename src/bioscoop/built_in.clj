@@ -25,6 +25,7 @@
    [bioscoop.domain.specs.blend :as blend]
    [bioscoop.domain.specs.curves :as curves]
    [bioscoop.domain.specs.lumakey :as lumakey]
+   [bioscoop.domain.specs.eq :as eq]
    [bioscoop.domain.specs.geq :as geq]
    [bioscoop.domain.specs.flip :as flip]
    [bioscoop.domain.specs.loop :as loop]
@@ -40,6 +41,12 @@
    [bioscoop.domain.specs.lagfun :as lagfun]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
    [bioscoop.domain.specs.effects :as effects]
+   [bioscoop.domain.specs.dilation :as dilation]
+   [bioscoop.domain.specs.tmix :as tmix]
+   [bioscoop.domain.specs.noise :as noise]
+   [bioscoop.domain.specs.dctdnoiz :as dctdnoiz]
+   [bioscoop.domain.specs.rgbashift :as rgbashift]
+   [bioscoop.domain.specs.tinterlace :as tinterlace]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -58,14 +65,16 @@
           (accumulate-error env m spec :invalid-parameter))))
     (make-filter (name spec))))
 
-(defn help [s]
+(defn h [s]
   (let [spec (keyword (str "bioscoop.domain.specs." s) s)]
     (when (s/get-spec spec)
       (let [ks (last (s/describe spec))
             xs (reduce (fn [x y] (conj x y (s/describe y))) [] ks)]
         (apply array-map xs)))))
 
-(def h help)
+(defmacro help [s]
+  (let [n# (name s)]
+    `(h ~n#)))
 
 (defn scale [arg env]
   (template arg ::scale/scale env))
@@ -184,6 +193,9 @@
 (defn palettegen [arg env]
   (template arg ::palette/palettegen env))
 
+(defn eq [arg env]
+  (template arg ::eq/eq env))
+
 (defn geq [arg env]
   (template arg ::geq/geq env))
 
@@ -228,3 +240,24 @@
 
 (defn lagfun [arg env]
   (template arg ::lagfun/lagfun env))
+
+(defn dilation [arg env]
+  (template arg ::dilation/dilation env))
+
+(defn erosion [arg env]
+  (template arg ::dilation/erosion env))
+
+(defn tmix [arg env]
+  (template arg ::tmix/tmix env))
+
+(defn noise [arg env]
+  (template arg ::noise/noise env))
+
+(defn dctdnoiz [arg env]
+  (template arg ::dctdnoiz/dctdnoiz env))
+
+(defn rgbashift [arg env]
+  (template arg ::rgbashift/rgbashift env))
+
+(defn tinterlace [arg env]
+  (template arg ::tinterlace/tinterlace env))
