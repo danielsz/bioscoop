@@ -277,3 +277,6 @@
 
 (defn subtitles [arg env]
   (template arg ::subtitles/subtitles env))
+
+(defn ass [arg env]
+  (template arg ::subtitles/ass env))

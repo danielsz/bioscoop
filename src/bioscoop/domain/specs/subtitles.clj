@@ -10,5 +10,7 @@
 (s/def ::stream_index (s/int-in -1 Integer/MAX_VALUE))
 (s/def ::force_style string?)
 (s/def ::wrap_unicode boolean?)
+(s/def ::shaping #{"auto" "simple" "complex"})
 
 (s/def ::subtitles (s/keys :opt-un [::filename ::original_size ::fontsdir ::alpha ::charenc ::stream_index ::force_style ::wrap_unicode]))
+(s/def ::ass (s/keys :opt-un [::filename ::original_size ::fontsdir ::alpha ::shaping]))
