@@ -47,6 +47,10 @@
    [bioscoop.domain.specs.dctdnoiz :as dctdnoiz]
    [bioscoop.domain.specs.rgbashift :as rgbashift]
    [bioscoop.domain.specs.tinterlace :as tinterlace]
+   [bioscoop.domain.specs.shuffleplanes :as shuffleplanes]
+   [bioscoop.domain.specs.random :as random]
+   [bioscoop.domain.specs.frei0r :as frei0r]
+   [bioscoop.domain.specs.subtitles :as subtitles]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -261,3 +265,15 @@
 
 (defn tinterlace [arg env]
   (template arg ::tinterlace/tinterlace env))
+
+(defn shuffleplanes [arg env]
+  (template arg ::shuffleplanes/shuffleplanes env))
+
+(defn random [arg env]
+  (template arg ::random/random env))
+
+(defn frei0r [arg env]
+  (template arg ::frei0r/frei0r env))
+
+(defn subtitles [arg env]
+  (template arg ::subtitles/subtitles env))
