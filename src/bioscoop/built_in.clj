@@ -51,6 +51,7 @@
    [bioscoop.domain.specs.random :as random]
    [bioscoop.domain.specs.frei0r :as frei0r]
    [bioscoop.domain.specs.subtitles :as subtitles]
+   [bioscoop.domain.specs.adelay :as adelay]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -280,3 +281,6 @@
 
 (defn ass [arg env]
   (template arg ::subtitles/ass env))
+
+(defn adelay [arg env]
+  (template arg ::adelay/adelay env))
