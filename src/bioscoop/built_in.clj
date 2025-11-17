@@ -52,6 +52,9 @@
    [bioscoop.domain.specs.frei0r :as frei0r]
    [bioscoop.domain.specs.subtitles :as subtitles]
    [bioscoop.domain.specs.adelay :as adelay]
+   [bioscoop.domain.specs.volume :as volume]
+   [bioscoop.domain.specs.amix :as amix]
+   [bioscoop.domain.specs.afade :as afade]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -284,3 +287,12 @@
 
 (defn adelay [arg env]
   (template arg ::adelay/adelay env))
+
+(defn volume [arg env]
+  (template arg ::volume/volume env))
+
+(defn amix [arg env]
+  (template arg ::amix/amix env))
+
+(defn afade [arg env]
+  (template arg ::afade/afade env))

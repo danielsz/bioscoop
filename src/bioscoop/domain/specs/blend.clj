@@ -1,9 +1,5 @@
 (ns bioscoop.domain.specs.blend
-  (:require [clojure.spec.alpha :as s]
-            [bioscoop.domain.specs.shared
-             [duration :as duration]
-             [rational :as rational]
-             [color :as color]]))
+  (:require [clojure.spec.alpha :as s]))
 
 (s/def ::mode #{"addition" "addition128" "and" "average" "bleach" "burn" "darken" "difference"
                 "divide" "dodge" "exclusion" "glow" "grainextract" "grainmerge" "hardlight" 

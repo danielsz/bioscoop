@@ -12,7 +12,7 @@
               :include-source false
               :obfuscation {:enabled false}
               :graalvm {:enabled true
-                        :build-args "--report-unsupported-elements-at-runtime --initialize-at-build-time --verbose --no-fallback"       
+                        :build-args "--report-unsupported-elements-at-runtime --initialize-at-build-time --verbose --no-fallback"
                         :agent {:enabled true
                                 :filter {:rules [{:excludeClasses "clojure.**"}
                                                  {:includeClasses "clojure.lang.Reflector"}]}}}}
