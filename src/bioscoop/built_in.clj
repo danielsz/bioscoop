@@ -55,6 +55,10 @@
    [bioscoop.domain.specs.volume :as volume]
    [bioscoop.domain.specs.amix :as amix]
    [bioscoop.domain.specs.afade :as afade]
+   [bioscoop.domain.specs.atempo :as atempo]
+   [bioscoop.domain.specs.asetrate :as asetrate]
+   [bioscoop.domain.specs.afir :as afir]
+   [bioscoop.domain.specs.rubberband :as rubberband]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -296,3 +300,16 @@
 
 (defn afade [arg env]
   (template arg ::afade/afade env))
+
+(defn atempo [arg env]
+  (template arg ::atempo/atempo env))
+
+(defn asetrate [arg env]
+  (template arg ::asetrate/asetrate env))
+
+(defn afir [arg env]
+  (template arg ::afir/afir env))
+
+(defn rubberband [arg env]
+  (template arg ::rubberband/rubberband env))
+
