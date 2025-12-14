@@ -352,6 +352,14 @@ the image below to play a Youtube video.
 
 #+HTML: <a href="http://www.youtube.com/watch?feature=player_embedded&v=CWdZ3-Xh3vQ" target="_blank"><img src="http://img.youtube.com/vi/CWdZ3-Xh3vQ/0.jpg" alt="Dance Me to the End of Love" width="560" height="315" border="10" />
 
+****** Afor Gashum: Afifon (Kite)
+
+Afor Gashum is a leftfield post-shoegaze/ post-punk band based in Tel
+Aviv.From the forthcoming album Voices from Gaza, whose songs were
+inspired by texts written by residents of Gaza under Israel's attack.
+
+#+HTML: <a href="http://www.youtube.com/watch?feature=player_embedded&v=FmbC60HiD6k" target="_blank"><img src="http://img.youtube.com/vi/FmbC60HiD6k/0.jpg" alt="Dance Me to the End of Love" width="560" height="315" border="10" />
+
 ** Roadmap
 :PROPERTIES:
 :CUSTOM_ID: roadmap

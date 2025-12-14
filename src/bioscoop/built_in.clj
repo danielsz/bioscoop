@@ -56,6 +56,7 @@
    [bioscoop.domain.specs.amix :as amix]
    [bioscoop.domain.specs.afade :as afade]
    [bioscoop.domain.specs.atempo :as atempo]
+   [bioscoop.domain.specs.aecho :as aecho]
    [bioscoop.domain.specs.asetrate :as asetrate]
    [bioscoop.domain.specs.afir :as afir]
    [bioscoop.domain.specs.rubberband :as rubberband]
@@ -303,6 +304,9 @@
 
 (defn atempo [arg env]
   (template arg ::atempo/atempo env))
+
+(defn aecho [arg env]
+  (template arg ::aecho/aecho env))
 
 (defn asetrate [arg env]
   (template arg ::asetrate/asetrate env))
