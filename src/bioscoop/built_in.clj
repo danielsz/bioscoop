@@ -60,6 +60,7 @@
    [bioscoop.domain.specs.asetrate :as asetrate]
    [bioscoop.domain.specs.afir :as afir]
    [bioscoop.domain.specs.rubberband :as rubberband]
+   [bioscoop.domain.specs.sidechaincompress :as sidechaincompress]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -317,3 +318,5 @@
 (defn rubberband [arg env]
   (template arg ::rubberband/rubberband env))
 
+(defn sidechaincompress [arg env]
+  (template arg ::sidechaincompress/sidechaincompress env))
