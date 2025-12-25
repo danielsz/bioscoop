@@ -8,26 +8,60 @@
 (def ffplay-bin (System/getProperty "ffplay.bin" "/usr/bin/ffplay"))
 (def ffprobe-bin (System/getProperty "ffprobe.bin" "/usr/bin/ffprobe") )
 
-(defn filter-complex [filter & {:keys [working-dir output] :or {working-dir (System/getProperty "java.io.tmpdir") output "output.mp4"}}]
-  (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
-        cmd [ffmpeg-bin "-y" "-filter_complex" filter "-map" "[out]" output]
+(defn with-inputs
+  "Start FFmpeg process with inputs and filtergraph.
+  
+  Usage:
+    (with-inputs {:filtergraph \"...\" :maps [...] :out-dir \"...\" :out-filename \"...\"} & inputs)
+  
+  Options:
+    :filtergraph - FFmpeg filtergraph string
+    :maps - Vector of -map arguments
+    :out-dir - Output directory (defaults to java.io.tmpdir)
+    :out-filename - Output filename (defaults to \"output.mp4\")
+  
+  Returns the process instance. Which can be destroyed with (.destroy handle)"
+  [{:keys [filtergraph maps out-dir out-filename]
+    :or {out-dir (System/getProperty "java.io.tmpdir")
+         out-filename "output.mp4"}} & inputs]
+  (let [log (io/file (str out-dir "/bioscoop.log"))
+        cmd (-> [ffmpeg-bin "-y"]
+                (into (interleave (repeat "-i") inputs))
+                (conj "-filter_complex" filtergraph)
+                (into maps)
+                (conj out-filename))
         pb (ProcessBuilder. cmd)]
     (.redirectOutput pb log)
     (.redirectError pb log)
-    (.directory pb (io/file working-dir))
+    (.directory pb (io/file out-dir))
     (.start pb)))
 
-(defn with-inputs
-  "It's possible to destroy the process if we keep a handle on the Process instance"
-  ([filtergraph inputs]
-   (apply (partial with-inputs filtergraph "[out]") inputs))
-  ([filtergraph out & inputs]
-   (let [log (io/file (str (System/getProperty "java.io.tmpdir") "/bioscoop.log"))
-         cmd (-> [ffmpeg-bin "-y" "-i"]
-                (into (interpose "-i" inputs))
-                (conj "-filter_complex" filtergraph "-map" out "output.mp4"))
-         pb (ProcessBuilder. cmd)]
-     (.redirectOutput pb log)
-     (.redirectError pb log)
-     (.directory pb (io/file (System/getProperty "java.io.tmpdir")))
-     (.start pb))))
+(comment
+  ;; Scenario 1: Duck music with voice (audio only)
+  (with-inputs
+    {:filtergraph "[0:a][1:a]sidechaincompress=threshold=0.03:ratio=6:attack=100:release=800:makeup=3[bg];[bg][1:a]amix=inputs=2:duration=longest[out]"
+     :maps ["-map" "[out]"]}
+    "music.mp3" "voice.mp3")
+  
+  ;; Scenario 2: Video with separate music and voice (duck music with voice)
+  (with-inputs
+    {:filtergraph "[1:a][2:a]sidechaincompress=threshold=0.03:ratio=6:attack=100:release=800:makeup=3[bg];[bg][2:a]amix=inputs=2:duration=longest[audio]"
+     :maps ["-map" "0:v" "-map" "[audio]"]}
+    "video.mp4" "music.mp3" "voice.mp3")
+  
+  ;; Scenario 3: Mix video audio + music, then duck with voice
+  (with-inputs
+    {:filtergraph "[0:a][1:a]amix=inputs=2:duration=longest[music_mix];[music_mix][2:a]sidechaincompress=threshold=0.03:ratio=6:attack=100:release=800:makeup=3[bg];[bg][2:a]amix=inputs=2:duration=longest[audio]"
+     :maps ["-map" "0:v" "-map" "[audio]"]}
+    "video.mp4" "music.mp3" "voice.mp3")
+  
+  ;; Simple mix example
+  (with-inputs
+    {:filtergraph "[0:a][1:a]amix[out]"
+     :maps ["-map" "[out]"]}
+    "music.mp3" "voice.mp3")
+  
+  ;; Destroy process when done
+  (let [proc (with-inputs {} "input1" "input2")]
+    ;; ... do work ...
+    (.destroy proc)))

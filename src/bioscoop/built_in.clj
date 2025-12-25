@@ -58,6 +58,7 @@
    [bioscoop.domain.specs.atempo :as atempo]
    [bioscoop.domain.specs.aecho :as aecho]
    [bioscoop.domain.specs.asetrate :as asetrate]
+   [bioscoop.domain.specs.asplit :as asplit]
    [bioscoop.domain.specs.afir :as afir]
    [bioscoop.domain.specs.rubberband :as rubberband]
    [bioscoop.domain.specs.sidechaincompress :as sidechaincompress]
@@ -320,3 +321,6 @@
 
 (defn sidechaincompress [arg env]
   (template arg ::sidechaincompress/sidechaincompress env))
+
+(defn asplit [arg env]
+  (template arg ::asplit/asplit env))
