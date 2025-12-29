@@ -8,7 +8,7 @@
 
 (def cli-options
  [["-e" "--evaluate" "Evaluate bioscoop code"]
-  ["-v" nil "Verbosity level, use as a flag (no arguments), repeat flag to increase verbosity" :id :verbose :default 0 :update-fn inc]
+  ["-v" nil "Verbosity level, use as a flag (no arguments), repeat flag to increase verbosity" :id :verbosity :default 0 :update-fn inc]
   ["-h" "--help" "This help screen."]])
 
 (defn version []
@@ -25,14 +25,13 @@
       ""]
      (str/join "\n")))
 
-(defn bioscoop [& args]
+(defn bioscoop [args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options :in-order true)]
     (when (not (zero? (:verbosity options))) (println arguments))
     (cond
       (:help options) (println (usage summary))
       (:evaluate options) (println (to-ffmpeg (dsl/compile-dsl (first arguments))))
       (empty? arguments) (println (usage summary))
-      (= 1 (count arguments)) (let [f (io/file (first arguments))
-                                    code (slurp f)]                                
-                                (to-ffmpeg (dsl/compile-dsl code)))
+      (= 1 (count arguments)) (let [code (slurp (first arguments))]
+                                (println (to-ffmpeg (dsl/compile-dsl code))))
       :else (println (usage summary)) )))
