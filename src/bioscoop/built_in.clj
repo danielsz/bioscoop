@@ -80,7 +80,7 @@
           (accumulate-error env m spec :invalid-parameter))))
     (make-filter (name spec))))
 
-(defn h [s]
+(defn help* [s]
   (let [spec (keyword (str "bioscoop.domain.specs." s) s)]
     (when (s/get-spec spec)
       (let [ks (last (s/describe spec))
@@ -89,7 +89,7 @@
 
 (defmacro help [s]
   (let [n# (name s)]
-    `(h ~n#)))
+    `(help* ~n#)))
 
 (defn scale [arg env]
   (template arg ::scale/scale env))
@@ -324,3 +324,4 @@
 
 (defn asplit [arg env]
   (template arg ::asplit/asplit env))
+
