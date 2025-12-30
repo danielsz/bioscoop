@@ -25,7 +25,7 @@
  :interactive {:enabled true
                :clojure-vmargs "-Djdk.attach.allowAttachSelf"
                :reload-on-save true
-               :repl-port 7888
+               :repl-port :auto
                :repl-host "127.0.0.1"}
  :testing {:enabled true}
  :distribution-management {:id "clojars",
