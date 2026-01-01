@@ -1,19 +1,29 @@
 (ns bioscoop.registry
-  (:require [clojure.tools.logging :as log])
+  (:require [bioscoop.config :refer [*dynamic-resolution*]]
+            [bioscoop.resolve  :refer [reserved-word?]]
+            [bioscoop.error-handling :refer [accumulate-error]])
   (:import [bioscoop.domain.records FilterGraph]))
 
 (def ^:private graph-registry (atom {}))
 
-(defn register-graph! [name graph]
-  {:pre [(not (ns-resolve 'bioscoop.built-in name))]} ;; catches clojure.core too
-  (swap! graph-registry assoc name graph))
+(defn register-graph!
+  ([name graph]
+   (swap! graph-registry assoc name graph))
+  ([name graph env]
+   (if (reserved-word? name)
+     (accumulate-error env name :reserved-word)
+     (register-graph! (symbol name) graph))))
+
+(defn get-var [name]
+  (when-let [v (resolve name)] ;; allows aliasing of filtergraph in defs
+      (when (and (bound? v) (instance? FilterGraph (var-get v)))
+        (var-get v))))
 
 (defn get-graph [name]
   (if-let [graph (get @graph-registry name)]
     graph
-    (when-let [v (resolve name)] ;; allows aliasing of filtergraph in defs
-      (when (and (bound? v) (instance? FilterGraph (var-get v)))
-        (var-get v)))))
+    (when *dynamic-resolution*
+      (get-var name))))
 
 (defn clear-registry!
   "Clear registry (mainly for testing)"
@@ -24,3 +34,4 @@
 
 (defn debug []
   (keys @graph-registry))
+

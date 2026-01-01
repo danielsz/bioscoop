@@ -5,6 +5,9 @@
             [bioscoop.built-in]
             [bioscoop.registry :refer [get-graph clear-registry!]]
             [clojure.test :refer [testing deftest is use-fixtures]]
+            [clojure.java.io :as io]
+            [clojure.java.shell :refer [sh]]
+            [clojure.string :as str]
             [instaparse.core :as insta])
   (:import [bioscoop.domain.records FilterGraph]))
 
@@ -13,6 +16,27 @@
   (clear-registry!))
 
 (use-fixtures :once once-fixture)
+
+;; Native image testing support
+(def native-binary-path "target/bioscoop")
+
+(defn native-binary-exists? []
+  (.exists (io/file native-binary-path)))
+
+(defn run-native [dsl-code]
+  "Run DSL code through the native binary, return stdout trimmed"
+  (let [{:keys [out err exit]} (sh native-binary-path "-e" dsl-code)]
+    (when (not= 0 exit)
+      (throw (ex-info "Native binary failed" {:exit exit :err err :dsl dsl-code})))
+    (str/trim out)))
+
+(defn test-native-parity
+  "Test that native binary produces same output as JVM for given DSL code"
+  [dsl-code]
+  (let [jvm-result (to-ffmpeg (compile-dsl dsl-code))
+        native-result (run-native dsl-code)]
+    (is (= jvm-result native-result)
+        (str "JVM/Native mismatch for: " dsl-code))))
 
 (deftest test-dsl-compilation
   (testing "Basic filter creation"
@@ -238,5 +262,44 @@
   (testing "composing"
     (let [dsl (compile-dsl "(compose [[0] (chain (scale 133 220)) [1]] [[0] (crop \"111\") [1]])")]
       (is (= "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]" (to-ffmpeg dsl))))))
+
+(deftest native-image-parity
+  (if (native-binary-exists?)
+    (do
+      (testing "Basic filters"
+        (test-native-parity "(scale 1920 1080)")
+        (test-native-parity "(crop \"640\" \"480\")")
+        (test-native-parity "(hflip)")
+        (test-native-parity "(overlay)"))
+      
+      (testing "Filter chains"
+        (test-native-parity "(chain (scale 1920 1080) (hflip))")
+        (test-native-parity "(chain (crop \"640\" \"480\") (vflip) (overlay))"))
+      
+      (testing "Filter graphs"
+        (test-native-parity "(graph (scale 1920 1080) (crop \"640\" \"480\"))")
+        (test-native-parity "(graph (chain (scale 1920 1080) (hflip)) (crop \"640\" \"480\"))"))
+      
+      (testing "Let bindings"
+        (test-native-parity "(let [w 1920 h 1080] (scale w h))")
+        (test-native-parity "(let [size 1920] (scale size size))")
+        (test-native-parity "(let [x (mod 10 3)] (scale x 1080))"))
+      
+      (testing "Defgraph and compose"
+        (test-native-parity "(defgraph a (scale 1920 1080)) a")
+        (test-native-parity "(defgraph a (scale 1920 1080)) (defgraph b (crop \"640\" \"480\")) (compose a b)")
+        (test-native-parity "(defgraph x (chain (scale 1920 1080) (hflip))) (defgraph y (vflip)) (compose x y)"))
+      
+      (testing "Padded graphs"
+        (test-native-parity "[[in] (scale 1920 1080) [out]]")
+        (test-native-parity "[[0][1] (chain (scale 1920 1080) (overlay)) [out]]"))
+      
+      (testing "Labels"
+        (test-native-parity "(scale 1920 1080 {:input \"in\"} {:output \"out\"})")
+        (test-native-parity "(hflip {:input \"a\"} {:output \"b\"})")))
+    
+    (testing "Native binary not found - skipping native tests"
+      (println "Native binary not found at" native-binary-path "- skipping native image tests")
+      (is true))))
 
 

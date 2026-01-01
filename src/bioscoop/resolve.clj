@@ -1,0 +1,46 @@
+(ns bioscoop.resolve
+  "Resolution interface that dispatches between runtime reflection (JVM Clojure)
+   and static lookup (GraalVM native image) based on config/*dynamic-resolution*.
+   
+   When *dynamic-resolution* is true: Use runtime reflection via ns-resolve/resolve
+   When *dynamic-resolution* is false (default): Use static lookup tables"
+  (:require [bioscoop.config :as config :refer [*dynamic-resolution*]]
+            [bioscoop.built-in]
+            [bioscoop.domain.records :refer [compose-filtergraphs]]
+            [bioscoop.error-handling :refer [accumulate-error]]))
+
+(def built-in-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'bioscoop.built-in)))
+(def clojure-core-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'clojure.core)))
+(def reserved-words (merge clojure-core-functions built-in-functions ))
+(defn reserved-word? [name] (contains? reserved-words name))
+(defn reserved-word-type [name]
+  (cond
+    (contains? built-in-functions name) :built-in
+    (contains? clojure-core-functions name) :clojure-core  ))
+
+(defmulti resolve-function (fn [op env] *dynamic-resolution*))
+
+(defmethod resolve-function true [op env]
+  (let [f (ns-resolve 'bioscoop.built-in (symbol op))]
+    (case (str (:ns (meta f)))
+      "bioscoop.built-in" f
+      "clojure.core" (fn [arg _] (apply f arg))
+      (if-let [f (ns-resolve *ns* (symbol op))]
+        (fn [arg _] (apply compose-filtergraphs (apply f arg))) ;; user-defined function, must return filtergraph(s)
+        (do (accumulate-error env op :unresolved-function)
+            (fn [_ _] ()))))))
+
+(defmethod resolve-function false [op env]
+  (cond
+    (contains? built-in-functions op) (get built-in-functions op)
+    (contains? clojure-core-functions op) (fn [arg _]
+                                              (let [f (get clojure-core-functions op)]
+                                                (apply f arg)))
+    :else (do (accumulate-error env op :unresolved-function)
+              (fn [_ _] ()))))
+
+
+
+
+
+

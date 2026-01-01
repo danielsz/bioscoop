@@ -18,9 +18,9 @@
   (with-output-labels [this labels]
     (with-meta this (assoc (meta this) :output-labels (vec labels))))
   (with-labels [this input-labels output-labels]
-  (-> this
-      (with-input-labels input-labels)
-      (with-output-labels output-labels)))
+    (-> this
+        (with-input-labels input-labels)
+        (with-output-labels output-labels)))
   (get-input-labels [this]
     (:input-labels (meta this) []))
   (get-output-labels [this]
@@ -48,4 +48,4 @@
   (make-filtergraph chains))
 
 (defn compose-filtergraphs [& filtergraphs]
-  (make-filtergraph (mapcat #(.-chains %) filtergraphs)))
+  (make-filtergraph (mapcat :chains filtergraphs)))

@@ -1,7 +1,8 @@
 (ns bioscoop.macro
   (:require [bioscoop.dsl :as dsl]
-            [clojure.tools.logging :as log]
+            [bioscoop.config :as config]
             [bioscoop.registry :as registry]
+            [bioscoop.resolve :as r :refer [reserved-word?]]
             [bioscoop.error-handling :refer [error-processing]])
   (:import [bioscoop.domain.records FilterGraph]))
 
@@ -67,26 +68,29 @@
 
 (defn process [result]
   (if (instance? FilterGraph result)
-       result
-      (error-processing result)))
+    result
+    (error-processing result)))
 
 (defmacro bioscoop
   "Macro that takes Clojure DSL forms and produces the same AST as Instaparse parsing.
-    Example:
-  (bioscoop (let [width 1920] (scale width 1080)))
+   Binds *dynamic-resolution* to true for runtime reflection support.
+
+   Example:
+   (bioscoop (let [width 1920] (scale width 1080)))
   
-  This produces the same result as:
-  (dsl/compile-dsl \"(let [width 1920] (scale width 1080))\")"
+   This produces the same result as:
+   (dsl/compile-dsl \"(let [width 1920] (scale width 1080))\")"
   [& forms]
   (let [ast-nodes (mapv form->ast forms)
-        program-ast (vec (concat [:program] ast-nodes))
-        result# `(dsl/transform-ast ~program-ast (dsl/make-env))]
-    `(process ~result#)))
+        program-ast (vec (concat [:program] ast-nodes))]
+    `(binding [config/*dynamic-resolution* true]
+       (process (dsl/transform-ast ~program-ast (dsl/make-env))))))
 
 (defmacro defgraph [name & body]
   `(let [graph# (bioscoop ~@body)]
-     (try (registry/register-graph! '~name graph#)
-          (intern *ns* '~name graph#)
-          (catch AssertionError e# (throw e#)))))
+     (if (reserved-word? (str '~name))
+       (println (str '~name " is a reserved word."))
+       (do (registry/register-graph! '~name graph#)
+           (intern *ns* '~name graph#)))))
 
 

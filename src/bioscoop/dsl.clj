@@ -3,8 +3,9 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels with-labels get-input-labels get-output-labels]]
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels]]
             [bioscoop.registry :as registry]
+            [bioscoop.resolve :as r :refer [resolve-function]]
             [bioscoop.error-handling :refer [accumulate-error error-processing]])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
@@ -25,38 +26,37 @@
 (defn env-put [env sym val]
   (assoc env sym val))
 
-(declare resolve-function)
 (defmulti transform-ast (fn [node env]
                           (first node)))
 
 (defmethod transform-ast :program [[_ & expressions] env]
   (let [defgraph-exprs (filter #(= :graph-definition (first %)) expressions)
-        regular-exprs (remove #(= :graph-definition (first %)) expressions)
-        transformed (mapv #(transform-ast % env) regular-exprs)]
+        regular-exprs (remove #(= :graph-definition (first %)) expressions)]
     (doseq [defgraph-expr defgraph-exprs]
       (transform-ast defgraph-expr env))
-    (case (count transformed)
-      0 (make-filtergraph [])
-      1 (let [single (first transformed)]
-          (cond
-            (instance? FilterGraph single) single
-            (instance? FilterChain single) (make-filtergraph [single])
-            (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
-            :else
-            (do (accumulate-error env single :not-a-filtergraph)
-                env)))
-      ;; Multiple expressions
-      (if (every? #(or (instance? Filter %)
-                       (instance? FilterChain %)
-                       (instance? FilterGraph %)) transformed)
-        (make-filtergraph
-         (mapv #(cond
-                  (instance? FilterChain %) %
-                  (instance? Filter %) (make-filterchain [%])
-                  (instance? FilterGraph %) (first (:chains %)))
-               transformed))
-        (do (accumulate-error env transformed :bad-apple)
-            env)))))
+    (let [transformed (mapv #(transform-ast % env) regular-exprs)]
+      (case (count transformed)
+        0 (make-filtergraph [])
+        1 (let [single (first transformed)]
+            (cond
+              (instance? FilterGraph single) single
+              (instance? FilterChain single) (make-filtergraph [single])
+              (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
+              :else
+              (do (accumulate-error env single :not-a-filtergraph)
+                  env)))
+        ;; Multiple expressions
+        (if (every? #(or (instance? Filter %)
+                         (instance? FilterChain %)
+                         (instance? FilterGraph %)) transformed)
+          (make-filtergraph
+           (mapv #(cond
+                    (instance? FilterChain %) %
+                    (instance? Filter %) (make-filterchain [%])
+                    (instance? FilterGraph %) (first (:chains %)))
+                 transformed))
+          (do (accumulate-error env transformed :bad-apple)
+              env))))))
 
 (defmethod transform-ast :compose [[_ & content] env]
   (let [children (mapv #(transform-ast % env) (rest content))]
@@ -67,7 +67,7 @@
         graph-body (into [:program] body)
         graph (transform-ast graph-body env)]
     (when (string? graph-name)
-      (registry/register-graph! (symbol graph-name) graph))
+      (registry/register-graph! graph-name graph env))
     graph))
 
 (defn padded-graph-helper [body]
@@ -78,33 +78,34 @@
       result
       (let [[label _ :as x] (first xs)]
         (cond
-          (and (= label :label) (not flag)) (recur (next xs) (update  result :input conj x) flag)
-          (and (= label :label) flag) (recur (next xs) (update  result :output conj x) flag)
-          :else (recur (next xs) (assoc result :expr x) true)))) ))
+          (and (= label :label) (not flag)) (recur (next xs) (update result :input conj x) flag)
+          (and (= label :label) flag) (recur (next xs) (update result :output conj x) flag)
+          :else (recur (next xs) (assoc result :expr x) true))))))
 
 (defmethod transform-ast :padded-graph [[_ & body] env]
   (let [{:keys [input expr output]} (padded-graph-helper body)
         filtergraph (transform-ast expr env)
         f (fn [filters] (make-filtergraph [(make-filterchain (-> filters
-                                                               (update 0 with-input-labels (mapv #(transform-ast % env) input))
-                                                               (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output))))]))]    
+                                                                 (update 0 with-input-labels (mapv #(transform-ast % env) input))
+                                                                 (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output))))]))]
     (cond
       (instance? Filter filtergraph) (f [filtergraph])
-      (instance? FilterChain filtergraph) (let [filters (.-filters filtergraph)]
+      (instance? FilterChain filtergraph) (let [filters (:filters filtergraph)]
                                             (f filters))
-      (and (instance? FilterGraph filtergraph) (> 1 (count (.-chains filtergraph)))) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
-      (instance? FilterGraph filtergraph) (let [filters (.-filters (first (.-chains filtergraph)))]
+      (and (instance? FilterGraph filtergraph) (> 1 (count (:chains filtergraph)))) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
+      (instance? FilterGraph filtergraph) (let [filters (:filters (first (:chains filtergraph)))]
                                             (f filters))
       :else (accumulate-error env filtergraph :padded-graph-not-a-filtergraph))))
 
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
-        validate (fn [sym] (when-let [resolved (ns-resolve 'bioscoop.built-in (symbol sym))]
-                            (let [namespace (str (ns-name (:ns (meta resolved))))]
-                              (case namespace
-                                "clojure.core" (accumulate-error env sym :clj-reserved-word)
-                                "bioscoop.built-in" (accumulate-error env sym :reserved-word)))))
+        validate (fn [sym]
+                   (when-let [reserved-type (r/reserved-word-type sym)]
+                     (case reserved-type
+                       :clojure-core (accumulate-error env sym :clj-reserved-word)
+                       :built-in (accumulate-error env sym :reserved-word)
+                       nil)))
         new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
                           (validate sym-name)
                           (let [expr-val (transform-ast expr acc-env)]
@@ -178,15 +179,6 @@
 (defmethod transform-ast :boolean [[_ b] env]
   (parse-boolean b))
 
-(defn resolve-function [op env]
-  (let [f (ns-resolve 'bioscoop.built-in (symbol op))]
-    (case (str (:ns (meta f)))
-      "bioscoop.built-in" f
-      "clojure.core" (fn [arg _] (apply f arg))
-      (if-let [f (ns-resolve *ns* (symbol op))]
-        (fn [arg _] (apply compose-filtergraphs (apply f arg))) ;; user-defined function, must return filtergraph(s)
-        (do (accumulate-error env op :unresolved-function)
-            (fn [_ _] ()))))))
 
 ;; Compiler: DSL -> Clojure data structures
 (defn compile-dsl [dsl-code]

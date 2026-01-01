@@ -179,9 +179,9 @@
       (is (= 2 (count (:filters (first (:chains result))))))))
 
   (testing "the name following defgraph cannot be a built-in name"
-    (is (thrown? AssertionError (defgraph split (split)))))
+    (is (nil? (defgraph split (split)))))
   (testing "the name following defgraph cannot be a known clojure.core name"
-    (is (thrown? AssertionError (defgraph map (split)))))
+    (is (nil? (defgraph map (split)))))
   (testing "defgraph is idempotent"
     (defgraph foo (let [shade "red"
                         background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
@@ -239,9 +239,12 @@
     (do (defgraph foo (scale 1920 1080))
         (bioscoop (let [foo 1]
                     (scale {:width 1920 :height foo}))))
+    ;; When there's ambiguity between let binding and defgraph,
+    ;; errors are accumulated as warnings but processing continues.
+    ;; The local binding takes precedence.
     (do (defgraph foo (scale 1920 1080))
-        (is (thrown? Exception (bioscoop (let [foo 1]
-                                 (compose [[0] (graph (chain (scale {:width 1920 :height foo}))) [1]] [[0] foo [1]]))))))))
+        (is (instance? FilterGraph (bioscoop (let [foo 1]
+                                               (compose [[0] (graph (chain (scale {:width 1920 :height foo}))) [1]] [[0] foo [1]]))))))))
 
 
 (defn n-fun [n]
