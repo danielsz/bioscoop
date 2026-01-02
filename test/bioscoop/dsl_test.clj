@@ -97,8 +97,8 @@
                (hflip)"
           result (compile-dsl dsl)]
       (is (= "scale=width=1920:height=1080,overlay;hflip" (to-ffmpeg result)))))
-  
- (testing "nested chains - structural equivalence"
+
+  (testing "nested chains - structural equivalence"
     (let [dsl "(chain 
                  (scale 1920 1080)
                  (overlay))
@@ -122,13 +122,18 @@
                  (let [width 1280]
                    (let [width 800]
                      (scale 1080 width))))"
-          result (compile-dsl dsl)]
-      (is (= "scale=width=1080:height=800" (to-ffmpeg result))))
+        result (compile-dsl dsl)]
+    (is (= "scale=width=1080:height=800" (to-ffmpeg result))))
 
   (testing "coma in maps is insignificant"
     (let [m1 "{:input \"tmp\" :output \"right\"}"
           m2 "{:input \"tmp\", :output \"right\"}"]
-      (is (= (dsl-parser m1) (dsl-parser m2))))))
+      (is (= (dsl-parser m1) (dsl-parser m2)))))
+
+  (testing "defgraph is being compiled before expressions"
+    (let [dsl "(defgraph a (scale 1920 1080)) a"
+          result (to-ffmpeg (compile-dsl dsl))]
+      (is (= "scale=width=1920:height=1080" result)))))
 
 (deftest test-grammar-parse-trees
   (testing "Let binding parse tree structure"
