@@ -23,64 +23,127 @@
 (defn native-binary-exists? []
   (.exists (io/file native-binary-path)))
 
-(defn run-native [dsl-code]
+(defn run-native
   "Run DSL code through the native binary, return stdout trimmed"
+  [dsl-code]
   (let [{:keys [out err exit]} (sh native-binary-path "-e" dsl-code)]
     (when (not= 0 exit)
       (throw (ex-info "Native binary failed" {:exit exit :err err :dsl dsl-code})))
     (str/trim out)))
 
-(defn test-native-parity
-  "Test that native binary produces same output as JVM for given DSL code"
-  [dsl-code]
-  (let [jvm-result (to-ffmpeg (compile-dsl dsl-code))
-        native-result (run-native dsl-code)]
-    (is (= jvm-result native-result)
-        (str "JVM/Native mismatch for: " dsl-code))))
+(def dsl-expressions
+  [{:title "Basic filter creation"
+    :dsl "(scale 1920 1080)"
+    :expected "scale=width=1920:height=1080"}
+   {:title "Filter with labels"
+    :dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
+    :expected "[in]scale=width=1920:height=1080[scaled]"}
+   {:title "Filter with label in local binding"
+    :dsl "(let [input-vid (input-labels \"in\")
+                scaled (scale 1920 1080 input-vid (output-labels \"scaled\"))]
+              scaled)"
+    :expected "[in]scale=width=1920:height=1080[scaled]"}
+   {:title "Multiple expressions, implicit filterchain"
+    :dsl "(scale 1920 1080) (overlay)"
+    :expected "scale=width=1920:height=1080;overlay"}
+   {:title "Filterchain"
+    :dsl "(chain (scale 1920 1080) (overlay))"
+    :expected "scale=width=1920:height=1080,overlay"}
+   {:title "Nested filterchains"
+    :dsl "(chain (scale \"1920\" \"1080\") (overlay)) (hflip)"
+    :expected "scale=width=1920:height=1080,overlay;hflip"}
+   {:title "Parent scope access and nesting"
+    :dsl "(let [height 1920]
+                 (let [width 1080]
+                   (scale height width)))"
+    :expected "scale=width=1920:height=1080"}
+   {:title "Parent scope access and nesting II"
+    :dsl "(let [width 1920]
+                 (let [width 1280]
+                   (scale 1080 width)))"
+    :expected "scale=width=1080:height=1280"}
+   {:title "Parent scope access and nesting III"
+    :dsl "(let [width 1920]
+                 (let [width 1280]
+                   (let [width 800]
+                     (scale 1080 width))))"
+    :expected "scale=width=1080:height=800"}
+   {:title "Real world - flip"
+    :dsl "(let [out-left-tmp (output-labels \"left\" \"tmp\")
+                     in-tmp (input-labels \"tmp\")
+                     out-right (output-labels \"right\")
+                     in-left-right (input-labels \"left\" \"right\")]
+                 (graph (chain
+                            (crop \"iw/2\" \"ih\" \"0\" \"0\")
+                            (split  out-left-tmp))
+                         (hflip in-tmp out-right)
+                         (hstack in-left-right)))"
+    :expected "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"}
+   {:title "flip inline labels"
+    :dsl "(graph
+                  (chain
+                     (crop \"iw/2\" \"ih\" \"0\" \"0\")
+                     (split {:output \"left\"} {:output \"tmp\"}))
+                  (hflip {:input \"tmp\"} {:output \"right\"})
+                  (hstack {:input \"left\"} {:input \"right\"}))"
+    :expected "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"}
+   {:title "defgraph is being compiled before expressions"
+    :dsl "(defgraph a (scale 1920 1080)) a"
+    :expected "scale=width=1920:height=1080"}
+   {:title "Compose I"
+    :dsl "(defgraph a (scale 1920 1080)) (defgraph b (crop \"640\" \"480\")) (compose a b)"
+    :expected "scale=width=1920:height=1080;crop=out_w=640:w=480"}
+   {:title "Compose II"
+    :dsl "(defgraph x (chain (scale 1920 1080) (hflip))) (defgraph y (vflip)) (compose x y)"
+    :expected "scale=width=1920:height=1080,hflip;vflip"}
+   {:title "Compose III"
+    :dsl "(compose [[0] (chain (scale 133 220)) [1]] [[0] (crop \"111\") [1]])"
+    :expected "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]"}
+   {:title "Padded graphs"
+    :dsl "[[in] (scale 1920 1080) [out]]"
+    :expected "[in]scale=width=1920:height=1080[out]"}
+   {:title "Padded graphs II"
+    :dsl "[[0][1] (chain (scale 1920 1080) (overlay)) [out]]"
+    :expected "[0][1]scale=width=1920:height=1080,overlay[out]"}
+   {:title "Args as maps"
+    :dsl "(color {:color \"blue\" :size \"1920x1080\" :rate 24 :duration \"10\" :sar \"16/9\"})"
+    :expected "color=color=blue:size=1920x1080:rate=24:duration=10:sar=16/9"}
+   {:title "Inline filterchain"
+    :dsl "[[in][off] (chain (scale 1920 1080) (crop \"220\")) [out]]"
+    :expected "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]"}
+   {:title "Single filter"
+    :dsl "(defgraph my-crop (crop \"220\"))\n[[in][off] my-crop [out]]"
+    :expected "[in][off]crop=out_w=220[out]"}
+   {:title "Filterchain with two filters"
+    :dsl "(defgraph my-scale (chain (scale 1920 1080) (crop \"220\")))\n[[in][off] my-scale [out]]"
+    :expected "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]"}
+   {:title "Let bindings"
+    :dsl "(let [size 1920] (scale size size))"
+    :expected "scale=width=1920:height=1920"}
+   {:title "Let bindings 2"
+    :dsl "(let [x (mod 10 3)] (scale x 1080))"
+    :expected "scale=width=1:height=1080"}])
+
+(deftest test-dsl-expressions
+  (doseq [{:keys [title dsl expected]} dsl-expressions]
+    (testing title
+      (is (= expected (to-ffmpeg (compile-dsl dsl)))))))
+
+(deftest native-image-parity
+  (if (native-binary-exists?)
+    (doseq [{:keys [title dsl expected]} dsl-expressions]
+      (testing (str "Native image:" title)
+        (is (= expected (run-native dsl)))))
+    (testing "Native binary not found - skipping native tests"
+      (println "Native binary not found at" native-binary-path "- skipping native image tests")
+      (is true))))
 
 (deftest test-dsl-compilation
-  (testing "Basic filter creation"
-    (let [result (compile-dsl "(scale 1920 1080)")]
-      (is (= "scale=width=1920:height=1080" (to-ffmpeg result)))))
-
-  (testing "Basic named filter creation"
-    (let [result (compile-dsl "(scale 1920 1080)")]
-      (is (= "scale=width=1920:height=1080" (to-ffmpeg result)))))
-
-  (testing "Filter with labels"
-    (let [dsl "(let [input-vid (input-labels \"in\")
-                     scaled (scale 1920 1080 input-vid (output-labels \"scaled\"))]
-                 scaled)"
-          result (compile-dsl dsl)]
-      (is (= "[in]scale=width=1920:height=1080[scaled]" (to-ffmpeg result))))
-    (let [dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
-          result (compile-dsl dsl)]
-      (is (= "[in]scale=width=1920:height=1080[scaled]" (to-ffmpeg result)))))
-
-  (testing "Labels are preserved when parsing ffmpeg command"
-    (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
-          bar (meta (first (:filters (second  (:chains foo)))))]
-      (is (= ["tmp"] (:input-labels bar)))
-      (is (= ["right"] (:output-labels bar)))))
-
-  (testing "Multiple expressions, implicit filterchain"
-    (let [dsl "(scale 1920 1080)
-               (overlay)"
-          result (compile-dsl dsl)]
-      (is (= "scale=width=1920:height=1080;overlay" (to-ffmpeg result)))))
-
   (testing "Multiple expressions, one is invalid"
     (let [dsl "(scale 1920 1080)
                (overlay) 1"
           result (compile-dsl dsl)]
       (is (= :bad-apple (:error-type result)))))
-  
-  (testing "Filter chain"
-    (let [dsl "(chain 
-                 (scale 1920 1080)
-                 (overlay))"
-          result (compile-dsl dsl)]
-      (is (= "scale=width=1920:height=1080,overlay" (to-ffmpeg result)))))
 
   (testing "Filter chain - structural equivalence"
     (let [dsl "(chain 
@@ -89,14 +152,6 @@
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "scale=width=1920:height=1080,overlay")]
       (is (= foo bar))))
-
-  (testing "nested chains"
-    (let [dsl "(chain 
-                 (scale \"1920\" \"1080\")
-                 (overlay))
-               (hflip)"
-          result (compile-dsl dsl)]
-      (is (= "scale=width=1920:height=1080,overlay;hflip" (to-ffmpeg result)))))
 
   (testing "nested chains - structural equivalence"
     (let [dsl "(chain 
@@ -107,33 +162,10 @@
           bar (ffmpeg/parse "scale=1920:1080,overlay;hflip")]
       (is (=  foo bar))))
   
-  (testing "Parent scope access and nesting"
-    (let [dsl "(let [height 1920]
-                 (let [width 1080]
-                   (scale height width)))"
-          result (compile-dsl dsl)]
-      (is (= "scale=width=1920:height=1080" (to-ffmpeg result))))
-    (let [dsl "(let [width 1920]
-                 (let [width 1280]
-                   (scale 1080 width)))"
-          result (compile-dsl dsl)]
-      (is (= "scale=width=1080:height=1280" (to-ffmpeg result)))))
-  (let [dsl "(let [width 1920]
-                 (let [width 1280]
-                   (let [width 800]
-                     (scale 1080 width))))"
-        result (compile-dsl dsl)]
-    (is (= "scale=width=1080:height=800" (to-ffmpeg result))))
-
   (testing "coma in maps is insignificant"
     (let [m1 "{:input \"tmp\" :output \"right\"}"
           m2 "{:input \"tmp\", :output \"right\"}"]
-      (is (= (dsl-parser m1) (dsl-parser m2)))))
-
-  (testing "defgraph is being compiled before expressions"
-    (let [dsl "(defgraph a (scale 1920 1080)) a"
-          result (to-ffmpeg (compile-dsl dsl))]
-      (is (= "scale=width=1920:height=1080" result)))))
+      (is (= (dsl-parser m1) (dsl-parser m2))))))
 
 (deftest test-grammar-parse-trees
   (testing "Let binding parse tree structure"
@@ -180,33 +212,6 @@
   (testing "Unknown functions still become filters"
     (is (= :unresolved-function (:error-type (compile-dsl "(nonexistent 123 456)"))))))
 
-(deftest real-world
-  (testing "flip"
-    (let [dsl "(let [out-left-tmp (output-labels \"left\" \"tmp\")
-                     in-tmp (input-labels \"tmp\")
-                     out-right (output-labels \"right\")
-                     in-left-right (input-labels \"left\" \"right\")]
-                 (graph (chain
-                            (crop \"iw/2\" \"ih\" \"0\" \"0\")
-                            (split  out-left-tmp))
-                         (hflip in-tmp out-right)
-                         (hstack in-left-right)))"]
-      (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
-             (to-ffmpeg (compile-dsl dsl))))))
-  (testing "flip inline labels"
-    (let [dsl "(graph
-                  (chain
-                     (crop \"iw/2\" \"ih\" \"0\" \"0\")
-                     (split {:output \"left\"} {:output \"tmp\"}))
-                  (hflip {:input \"tmp\"} {:output \"right\"})
-                  (hstack {:input \"left\"} {:input \"right\"}))"]
-      (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
-             (to-ffmpeg (compile-dsl dsl))))))
-  (testing "args as maps"
-    (let [dsl "(color {:color \"blue\" :size \"1920x1080\" :rate 24 :duration \"10\" :sar \"16/9\"})"]
-      (is "color=color=blue:size=1920x1080:rate=24:duration=10:sar=16/9" (to-ffmpeg (compile-dsl dsl))))))
-
-
 (deftest instaparse-grammar
   (testing "grammar is not ambiguous"
     (is (= 1 (count (dsl-parses "6"))))
@@ -252,59 +257,9 @@
       (let [dsl "(let [map red] (color {:c map}))"]
         (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))
 
-(deftest padded-graph
-  (testing "single filter"
-    (let [dsl1 (compile-dsl "(defgraph my-crop (crop \"220\"))")
-          dsl2 (compile-dsl "[[in][off] my-crop [out]]")]
-      (is (= "[in][off]crop=out_w=220[out]" (to-ffmpeg dsl2)))))
-  (testing "filterchain with two filters"
-    (let [_ (compile-dsl "(defgraph my-scale (chain (scale 1920 1080) (crop \"220\")))")
-          dsl2 (compile-dsl "[[in][off] my-scale [out]]")]
-      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl2)))))
-  (testing "inline filterchain"
-    (let [dsl (compile-dsl "[[in][off] (chain (scale 1920 1080) (crop \"220\")) [out]]")]
-      (is (= "[in][off]scale=width=1920:height=1080,crop=out_w=220[out]" (to-ffmpeg dsl)))))
-  (testing "composing"
-    (let [dsl (compile-dsl "(compose [[0] (chain (scale 133 220)) [1]] [[0] (crop \"111\") [1]])")]
-      (is (= "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]" (to-ffmpeg dsl))))))
-
-(deftest native-image-parity
-  (if (native-binary-exists?)
-    (do
-      (testing "Basic filters"
-        (test-native-parity "(scale 1920 1080)")
-        (test-native-parity "(crop \"640\" \"480\")")
-        (test-native-parity "(hflip)")
-        (test-native-parity "(overlay)"))
-      
-      (testing "Filter chains"
-        (test-native-parity "(chain (scale 1920 1080) (hflip))")
-        (test-native-parity "(chain (crop \"640\" \"480\") (vflip) (overlay))"))
-      
-      (testing "Filter graphs"
-        (test-native-parity "(graph (scale 1920 1080) (crop \"640\" \"480\"))")
-        (test-native-parity "(graph (chain (scale 1920 1080) (hflip)) (crop \"640\" \"480\"))"))
-      
-      (testing "Let bindings"
-        (test-native-parity "(let [w 1920 h 1080] (scale w h))")
-        (test-native-parity "(let [size 1920] (scale size size))")
-        (test-native-parity "(let [x (mod 10 3)] (scale x 1080))"))
-      
-      (testing "Defgraph and compose"
-        (test-native-parity "(defgraph a (scale 1920 1080)) a")
-        (test-native-parity "(defgraph a (scale 1920 1080)) (defgraph b (crop \"640\" \"480\")) (compose a b)")
-        (test-native-parity "(defgraph x (chain (scale 1920 1080) (hflip))) (defgraph y (vflip)) (compose x y)"))
-      
-      (testing "Padded graphs"
-        (test-native-parity "[[in] (scale 1920 1080) [out]]")
-        (test-native-parity "[[0][1] (chain (scale 1920 1080) (overlay)) [out]]"))
-      
-      (testing "Labels"
-        (test-native-parity "(scale 1920 1080 {:input \"in\"} {:output \"out\"})")
-        (test-native-parity "(hflip {:input \"a\"} {:output \"b\"})")))
-    
-    (testing "Native binary not found - skipping native tests"
-      (println "Native binary not found at" native-binary-path "- skipping native image tests")
-      (is true))))
-
-
+(deftest ffmpeg-parsing
+  (testing "Labels are preserved when parsing ffmpeg command"
+    (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
+          bar (meta (first (:filters (second  (:chains foo)))))]
+      (is (= ["tmp"] (:input-labels bar)))
+      (is (= ["right"] (:output-labels bar))))))
