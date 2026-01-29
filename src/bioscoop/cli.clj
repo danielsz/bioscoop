@@ -30,7 +30,7 @@
 
 (defn bioscoop [args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options :in-order true)]
-    (when (not (zero? (:verbosity options))) (println (str " Clojure version" (clojure-version) "\n" arguments)))
+    (when-not (zero? (:verbosity options)) (println (str " Clojure version" (clojure-version) "\n" arguments)))
     (cond
       (:help options) (println (usage summary))
       (:evaluate options) (println (to-ffmpeg (dsl/compile-dsl (first arguments))))

@@ -5,7 +5,7 @@
        :licenses [{:name "MIT License"
                    :url "https://mit-license.org/"}]}
  :packaging {:uberjar
-             {:enabled true
+             {:enabled false
               :build-properties {:main-class "bioscoop.core"}
               :excludes {:artifacts ["org.clojure:google-closure-library" "com.google.javascript:closure-compiler"]
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
@@ -15,13 +15,13 @@
                                       :directories [{:directory "resources"
                                                      :filtering {:enabled true
                                                                  :includes ["version.txt"]}}]}}
-              :graalvm {:enabled true
+              :graalvm {:enabled false
                         :build-args ["--initialize-at-build-time=org.slf4j,ch.qos.logback" "--verbose" "--no-fallback" "-H:IncludeResources=version.txt"]
                         :agent {:enabled false
                                 :filter {:rules [{:excludeClasses "clojure.**"}
                                                  {:includeClasses "clojure.lang.Reflector"}]}}
                         :graal-build-time {:enabled true}}}
-             :jar {:enabled false}}
+             :jar {:enabled true}}
  :interactive {:enabled true
                :clojure-vmargs "-Djdk.attach.allowAttachSelf"
                :reload-on-save true
