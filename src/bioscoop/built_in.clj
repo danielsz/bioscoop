@@ -40,6 +40,7 @@
    [bioscoop.domain.specs.lut :as lut]
    [bioscoop.domain.specs.lagfun :as lagfun]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
+   [bioscoop.domain.specs.colorbalance :as colorbalance]
    [bioscoop.domain.specs.effects :as effects]
    [bioscoop.domain.specs.dilation :as dilation]
    [bioscoop.domain.specs.tmix :as tmix]
@@ -63,6 +64,14 @@
    [bioscoop.domain.specs.afir :as afir]
    [bioscoop.domain.specs.rubberband :as rubberband]
    [bioscoop.domain.specs.sidechaincompress :as sidechaincompress]
+   [bioscoop.domain.specs.afftdn :as afftdn]
+   [bioscoop.domain.specs.aresample :as aresample]
+   [bioscoop.domain.specs.bass :as bass]
+   [bioscoop.domain.specs.compand :as compand]
+   [bioscoop.domain.specs.flanger :as flanger]
+   [bioscoop.domain.specs.loudnorm :as loudnorm]
+   [bioscoop.domain.specs.lowpass :as lowpass]
+   [bioscoop.domain.specs.treble :as treble]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -245,6 +254,9 @@
 (defn colorchannelmixer [arg env]
   (template arg ::colorchannelmixer/colorchannelmixer env))
 
+(defn colorbalance [arg env]
+  (template arg ::colorbalance/colorbalance env))
+
 (defn lut [arg env]
   (template arg ::lut/lut env))
 
@@ -328,3 +340,27 @@
 
 (defn atrim [arg env]
   (template arg ::atrim/atrim env))
+
+(defn afftdn [arg env]
+  (template arg ::afftdn/afftdn env))
+
+(defn aresample [arg env]
+  (template arg ::aresample/aresample env))
+
+(defn bass [arg env]
+  (template arg ::bass/bass env))
+
+(defn treble [arg env]
+  (template arg ::treble/treble env))
+
+(defn compand [arg env]
+  (template arg ::compand/compand env))
+
+(defn flanger [arg env]
+  (template arg ::flanger/flanger env))
+
+(defn loudnorm [arg env]
+  (template arg ::loudnorm/loudnorm env))
+
+(defn lowpass [arg env]
+  (template arg ::lowpass/lowpass env))
