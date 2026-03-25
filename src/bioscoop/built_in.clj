@@ -73,6 +73,9 @@
    [bioscoop.domain.specs.lowpass :as lowpass]
    [bioscoop.domain.specs.treble :as treble]
    [bioscoop.domain.specs.setparams :as setparams]
+   [bioscoop.domain.specs.nlmeans :as nlmeans]
+   [bioscoop.domain.specs.hqdn3d :as hqdn3d]
+   [bioscoop.domain.specs.arnndn :as arnndn]
    [bioscoop.domain.specs.tpad :as tpad]
    [bioscoop.domain.specs.apad :as apad]
    [bioscoop.domain.specs.settb :as settb]
@@ -377,6 +380,15 @@
 
 (defn setparams [arg env]
   (template arg ::setparams/setparams env))
+
+(defn nlmeans [arg env]
+  (template arg ::nlmeans/nlmeans env))
+
+(defn hqdn3d [arg env]
+  (template arg ::hqdn3d/hqdn3d env))
+
+(defn arnndn [arg env]
+  (template arg ::arnndn/arnndn env))
 
 (defn tpad [arg env]
   (template arg ::tpad/tpad env))
