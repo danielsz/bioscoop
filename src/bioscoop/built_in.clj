@@ -72,6 +72,9 @@
    [bioscoop.domain.specs.loudnorm :as loudnorm]
    [bioscoop.domain.specs.lowpass :as lowpass]
    [bioscoop.domain.specs.treble :as treble]
+   [bioscoop.domain.specs.tpad :as tpad]
+   [bioscoop.domain.specs.apad :as apad]
+   [bioscoop.domain.specs.settb :as settb]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
    [bioscoop.error-handling :refer [accumulate-error]]))
@@ -364,3 +367,15 @@
 
 (defn lowpass [arg env]
   (template arg ::lowpass/lowpass env))
+
+(defn tpad [arg env]
+  (template arg ::tpad/tpad env))
+
+(defn apad [arg env]
+  (template arg ::apad/apad env))
+
+(defn settb [arg env]
+  (template arg ::settb/settb env))
+
+(defn asettb [arg env]
+  (template arg ::settb/asettb env))

@@ -1,7 +1,18 @@
 (ns bioscoop.domain.specs.noise
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]))
 
-(s/def ::flags #{"a" "p" "t" "u"})
+
+(def allowed-members #{"a" "p" "t" "u"})
+
+;; Predicate: split by "+" and check if every part is in the set
+(s/def ::flags 
+  (s/and string? 
+         #(let [parts (str/split % #"\+")]
+            (and (seq parts) 
+                 (every? allowed-members parts)))))
+
+
 (s/def ::all_flags ::flags)
 (s/def ::c0_flags ::flags)
 (s/def ::c1_flags ::flags)
