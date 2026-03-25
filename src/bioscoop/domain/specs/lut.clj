@@ -13,8 +13,15 @@
 (s/def ::b string?)
 (s/def ::a string?)
 
-(s/def ::lut1d (s/keys :opt-un []))
-(s/def ::lut3d (s/keys :opt-un []))
+(s/def ::file string?)
+
+(s/def :1d/interp #{"nearest" "linear" "cosine" "cubic" "spline"})
+(s/def ::lut1d (s/keys :opt-un [::file :1d/interp]))
+
+(s/def ::clut #{"first" "all"})
+(s/def :3d/interp #{"nearest" "trilinear" "tetrahedral" "pyramid" "prism"})
+(s/def ::lut3d (s/keys :opt-un [::file ::clut :3d/interp]))
+
 (s/def ::lut (s/keys :opt-un [::c0 ::c1 ::c2 ::c3 ::y ::u ::v ::r ::g ::b ::a]))
 (s/def ::lutrgb (s/keys :opt-un [::c0 ::c1 ::c2 ::c3 ::y ::u ::v ::r ::g ::b ::a]))
 (s/def ::lutyuv (s/keys :opt-un [::c0 ::c1 ::c2 ::c3 ::y ::u ::v ::r ::g ::b ::a]))

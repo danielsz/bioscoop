@@ -72,6 +72,7 @@
    [bioscoop.domain.specs.loudnorm :as loudnorm]
    [bioscoop.domain.specs.lowpass :as lowpass]
    [bioscoop.domain.specs.treble :as treble]
+   [bioscoop.domain.specs.setparams :as setparams]
    [bioscoop.domain.specs.tpad :as tpad]
    [bioscoop.domain.specs.apad :as apad]
    [bioscoop.domain.specs.settb :as settb]
@@ -263,6 +264,12 @@
 (defn lut [arg env]
   (template arg ::lut/lut env))
 
+(defn lut1d [arg env]
+  (template arg ::lut/lut1d env))
+
+(defn lut3d [arg env]
+  (template arg ::lut/lut3d env))
+
 (defn lutrgb [arg env]
   (template arg ::lut/lutrgb env))
 
@@ -367,6 +374,9 @@
 
 (defn lowpass [arg env]
   (template arg ::lowpass/lowpass env))
+
+(defn setparams [arg env]
+  (template arg ::setparams/setparams env))
 
 (defn tpad [arg env]
   (template arg ::tpad/tpad env))
