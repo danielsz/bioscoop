@@ -76,6 +76,8 @@
    [bioscoop.domain.specs.nlmeans :as nlmeans]
    [bioscoop.domain.specs.hqdn3d :as hqdn3d]
    [bioscoop.domain.specs.arnndn :as arnndn]
+   [bioscoop.domain.specs.fftdnoiz :as fftdnoiz]
+   [bioscoop.domain.specs.atadenoise :as atadenoise]
    [bioscoop.domain.specs.tpad :as tpad]
    [bioscoop.domain.specs.apad :as apad]
    [bioscoop.domain.specs.settb :as settb]
@@ -389,6 +391,12 @@
 
 (defn arnndn [arg env]
   (template arg ::arnndn/arnndn env))
+
+(defn fftdnoiz [arg env]
+  (template arg ::fftdnoiz/fftdnoiz env))
+
+(defn atadenoise [arg env]
+  (template arg ::atadenoise/atadenoise env))
 
 (defn tpad [arg env]
   (template arg ::tpad/tpad env))
