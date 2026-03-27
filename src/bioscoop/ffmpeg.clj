@@ -21,22 +21,26 @@
     :out-filename - Output filename (defaults to \"output.mp4\")
   
   Returns the process instance. Which can be destroyed with (.destroy handle)"
-  [{:keys [filtergraph maps out-dir out-filename verbose]
+  [{:keys [filtergraph maps out-dir out-filename verbose blocking]
     :or {out-dir (System/getProperty "java.io.tmpdir")
          out-filename "output.mp4"
-         verbose false}} & inputs]
+         verbose false
+         blocking false}} & inputs]
   (let [log (io/file (str out-dir "/bioscoop.log"))
         cmd (-> [ffmpeg-bin "-y"]
                 (into (interleave (repeat "-i") inputs))
                 (conj "-filter_complex" filtergraph)
                 (into maps)
                 (conj out-filename))
-        pb (ProcessBuilder. cmd)]
-    (when verbose (println cmd))
-    (.redirectOutput pb log)
-    (.redirectError pb log)
-    (.directory pb (io/file out-dir))
-    (.start pb)))
+        pb (doto (ProcessBuilder. cmd)
+             (.redirectOutput log)
+             (.redirectError log)
+             (.directory (io/file out-dir)))]
+    (when verbose (println cmd))            
+    (let [process (.start pb)]
+      (if blocking
+        (.waitFor process)
+        process))))
 
 (comment
   ;; Scenario 1: Duck music with voice (audio only)
