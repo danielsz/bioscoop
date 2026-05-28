@@ -21,16 +21,18 @@
     :out-filename - Output filename (defaults to \"output.mp4\")
   
   Returns the process instance. Which can be destroyed with (.destroy handle)"
-  [{:keys [filtergraph maps out-dir out-filename verbose blocking]
+  [{:keys [filtergraph maps out-dir out-filename verbose blocking h265]
     :or {out-dir (System/getProperty "java.io.tmpdir")
          out-filename "output.mp4"
          verbose false
-         blocking false}} & inputs]
+         blocking false
+         h265 false}} & inputs]
   (let [log (io/file (str out-dir "/bioscoop.log"))
         cmd (-> [ffmpeg-bin "-y"]
                 (into (interleave (repeat "-i") inputs))
                 (conj "-filter_complex" filtergraph)
                 (into maps)
+                (into (when h265 ["-c:v" "libx265" "-crf" "18" "-preset" "slow"]))
                 (conj out-filename))
         pb (doto (ProcessBuilder. cmd)
              (.redirectOutput log)
