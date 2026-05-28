@@ -8,6 +8,7 @@
    [bioscoop.domain.specs.format :as format]
    [bioscoop.domain.specs.drawtext :as drawtext]
    [bioscoop.domain.specs.drawgrid :as drawgrid]
+   [bioscoop.domain.specs.drawbox :as drawbox]
    [bioscoop.domain.specs.zoompan :as zoompan]
    [bioscoop.domain.specs.concat :as concat]
    [bioscoop.domain.specs.fade :as fade]
@@ -143,6 +144,9 @@
 (defn drawgrid [arg env]
   (template arg ::drawgrid/drawgrid env))
 
+(defn drawbox [arg env]
+  (template arg ::drawbox/drawbox env))
+
 (defn zoompan [arg env]
   (template arg ::zoompan/zoompan env))
 
@@ -208,6 +212,9 @@
 
 (defn setpts [arg env]
   (template arg ::setpts/setpts env))
+
+(defn asetpts [arg env]
+  (template arg ::setpts/asetpts env))
 
 (defn hue [arg env]
   (template arg ::hue/hue env))
