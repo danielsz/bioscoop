@@ -17,6 +17,8 @@
    [bioscoop.domain.specs.pad :as pad]
    [bioscoop.domain.specs.overlay :as overlay]
    [bioscoop.domain.specs.sources :as sources]
+   [bioscoop.domain.specs.anullsrc :as anullsrc]
+   [bioscoop.domain.specs.aevalsrc :as aevalsrc]
    [bioscoop.domain.specs.layout :as layout]
    [bioscoop.domain.specs.negate :as negate]
    [bioscoop.domain.specs.threshold :as threshold]
@@ -164,6 +166,12 @@
 
 (defn rgbtestsrc [arg env]
   (template arg ::sources/rgbtestsrc env))
+
+(defn anullsrc [arg env]
+  (template arg ::anullsrc/anullsrc env))
+
+(defn aevalsrc [arg env]
+  (template arg ::aevalsrc/aevalsrc env))
 
 (defn smptebars [arg env]
   (template arg ::sources/smptebars env))

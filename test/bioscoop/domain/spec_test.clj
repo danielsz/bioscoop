@@ -6,7 +6,9 @@
             [bioscoop.domain.specs.scale :as scale]
             [bioscoop.domain.specs.crop :as crop]
             [bioscoop.domain.specs.fade :as fade]
-            [bioscoop.domain.specs.audio :as audio]))
+            [bioscoop.domain.specs.audio :as audio]
+            [bioscoop.domain.specs.anullsrc :as anullsrc]
+            [bioscoop.domain.specs.aevalsrc :as aevalsrc]))
 
 (deftest drawtext-spec-test
   (testing "valid drawtext filter"
@@ -181,6 +183,33 @@
       (doseq [config echo-configs]
         (is (s/valid? ::audio/aecho config)))))
 
+  (testing "default (empty args)"
+    (is (s/valid? ::anullsrc/anullsrc {})))
+  (testing "custom params"
+    (is (s/valid? ::anullsrc/anullsrc
+                  {:channel_layout "mono"
+                   :sample_rate 22050
+                   :nb_samples 512
+                   :duration "5.0"})))
+  (testing "invalid sample_rate (below min)"
+    (is (not (s/valid? ::anullsrc/anullsrc
+                       {:sample_rate 0}))))
+
+  (deftest aevalsrc-spec-test
+    (testing "valid with required exprs"
+      (is (s/valid? ::aevalsrc/aevalsrc
+                    {:exprs "sin(440*2*PI*t)"})))
+    (testing "valid with multi-channel exprs and all options"
+      (is (s/valid? ::aevalsrc/aevalsrc
+                    {:exprs "sin(440*2*PI*t):cos(440*2*PI*t)"
+                     :sample_rate "22050"
+                     :channel_layout "stereo"
+                     :nb_samples 512
+                     :duration "2.0"})))
+    (testing "invalid - missing required exprs"
+      (is (not (s/valid? ::aevalsrc/aevalsrc {})))))
+
+  
   (testing "Integration with existing filters"
     (is (s/valid? ::scale/scale {:w "1920" :h "1080" :flags "lanczos"}))
     (is (s/valid? ::crop/crop {:out_w "1280" :out_h "720" :x "(iw-ow)/2" :y "(ih-oh)/2"}))
@@ -192,7 +221,7 @@
                                       (s/valid? ::audio/acrossfade {:duration 1.0})
                                       (s/valid? ::audio/acompressor {:threshold -10 :ratio 2.0})
                                       (s/valid? ::audio/aecho {:in_gain 0.5 :out_gain 0.3
-                                                            :delays [800] :decays [0.4]})
+                                                               :delays [800] :decays [0.4]})
                                       (s/valid? ::scale/scale {:w "640" :h "480"})
                                       (s/valid? ::crop/crop {:out_w "320" :out_h "240"})
                                       (s/valid? ::fade/fade {:type "in" :start_frame 0 :nb_frames 15})])]
