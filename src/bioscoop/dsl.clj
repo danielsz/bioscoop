@@ -13,13 +13,21 @@
 
 (def dsl-parses (partial insta/parses dsl-parser))
 
+(defn- promote-to-filtergraph [x]
+  (cond
+    (instance? FilterGraph x)  x
+    (instance? FilterChain x)  (make-filtergraph [x])
+    (instance? Filter x)       (make-filtergraph [(make-filterchain [x])])
+    :else                      (make-filtergraph [])))
+
+
 (defn make-env
   ([] {:errors (atom [])})
   ([parent] (assoc {:errors (atom [])} :parent parent)))
 
 (defn env-get [env sym]
-  (if-let [val (get env sym)]
-    val
+  (if (contains? env sym)
+    (get env sym)
     (when-let [parent (:parent env)]
       (env-get parent sym))))
 
@@ -38,36 +46,30 @@
       (case (count transformed)
         0 (make-filtergraph [])
         1 (let [single (first transformed)]
-            (cond
-              (instance? FilterGraph single) single
-              (instance? FilterChain single) (make-filtergraph [single])
-              (instance? Filter single) (make-filtergraph [(make-filterchain [single])])
-              :else
-              (do (accumulate-error env single :not-a-filtergraph)
-                  env)))
+            (if (or (instance? FilterGraph single)
+                    (instance? FilterChain single)
+                    (instance? Filter single))
+              (promote-to-filtergraph single)
+              (do (accumulate-error env single :not-a-filtergraph) env)))
         ;; Multiple expressions
         (if (every? #(or (instance? Filter %)
                          (instance? FilterChain %)
                          (instance? FilterGraph %)) transformed)
-          (make-filtergraph
-           (mapv #(cond
-                    (instance? FilterChain %) %
-                    (instance? Filter %) (make-filterchain [%])
-                    (instance? FilterGraph %) (first (:chains %)))
-                 transformed))
+          (apply compose-filtergraphs
+                 (mapv promote-to-filtergraph transformed))
           (do (accumulate-error env transformed :bad-apple)
               env))))))
 
 (defmethod transform-ast :compose [[_ & content] env]
-  (let [children (mapv #(transform-ast % env) (rest content))]
+  (let [children (->> (rest content)
+                      (mapv #(transform-ast % env))
+                      (mapv promote-to-filtergraph))]
     (apply compose-filtergraphs children)))
 
-(defmethod transform-ast :graph-definition [[_ graph-name & body] env]
-  (let [graph-name (transform-ast graph-name env)
-        graph-body (into [:program] body)
-        graph (transform-ast graph-body env)]
-    (when (string? graph-name)
-      (registry/register-graph! graph-name graph env))
+(defmethod transform-ast :graph-definition [[_ [_ graph-name-str] & body] env]
+  (let [graph-body (into [:program] body)
+        graph      (transform-ast graph-body env)]
+    (registry/register-graph! graph-name-str graph env)
     graph))
 
 (defn padded-graph-helper [body]
@@ -92,9 +94,9 @@
       (instance? Filter filtergraph) (f [filtergraph])
       (instance? FilterChain filtergraph) (let [filters (:filters filtergraph)]
                                             (f filters))
-      (and (instance? FilterGraph filtergraph) (> 1 (count (:chains filtergraph)))) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
-      (instance? FilterGraph filtergraph) (let [filters (:filters (first (:chains filtergraph)))]
-                                            (f filters))
+      (and (instance? FilterGraph filtergraph) (= 1 (count (:chains filtergraph)))) (let [filters (:filters (first (:chains filtergraph)))]
+                                                                                      (f filters))
+      (instance? FilterGraph filtergraph) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
       :else (accumulate-error env filtergraph :padded-graph-not-a-filtergraph))))
 
 (defmethod transform-ast :let-binding [[_ & content] env]
@@ -151,6 +153,20 @@
     (let [xs (map #(transform-ast % env) (rest m))]
       (into {} (map vec (partition 2 xs)))) ;; multiple arguments map
     ))
+
+(defmethod transform-ast :for-binding [[_ [_ sym-name] range-node & body] env]
+  (let [range-val (transform-ast range-node env)
+        xs     (cond
+                 (and (integer? range-val) (pos? range-val)) (range range-val)
+                 (and (seqable? range-val) (not (string? range-val))) range-val                 
+                 :else                                        [])]
+    (apply compose-filtergraphs
+           (for [x xs
+                 :let [loop-env (env-put env sym-name x)]]
+              (->> body
+                  (mapv #(transform-ast % loop-env))
+                  (mapv promote-to-filtergraph)
+                  (apply compose-filtergraphs))))))
 
 (defmethod transform-ast :symbol [[_ sym] env]
   (let [env-val (env-get env sym)

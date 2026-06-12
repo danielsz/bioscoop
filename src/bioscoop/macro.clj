@@ -27,6 +27,13 @@
     (and (seq? form) (= 'compose (first form)))
     (into [:compose "compose"] (mapv form->ast (rest form)))
 
+    (and (seq? form) (= 'for (first form)))
+    (let [[_ [sym range-expr] & body] form]
+      (into [:for-binding
+             [:symbol (str sym)]
+             (form->ast range-expr)]
+            (mapv form->ast body)))
+    
     ;; Handle function calls and lists: (fn-name args...)
     (seq? form)
     (let [[op & args] form

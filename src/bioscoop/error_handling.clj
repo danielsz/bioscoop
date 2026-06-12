@@ -2,6 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.walk :refer [postwalk]]
             [clojure.tools.logging :as log]
+            [bioscoop.domain.records :refer [make-filtergraph]]
             [bioscoop.config :refer [*debug-mode* *warn-verbose*]]))
 
 (def errors {:not-a-filtergraph (fn [sym] (ex-info "Not a valid ffmpeg program (filtergraph)"
@@ -51,9 +52,11 @@
 
 (defn accumulate-error
   ([env sym err-code]
-   (accumulate-error* env ((err-code errors) sym)))
+   (accumulate-error* env ((err-code errors) sym))
+   (make-filtergraph []))   ; always return a valid FilterGraph
   ([env sym spec err-code]
-   (accumulate-error* env ((err-code errors) sym spec))))
+   (accumulate-error* env ((err-code errors) sym spec))
+   (make-filtergraph [])))
 
 (defn error-processing [env]
   (when *debug-mode* (log/debug env))

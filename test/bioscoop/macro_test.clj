@@ -15,7 +15,6 @@
 
 (use-fixtures :once once-fixture)
 
-
 (deftest test-form->ast
   (testing "Simple expressions"
     (is (= [:symbol "scale"] (form->ast 'scale)))
@@ -41,7 +40,21 @@
             [:binding [:symbol "width"] [:number "1920"]]
             [:binding [:symbol "height"] [:number "1080"]]
             [:list [:symbol "scale"] [:symbol "width"] [:symbol "height"]]]
-           (form->ast '(let [width 1920 height 1080] (scale width height)))))))
+           (form->ast '(let [width 1920 height 1080] (scale width height)))))
+    (is (= [:for-binding [:symbol "i"] [:number "3"] [:list [:symbol "scale"]]]
+           (form->ast '(for [i 3] (scale)))))
+    (is (= [:for-binding
+            [:symbol "i"]
+            [:number "3"]
+            [:list
+             [:symbol "lagfun"]
+             [:map
+              [:keyword :decay]
+              [:list
+               [:symbol "/"]
+               [:list [:symbol "-"] [:number "99.0"] [:symbol "i"]]
+               [:number "100.0"]]]]]
+           (form->ast '(for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)})))))))
 
 (deftest test-bioscoop-macro
   (testing "arithmetic expressions"
@@ -92,6 +105,29 @@
           ffmpeg-string "[tmp]scale=width=1920:height=1080"]
       (is (= text-result macro-result ffmpeg-string))))
 
+  (testing "for bindings"
+    (let [macro-result (to-ffmpeg (bioscoop (for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)}))))
+          text-result (to-ffmpeg (dsl/compile-dsl "(for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)}))"))
+          ffmpeg-string "lagfun=decay=0.99;lagfun=decay=0.98;lagfun=decay=0.97"]
+      (is (= text-result macro-result ffmpeg-string))))
+
+  (testing "compose top-level filtergraphs and filters"
+    (let [macro-result (bioscoop
+                         (compose
+                          (for [i 2]
+                            (loop {:loop 124 :size 1}
+                              {:input (str i)}
+                              {:output (str "l" i)}))
+                          (xfade {:transition "fade" :duration 1 :offset 3}
+                                 {:input "l0"} {:input "l1"} {:output "v1"})
+                          (for [i (range 1 3)]
+                            (xfade {:transition "fade"
+                                    :duration 1
+                                    :offset (+ (* i 4) 3)}
+                                   {:input (str "v" i)}
+                                   {:input (str "l" (inc i))}
+                                   {:output (str "v" (inc i))}))))]
+      (is (= "[0]loop=loop=124:size=1[l0];[1]loop=loop=124:size=1[l1];[l0][l1]xfade=transition=fade:duration=1:offset=3[v1];[v1][l2]xfade=transition=fade:duration=1:offset=7[v2];[v2][l3]xfade=transition=fade:duration=1:offset=11[v3]" (to-ffmpeg macro-result)))))
 
   (testing "real world examples"
     (let [dsl (bioscoop 

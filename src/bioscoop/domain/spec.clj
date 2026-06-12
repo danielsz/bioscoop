@@ -9,6 +9,11 @@
 (s/def ::filterchain (s/coll-of ::filter))
 (s/def ::filtergraph (s/coll-of ::filterchain))
 
+(defn coerce-numeric [v]
+  (cond
+    (ratio?   v) (double v)
+    (integer? v) v          ; keep integers as-is; specs using int-in expect Long
+    :else        v))
 
 (defn spec-aware-namespace-keyword [spec unqualified-kw]
   (let [spec-map (apply hash-map (rest (s/form spec)))
@@ -40,7 +45,7 @@
         (into {} 
               (map (fn [[k v]]
                      (if-let [qualified-kw (get key-mapping k)]
-                       [qualified-kw v]
+                       [qualified-kw (coerce-numeric v)]
                        ;; Keep unmapped keys as-is (or could warn/error)
                        [k v]))
                    unnamespaced-map)))
