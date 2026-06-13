@@ -13,13 +13,12 @@
 
 (def dsl-parses (partial insta/parses dsl-parser))
 
-(defn- promote-to-filtergraph [x]
+(defn promote-to-filtergraph [x env]
   (cond
-    (instance? FilterGraph x)  x
-    (instance? FilterChain x)  (make-filtergraph [x])
-    (instance? Filter x)       (make-filtergraph [(make-filterchain [x])])
-    :else                      (make-filtergraph [])))
-
+    (instance? FilterGraph x) x
+    (instance? FilterChain x) (make-filtergraph [x])
+    (instance? Filter x)      (make-filtergraph [(make-filterchain [x])])
+    :else (accumulate-error env x :not-a-filtergraph)))
 
 (defn make-env
   ([] {:errors (atom [])})
@@ -39,31 +38,18 @@
 
 (defmethod transform-ast :program [[_ & expressions] env]
   (let [defgraph-exprs (filter #(= :graph-definition (first %)) expressions)
-        regular-exprs (remove #(= :graph-definition (first %)) expressions)]
-    (doseq [defgraph-expr defgraph-exprs]
-      (transform-ast defgraph-expr env))
-    (let [transformed (mapv #(transform-ast % env) regular-exprs)]
-      (case (count transformed)
-        0 (make-filtergraph [])
-        1 (let [single (first transformed)]
-            (if (or (instance? FilterGraph single)
-                    (instance? FilterChain single)
-                    (instance? Filter single))
-              (promote-to-filtergraph single)
-              (do (accumulate-error env single :not-a-filtergraph) env)))
-        ;; Multiple expressions
-        (if (every? #(or (instance? Filter %)
-                         (instance? FilterChain %)
-                         (instance? FilterGraph %)) transformed)
-          (apply compose-filtergraphs
-                 (mapv promote-to-filtergraph transformed))
-          (do (accumulate-error env transformed :bad-apple)
-              env))))))
+        regular-exprs  (remove #(= :graph-definition (first %)) expressions)]
+    (doseq [expr defgraph-exprs]
+      (transform-ast expr env))
+    (->> regular-exprs
+         (mapv #(transform-ast % env))
+         (mapv #(promote-to-filtergraph % env))
+         (apply compose-filtergraphs))))
 
 (defmethod transform-ast :compose [[_ & content] env]
   (let [children (->> (rest content)
                       (mapv #(transform-ast % env))
-                      (mapv promote-to-filtergraph))]
+                      (mapv #(promote-to-filtergraph % env)))]
     (apply compose-filtergraphs children)))
 
 (defmethod transform-ast :graph-definition [[_ [_ graph-name-str] & body] env]
@@ -86,18 +72,20 @@
 
 (defmethod transform-ast :padded-graph [[_ & body] env]
   (let [{:keys [input expr output]} (padded-graph-helper body)
-        filtergraph (transform-ast expr env)
-        f (fn [filters] (make-filtergraph [(make-filterchain (-> filters
-                                                                 (update 0 with-input-labels (mapv #(transform-ast % env) input))
-                                                                 (update (dec (count filters)) with-output-labels (mapv #(transform-ast % env) output))))]))]
+        filtergraph (-> (transform-ast expr env)
+                       (promote-to-filtergraph env))
+        f (fn [filters]
+            (make-filtergraph
+              [(make-filterchain
+                 (-> filters
+                     (update 0 with-input-labels
+                             (mapv #(transform-ast % env) input))
+                     (update (dec (count filters)) with-output-labels
+                             (mapv #(transform-ast % env) output))))]))]
     (cond
-      (instance? Filter filtergraph) (f [filtergraph])
-      (instance? FilterChain filtergraph) (let [filters (:filters filtergraph)]
-                                            (f filters))
-      (and (instance? FilterGraph filtergraph) (= 1 (count (:chains filtergraph)))) (let [filters (:filters (first (:chains filtergraph)))]
-                                                                                      (f filters))
-      (instance? FilterGraph filtergraph) (accumulate-error env filtergraph :padded-graph-multiple-filterchains)
-      :else (accumulate-error env filtergraph :padded-graph-not-a-filtergraph))))
+      (empty? (:chains filtergraph)) filtergraph
+      (= 1 (count (:chains filtergraph))) (f (:filters (first (:chains filtergraph))))
+      :else (accumulate-error env filtergraph :padded-graph-multiple-filterchains))))
 
 (defmethod transform-ast :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
@@ -134,10 +122,10 @@
                               (resolved fn-args env))
                             (make-filter transformed-op)))
             label-args (filter vector? transformed-args)]
-        (if (seq label-args)
-          (let [{:keys [input output]} (group-by (fn [x] (:labels (meta x))) label-args)]
+        (if (and (seq label-args) (instance? Filter base-filter))
+          (let [{:keys [input output]} (group-by #(:labels (meta %)) label-args)]
             (cond-> base-filter
-              (seq input) (with-input-labels (apply concat input))
+              (seq input)  (with-input-labels  (apply concat input))
               (seq output) (with-output-labels (apply concat output))))
           base-filter)))))
 
@@ -165,7 +153,7 @@
                  :let [loop-env (env-put env sym-name x)]]
               (->> body
                   (mapv #(transform-ast % loop-env))
-                  (mapv promote-to-filtergraph)
+                  (mapv #(promote-to-filtergraph % loop-env))
                   (apply compose-filtergraphs))))))
 
 (defmethod transform-ast :symbol [[_ sym] env]
@@ -197,11 +185,28 @@
 
 
 ;; Compiler: DSL -> Clojure data structures
-(defn compile-dsl [dsl-code]
-  (let [ast (dsl-parser dsl-code)]
-    (if (insta/failure? ast)
-      (throw (ex-info "Parse error" {:error ast}))
-      (let [result (transform-ast ast (make-env))]
-        (if (instance? FilterGraph result)
-          result
-          (error-processing result))))))
+
+(def last-errors
+  "Errors from the most recent compile-dsl call. Inspect at the REPL after a failed compilation."
+  (atom []))
+
+;; in bioscoop.dsl
+(defn run-ast [program-ast env]
+  (let [result (transform-ast program-ast env)]
+    (reset! last-errors @(:errors env))
+    result))
+
+(defn compile-dsl
+  ([dsl-code]
+   (compile-dsl dsl-code (make-env)))
+  ([dsl-code env]
+   (let [ast (dsl-parser dsl-code)]
+     (if (insta/failure? ast)
+       (throw (ex-info "Parse error" {:error ast}))
+       (run-ast ast env)))))
+
+
+
+
+
+

@@ -5,11 +5,12 @@
             [bioscoop.domain.records :refer [make-filtergraph]]
             [bioscoop.config :refer [*debug-mode* *warn-verbose*]]))
 
-(def errors {:not-a-filtergraph (fn [sym] (ex-info "Not a valid ffmpeg program (filtergraph)"
-                                                {:symbol sym
-                                                 :symbol-type (type sym)
-                                                 :error-type :not-a-filtergraph
-                                                 :explanation "End your program with a filter, chain, or graph operation"}))
+(def errors {:not-a-filtergraph (fn [sym]
+                                  (ex-info "Expression does not produce a filtergraph"
+                                           {:value sym
+                                            :value-type (type sym)
+                                            :error-type :not-a-filtergraph
+                                            :explanation "Every Bioscoop expression must produce a filter, chain, or graph"}))
              :reserved-word (fn [sym] (let [explanation (str "Reserved word: '" sym "'\n"
                                                          "This is the name of an existing ffmpeg filter and is reserved. Please use a different name")]
                                        (ex-info explanation
@@ -25,10 +26,6 @@
              :unresolved-function (fn [sym] (ex-info "Cannot resolve function" {:error-type :unresolved-function
                                                                                 :explanation "Cannot resolve function"
                                                                                 :symbol sym }))
-             :bad-apple (fn [sym] (ex-info "All expressions in DSL program must produce filter operations"
-                                              {:symbol sym
-                                               :error-type :bad-apple
-                                               :explanation "Each expression should create filters, chains, or graphs"}))
              :invalid-parameter (fn [sym spec] (ex-info "Not a valid parameter" {:symbol sym
                                                                                 :error-type :invalid-parameter
                                                                                 :explanation (s/explain-str spec sym)
@@ -37,10 +34,6 @@
                                                                    {:symbol sym
                                                                     :error-type :padded-graph
                                                                     :explanation "Multiple filterchains found. You can only label pads one filterchain at the time"}))
-             :padded-graph-not-a-filtergraph (fn [sym] (ex-info "You can only label pads on a filtergraph expression. "
-                                                               {:symbol sym
-                                                                :error-type :padded-graph
-                                                                :explanation "Not a filtergraph expression. You can only label pads on a filtergraph expression."}))
              :ambiguous-symbol (fn [sym] (ex-info (str "Ambiguous symbol reference: '" sym "'\n")
                                                  {:symbol sym
                                                   :error-type :ambiguous-symbol
@@ -48,15 +41,14 @@
 
 (defn accumulate-error* [env error]
   (let [info (ex-data error)] (log/warn (if *warn-verbose* info (:error-type info))))
-  (swap! (:errors env) conj error))
+  (swap! (:errors env) conj error)
+  (make-filtergraph []))
 
 (defn accumulate-error
   ([env sym err-code]
-   (accumulate-error* env ((err-code errors) sym))
-   (make-filtergraph []))   ; always return a valid FilterGraph
+   (accumulate-error* env ((err-code errors) sym)))
   ([env sym spec err-code]
-   (accumulate-error* env ((err-code errors) sym spec))
-   (make-filtergraph [])))
+   (accumulate-error* env ((err-code errors) sym spec))))
 
 (defn error-processing [env]
   (when *debug-mode* (log/debug env))

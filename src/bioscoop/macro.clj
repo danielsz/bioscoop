@@ -73,11 +73,6 @@
     :else
     form))
 
-(defn process [result]
-  (if (instance? FilterGraph result)
-    result
-    (error-processing result)))
-
 (defmacro bioscoop
   "Macro that takes Clojure DSL forms and produces the same AST as Instaparse parsing.
    Binds *dynamic-resolution* to true for runtime reflection support.
@@ -91,7 +86,7 @@
   (let [ast-nodes (mapv form->ast forms)
         program-ast (vec (concat [:program] ast-nodes))]
     `(binding [config/*dynamic-resolution* true]
-       (process (dsl/transform-ast ~program-ast (dsl/make-env))))))
+       (dsl/run-ast ~program-ast (dsl/make-env)))))
 
 (defmacro defgraph [name & body]
   `(let [graph# (bioscoop ~@body)]

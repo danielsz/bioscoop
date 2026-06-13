@@ -1,5 +1,5 @@
 (ns bioscoop.dsl-test
-  (:require [bioscoop.dsl :refer [compile-dsl dsl-parser dsl-parses]]
+  (:require [bioscoop.dsl :refer [compile-dsl dsl-parser dsl-parses last-errors]]
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [bioscoop.built-in]
@@ -144,7 +144,8 @@
     (let [dsl "(scale 1920 1080)
                (overlay) 1"
           result (compile-dsl dsl)]
-      (is (= :bad-apple (:error-type result)))))
+      (is (instance? FilterGraph result))
+      (is (= :not-a-filtergraph (:error-type (ex-data (first @last-errors)))))))
 
   (testing "Filter chain - structural equivalence"
     (let [dsl "(chain 
@@ -196,9 +197,13 @@
 
 (deftest test-programs
   (testing "let binding should return valid structures (filter, filterchain, filtergraph)"
-    (is (= :not-a-filtergraph (:error-type (compile-dsl "(let [x 1] x)")))))
-  (comment (testing "invalid parameters"
-             (is (= :invalid-parameter (:error-type (compile-dsl "(scale 1.23 456)")))))))
+    (let [result (compile-dsl "(let [x 1] x)")]
+      (is (instance? FilterGraph result))
+      (is (= :not-a-filtergraph (:error-type (ex-data (first @last-errors)))))))
+  (testing "invalid parameters"
+    (let [result (compile-dsl "(scale 1.23 456)")]
+      (is (instance? FilterGraph result))
+      (is (= :invalid-parameter (:error-type (ex-data (first @last-errors))))))))
 
 (deftest let-bindings
   (testing "Mathematical functions from clojure.core"
@@ -211,7 +216,9 @@
   (testing "Negative numbers work properly"
     (is (= "scale=width=10:height=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))")))))
   (testing "Unknown functions still become filters"
-    (is (= :unresolved-function (:error-type (compile-dsl "(nonexistent 123 456)"))))))
+    (let [result (compile-dsl "(nonexistent 123 456)")]
+      (is (instance? FilterGraph result))
+      (is (= :unresolved-function (:error-type (ex-data (first @last-errors)))) ))))
 
 (deftest instaparse-grammar
   (testing "grammar is not ambiguous"
@@ -253,7 +260,8 @@
   (testing "When we use the name of built-in function in a let binding, we shadow the built-in function so reject it"
     (testing "built-in reserved words"
       (let [dsl "(let [color red] (color {:c color}))"]
-        (is (= :reserved-word (:error-type (compile-dsl dsl))))))
+        (compile-dsl dsl)
+        (is (= :reserved-word (:error-type (ex-data (first @last-errors)))))))
     (testing "built-in Clojure names"
       (let [dsl "(let [map red] (color {:c map}))"]
         (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))

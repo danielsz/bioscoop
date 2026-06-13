@@ -1,6 +1,6 @@
 (ns bioscoop.macro-test
   (:require [bioscoop.macro :refer [bioscoop form->ast defgraph]]
-            [bioscoop.dsl :as dsl]
+            [bioscoop.dsl :as dsl :refer [last-errors]]
             [bioscoop.render :refer [to-ffmpeg]]
             [clojure.test :refer [deftest is testing use-fixtures]]
             [bioscoop.registry :refer [clear-registry! get-graph]]
@@ -78,7 +78,8 @@
       (is (= "scale=width=1920:height=1080,crop=out_w=800:w=600:out_h=10:h=20,overlay" (to-ffmpeg structures)))))
 
   (testing "undefined function"
-    (is (= :unresolved-function (:error-type (bioscoop (undefined-function 123))))))
+    (let [result (bioscoop (undefined-function 123))]
+      (is (= :unresolved-function (:error-type (ex-data (first @last-errors)))))))
 
   (testing "Macro produces same results as text parsing"
     (let [text-result (dsl/compile-dsl "(scale 1920 1080)")
