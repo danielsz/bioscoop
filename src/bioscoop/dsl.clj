@@ -173,8 +173,10 @@
 (defmethod transform-ast :string [[_ s] env]
   s)
 
-(defmethod transform-ast :label [[_ label] env]
-  label)
+(defmethod transform-ast :label [[_ content] env]
+  (if (string? content)
+    content
+    (transform-ast content env)))
 
 (defmethod transform-ast :number [[_ n] env]
   (if (str/includes? n ".")

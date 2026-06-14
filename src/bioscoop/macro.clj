@@ -63,7 +63,12 @@
 
     ;; Handle padded graphs
     (vector? form)
-    (into [:padded-graph] (map #(if (vector? %) [:label (str (first %))] (form->ast %)) form))
+    (into [:padded-graph]
+      (mapcat (fn [item]
+                (if (vector? item)
+                  (map (fn [label-form] [:label (form->ast label-form)]) item)
+                  [(form->ast item)]))
+              form))
 
     (map? form)
     (let [kw (map form->ast (keys form))
