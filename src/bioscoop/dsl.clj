@@ -116,6 +116,7 @@
       "graph" (make-filtergraph transformed-args)
       "input-labels" (with-meta (vec transformed-args) {:labels :input})
       "output-labels" (with-meta (vec transformed-args) {:labels :output})
+      "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
       (let [base-filter (let [fn-args (remove vector? transformed-args)]
                           (if (seq fn-args)
                             (let [resolved (resolve-function transformed-op env)]

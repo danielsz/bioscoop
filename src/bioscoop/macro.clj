@@ -84,9 +84,14 @@
    (dsl/compile-dsl \"(let [width 1920] (scale width 1080))\")"
   [& forms]
   (let [ast-nodes (mapv form->ast forms)
-        program-ast (vec (concat [:program] ast-nodes))]
+        program-ast (vec (concat [:program] ast-nodes))
+        locals (keys &env)]
     `(binding [config/*dynamic-resolution* true]
-       (dsl/run-ast ~program-ast (dsl/make-env)))))
+       (let [env# (reduce (fn [e# [k# v#]]
+                            (dsl/env-put e# k# v#))
+                          (dsl/make-env)
+                          ~(mapv (fn [sym] [(str sym) sym]) locals))]
+         (dsl/run-ast ~program-ast env#)))))
 
 (defmacro defgraph [name & body]
   `(let [graph# (bioscoop ~@body)]

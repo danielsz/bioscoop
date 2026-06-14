@@ -17,10 +17,10 @@ list = <'('> expression* <')'>
 map = <'{'> mapentry* <'}'>
 label = <'['> #'[a-zA-Z0-9_:]+' <']'>
 <atom> = number | boolean | !boolean !number symbol | string | keyword
-
 number = #'-?\d+(\.\d+)?'
 string = <'"'> #'[^"]*' <'"'>
-symbol = identifier
-<identifier> = #'[a-zA-Z_+\-*/][a-zA-Z0-9_\-]*[?!]?'
+<operator> = '=' | '<' | '>' | '<=' | '>=' | '+' | '-' | '*' | '/'
+<identifier> = #'[a-zA-Z_][a-zA-Z0-9_\-]*[?!]?'
+symbol = operator | identifier
 keyword = <':'> identifier
 boolean = "true" | "false"

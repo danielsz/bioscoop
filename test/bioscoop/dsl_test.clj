@@ -313,4 +313,15 @@
       (testing "nested and flat compose produce identical chain sequences"
         (let [result (compile-dsl "(for [i 4] (scale {:input (str \"v\" i)} {:output (str \"o\" i)}))")]
           (is (= 4 (count (:chains result))))
-          (is (= "[v0]scale[o0];[v1]scale[o1];[v2]scale[o2];[v3]scale[o3]" (to-ffmpeg result))))))))
+          (is (= "[v0]scale[o0];[v1]scale[o1];[v2]scale[o2];[v3]scale[o3]" (to-ffmpeg result))))))
+    (testing "we can have if logic in labels"
+      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (= i 1) (str \"v\" i) (str \"in\" i))}))")]
+        (is (= (to-ffmpeg result) "[in0]scale;[v1]scale;[in2]scale;[in3]scale")))
+      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (> i 1) (str \"v\" i) (str \"in\" i))}))")]
+        (is (= (to-ffmpeg result) "[in0]scale;[in1]scale;[v2]scale;[v3]scale")))
+      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (< i 1) (str \"v\" i) (str \"in\" i))}))")]
+        (is (= (to-ffmpeg result) "[v0]scale;[in1]scale;[in2]scale;[in3]scale")))
+      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (<= i 1) (str \"v\" i) (str \"in\" i))}))")]
+        (is (= (to-ffmpeg result) "[v0]scale;[v1]scale;[in2]scale;[in3]scale")))
+      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (zero? i) (str \"out\" i) (str \"t\" i))}))")]
+        (is (= (to-ffmpeg result) "[out0]scale;[t1]scale;[t2]scale;[t3]scale"))))))

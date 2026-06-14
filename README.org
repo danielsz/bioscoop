@@ -130,13 +130,72 @@ expressive and powerful. However, those parameters need to be
 hard-coded in the filtergraph expression. Not so with bioscoop.
 
 #+begin_src clojure
-(defgraph transition (xfade {:transition "fade" :duration 1 :offset 9}))
+(defn transition [duration offset i]
+  (bioscoop (xfade {:transition "fade" :duration duration :offset (+ i offset (* i offset))}
+                   {:input (if (zero? i) (str "r" i) (str "s" i))}
+                   {:output (str "t" (inc i))})))
 
-(defn n-transition [n offset] (for [i (range n)]
-                       (-> transition
-                          (update-in [:chains 0 :filters 0 :args] assoc :bioscoop.domain.specs.effects/offset (+ i offset (* i offset)))
-                          (update-in [:chains 0 :filters 0] with-labels [(if (zero? i) (str "out" i) (str "t" i)) (str "out" (inc i))] [(str "t" (inc i))]))))
+(to-ffmpeg (transition 4 5 9))
 #+end_src
+
+#+begin_src sh
+"[s9]xfade=transition=fade:duration=4:offset=59[t10]"
+#+end_src
+
+*** Iteration
+
+FFmpeg filtergraphs are static expressions. Every filter, every
+connection, every label must be written out explicitly. There is no
+mechanism in FFmpeg to express "apply this filter N times with varying
+parameters" or "connect these N inputs in sequence". The only
+recourse is to generate the filtergraph string programmatically,
+outside FFmpeg itself.
+
+Bioscoop introduces ~for~ as a first-class construct of the language.
+It produces a filtergraph by iterating over a range and merging the
+results, all within the DSL itself.
+
+#+begin_src clojure
+(for [binding range] body...)
+#+end_src
+
+~range~ can be a positive integer — iterating from 0 to n — or any
+sequence. ~body~ is one or more DSL expressions evaluated for each
+value of the binding, with the result merged into a single
+filtergraph. All of Clojure's arithmetic and string functions are
+available inside the body.
+
+The following example builds a slideshow of N images. Each image is
+looped, then cross-faded into the next. In FFmpeg this would require
+generating the filtergraph string by hand, with explicit labels for
+every intermediate connection. In Bioscoop it is expressed directly:
+
+#+begin_src clojure
+(defn slideshow [n]
+  (bioscoop
+    (for [i n]
+      (loop {:loop 124 :size 1}
+            {:input (str i)}
+            {:output (str "l" i)}))
+    (for [i (range 1 n)]
+      [[(if (= i 1) "l0" (str "v" i))
+        (str "l" i)]
+       (xfade {:transition "fade"
+               :duration   1
+               :offset     (+ (* i 4) 3)})
+       [(str "v" i)]])))
+#+end_src
+
+For a slideshow of ten images ~(slideshow 10)~ produces the
+equivalent of ninety lines of hand-written FFmpeg filtergraph syntax.
+Changing the number of images, the transition type, or the timing
+requires changing a single argument.
+
+Parameterized iteration composes naturally with the rest of the
+language. Named graphs defined with ~defgraph~ can be used as loop
+bodies. ~let~ bindings can compute values shared across iterations.
+The loop variable is in scope for filter arguments, label expressions,
+and any nested ~for~ form.
 
 *** *Spec-Driven Validation*
 

@@ -11,6 +11,7 @@
 
 (defn once-fixture [f]
   (f)
+  (remove-ns 'user)
   (clear-registry!))
 
 (use-fixtures :once once-fixture)
@@ -327,3 +328,15 @@
                (defgraph masterpiece (testsrc))
                (intern 'user 'qux masterpiece))))
     (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] user/qux ["1"]] [["3"] (crop "111") ["2"]])))))))
+
+(defn n-transition [n offset]
+  (bioscoop (for [i (range 0 n)]
+              (xfade {:transition "fade" :duration 1 :offset (+ i offset (* i offset))} {:input (str "in" i)} {:output (str "out" i)}))))
+
+(deftest macro-&env-binding
+  (testing " Clojure macros have access to the local binding map at expansion time. We can generate code that injects those bindings into the DSL env at runtime"
+    (in-ns 'user)
+    (intern *ns* 'n-transition #'bioscoop.macro-test/n-transition)
+    (let [result (n-transition 3 9)]
+      (is (instance? FilterGraph result))
+      (is (= (to-ffmpeg result) "[in0]xfade=transition=fade:duration=1:offset=9[out0];[in1]xfade=transition=fade:duration=1:offset=19[out1];[in2]xfade=transition=fade:duration=1:offset=29[out2]")))))
