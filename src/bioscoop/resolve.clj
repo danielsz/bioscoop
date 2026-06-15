@@ -6,8 +6,9 @@
    When *dynamic-resolution* is false (default): Use static lookup tables"
   (:require [bioscoop.config :as config :refer [*dynamic-resolution*]]
             [bioscoop.built-in]
-            [bioscoop.domain.records :refer [compose-filtergraphs]]
-            [bioscoop.error-handling :refer [accumulate-error]]))
+            [bioscoop.domain.records :refer [compose-filtergraphs make-filtergraph]]
+            [bioscoop.error-handling :refer [accumulate-error]])
+  (:import [bioscoop.domain.records FilterGraph]))
 
 (def built-in-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'bioscoop.built-in)))
 (def clojure-core-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'clojure.core)))
@@ -26,9 +27,14 @@
       "bioscoop.built-in" f
       "clojure.core" (fn [arg _] (apply f arg))
       (if-let [f (ns-resolve *ns* (symbol op))]
-        (fn [arg _] (apply compose-filtergraphs (apply f arg))) ;; user-defined function, must return filtergraph(s)
+        (fn [arg _]
+          (let [result (apply f arg)]
+            (cond
+              (instance? FilterGraph result) result
+              (seqable? result)              (apply compose-filtergraphs result)
+              :else                          (make-filtergraph []))))
         (do (accumulate-error env op :unresolved-function)
-            (fn [_ _] ()))))))
+            (fn [_ _] (make-filtergraph [])))))))
 
 (defmethod resolve-function false [op env]
   (cond
