@@ -33,6 +33,31 @@
 (defn env-put [env sym val]
   (assoc env sym val))
 
+(declare transform-ast)
+
+(defmulti eval-label-content
+  (fn [content _env]
+    (if (string? content)
+      :raw-string
+      (first content))))
+
+(defmethod eval-label-content :raw-string [s _env]
+  s)
+
+(defmethod eval-label-content :for-binding [[_ [_ sym-name] range-node & body] env]
+  (let [range-val (transform-ast range-node env)
+        xs        (cond
+                    (and (integer? range-val) (pos? range-val)) (range range-val)
+                    (and (seqable? range-val) (not (string? range-val))) range-val
+                    :else [])]
+    (vec (for [x    xs
+               :let [loop-env (env-put env sym-name x)]
+               expr body]
+           (str (transform-ast expr loop-env))))))
+
+(defmethod eval-label-content :default [content env]
+  (transform-ast content env))
+
 (defmulti transform-ast (fn [node env]
                           (first node)))
 
@@ -76,12 +101,19 @@
                        (promote-to-filtergraph env))
         f (fn [filters]
             (make-filtergraph
-              [(make-filterchain
-                 (-> filters
-                     (update 0 with-input-labels
-                             (mapv #(transform-ast % env) input))
-                     (update (dec (count filters)) with-output-labels
-                             (mapv #(transform-ast % env) output))))]))]
+             [(make-filterchain
+               (-> filters
+                  (update 0 with-input-labels
+                          (vec (mapcat (fn [node]
+                                         (let [v (eval-label-content (second node) env)]
+                                           (if (sequential? v) v [v])))
+                                       input)))
+                  (update (dec (count filters)) with-output-labels
+                          (vec (mapcat (fn [node]
+                                         (let [v (eval-label-content (second node) env)]
+                                           (if (sequential? v) v [v])))
+                                       output)))
+                  ))]))]
     (cond
       (empty? (:chains filtergraph)) filtergraph
       (= 1 (count (:chains filtergraph))) (f (:filters (first (:chains filtergraph))))
@@ -174,9 +206,7 @@
   s)
 
 (defmethod transform-ast :label [[_ content] env]
-  (if (string? content)
-    content
-    (transform-ast content env)))
+  (eval-label-content content env))
 
 (defmethod transform-ast :number [[_ n] env]
   (if (str/includes? n ".")

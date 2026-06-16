@@ -324,4 +324,7 @@
       (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (<= i 1) (str \"v\" i) (str \"in\" i))}))")]
         (is (= (to-ffmpeg result) "[v0]scale;[v1]scale;[in2]scale;[in3]scale")))
       (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (zero? i) (str \"out\" i) (str \"t\" i))}))")]
-        (is (= (to-ffmpeg result) "[out0]scale;[t1]scale;[t2]scale;[t3]scale"))))))
+        (is (= (to-ffmpeg result) "[out0]scale;[t1]scale;[t2]scale;[t3]scale"))))
+    (testing "for binding in label position")
+    (let [result (compile-dsl "[[(for [i 3] (str \"i\" i))] (scale)[\"out\"]]")]
+        (is (= (to-ffmpeg result) "[i0][i1][i2]scale[out]")))))

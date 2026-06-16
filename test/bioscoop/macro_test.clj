@@ -67,7 +67,12 @@
     (let [structures (bioscoop (scale 1920 1080
                                       (input-labels "input")
                                       (output-labels "scaled")))]
-      (is (= "[input]scale=width=1920:height=1080[scaled]" (to-ffmpeg structures)))))
+      (is (= "[input]scale=width=1920:height=1080[scaled]" (to-ffmpeg structures))))
+    (testing "We can have multiple strings in a label"
+      (let [result (bioscoop [["0:v" "1:v"] (chain (scale 1920 1080) (crop "222")) ["v01"]])]
+        (is (= "[0:v][1:v]scale=width=1920:height=1080,crop=out_w=222[v01]" (to-ffmpeg result))))))
+
+
   (testing "complex expression"
     (let [structures (bioscoop (let [w 1920
                                      h 1080

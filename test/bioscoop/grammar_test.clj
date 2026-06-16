@@ -34,3 +34,17 @@
     (is (= "scale=width=100:height=1080"
            (to-ffmpeg (compile-dsl "(scale {:width (+ 101 -1) :height 1080})"))))))
 
+
+(deftest padded-graphs
+  (testing "regular padded graphs"
+    (let [ast (dsl-parser "[[o1](scale -1 1080)[o3]]")]
+      (is (not (insta/failure? ast))))
+    (let [ast (dsl-parser "[[i1] (scale {:x 1080})[02]]")]
+      (is (not (insta/failure? ast))))
+    (let [ast (dsl-parser "[[(for [i 5] (str i))] (scale {:x 1080})[02]]")]
+      (is (not (insta/failure? ast))))
+    (is (= (to-ffmpeg (compile-dsl "[[(for [i 5] (str \"in\" i))] (scale {:x 1080})[02]]"))
+           "[in0][in1][in2][in3][in4]scale=x=1080[2]"))
+    (is (= (to-ffmpeg (compile-dsl "[[(for [i 5] (str \"in\" i))] (scale {:x 1080})[(for [i 5] (str \"out\" i))]]"))
+           "[in0][in1][in2][in3][in4]scale=x=1080[out0][out1][out2][out3][out4]"))
+    (is (insta/failure? (dsl-parser "[[i1] (scale {:x 1080})]")))))

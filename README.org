@@ -317,20 +317,15 @@ Bioscoop program:
 (require '[bioscoop.macro :refer [bioscoop defgraph]]
          '[bioscoop.built-in])
 
-(defgraph formatting (chain (format {:pix_fmts "yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le"})
-                            (split {:outputs 10})))
-
-(defgraph stacking (chain (hstack {:inputs 10})
-                          (format {:pix_fmts "yuv422p10le"})
-                          (drawgrid {:width "iw/10" :height "ih" :thickness "2" :color "cyan@1"})))
-
 (defn n-formatting [n]
-  (list (-> formatting
-           (update-in [:chains 0 :filters 1] with-output-labels (into [] (for [i (range n)] (str "b" i)))))))
+  (bioscoop [(chain (format {:pix_fmts "yuv420p10le|yuv422p10le|yuv444p10le|yuv440p10le"})
+                    (split {:outputs 10})) [(for [i n] (str "b" i))]]))
 
 (defn n-stack [n]
-  (list (-> stacking
-           (update-in [:chains 0 :filters 0] with-input-labels (into [] (for [i (range n)] (str "b" i "c")))))))
+  (bioscoop [[(for [i (range n)] (str "b" i "c"))]
+             (chain (hstack {:inputs 10})
+                    (format {:pix_fmts "yuv422p10le"})
+                    (drawgrid {:width "iw/10" :height "ih" :thickness "2" :color "cyan@1"}))]))
 
 (defn n-bitplane [n]
   (bioscoop (for [i (range n)]
