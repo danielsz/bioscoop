@@ -47,4 +47,4 @@
            "[in0][in1][in2][in3][in4]scale=x=1080[2]"))
     (is (= (to-ffmpeg (compile-dsl "[[(for [i 5] (str \"in\" i))] (scale {:x 1080})[(for [i 5] (str \"out\" i))]]"))
            "[in0][in1][in2][in3][in4]scale=x=1080[out0][out1][out2][out3][out4]"))
-    (is (insta/failure? (dsl-parser "[[i1] (scale {:x 1080})]")))))
+    (is (not (insta/failure? (dsl-parser "[[i1] (scale {:x 1080})]"))))))

@@ -9,7 +9,7 @@ binding = symbol expression
 for-binding = <'('> <'for'> <'['> symbol expression <']'> expression+ <')'>
 
 graph-definition = <'('> <'defgraph'> symbol expression* <')'>
-padded-graph = <'['> label+ expression* label+ <']'>
+padded-graph = <'['> label* expression label* <']'>
 compose = <'('> 'compose' expression+ <')'>
 
 list = <'('> expression* <')'>
