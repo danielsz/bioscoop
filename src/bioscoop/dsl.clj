@@ -3,22 +3,16 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels]]
+            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain*]]
             [bioscoop.registry :as registry]
             [bioscoop.resolve :as r :refer [resolve-function]]
-            [bioscoop.error-handling :refer [accumulate-error error-processing]])
-  (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
+            [bioscoop.error-handling :refer [accumulate-error]]
+            [bioscoop.pipeline :refer [transform-pipeline]])
+  (:import [bioscoop.domain.records Filter]))
 
 (def dsl-parser (insta/parser (io/resource "lisp-grammar.bnf") :auto-whitespace :standard))
 
 (def dsl-parses (partial insta/parses dsl-parser))
-
-(defn promote-to-filtergraph [x env]
-  (cond
-    (instance? FilterGraph x) x
-    (instance? FilterChain x) (make-filtergraph [x])
-    (instance? Filter x)      (make-filtergraph [(make-filterchain [x])])
-    :else (accumulate-error env x :not-a-filtergraph)))
 
 (defn make-env
   ([] {:errors (atom [])})
@@ -33,6 +27,8 @@
 (defn env-put [env sym val]
   (assoc env sym val))
 
+(def promote-to-filtergraph (promote-to-filtergraph* accumulate-error))
+(def promote-to-filterchain (promote-to-filterchain* (partial accumulate-error [])))  ; must return [] since the result feeds into mapcat
 (declare transform-ast)
 
 (defmulti eval-label-content
@@ -144,11 +140,12 @@
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
     (case transformed-op
-      "chain" (make-filterchain transformed-args)
+      "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
       "graph" (make-filtergraph transformed-args)
       "input-labels" (with-meta (vec transformed-args) {:labels :input})
       "output-labels" (with-meta (vec transformed-args) {:labels :output})
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
+      "pipeline" (transform-pipeline transformed-args env)
       (let [base-filter (let [fn-args (remove vector? transformed-args)]
                           (if (seq fn-args)
                             (let [resolved (resolve-function transformed-op env)]

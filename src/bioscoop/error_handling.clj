@@ -37,18 +37,28 @@
              :ambiguous-symbol (fn [sym] (ex-info (str "Ambiguous symbol reference: '" sym "'\n")
                                                  {:symbol sym
                                                   :error-type :ambiguous-symbol
-                                                  :explanation "This symbol exists as both a local binding and a graph definition. To resolve this ambiguity, please use a different name for either one of them."}))})
+                                                  :explanation "This symbol exists as both a local binding and a graph definition. To resolve this ambiguity, please use a different name for either one of them."}))
+             :chain-parallel-filtergraph (fn [sym] (ex-info "Cannot use a parallel filtergraph inside chain"
+                                                           {:value       sym
+                                                            :error-type  :chain-parallel-filtergraph
+                                                            :explanation "chain requires linear filter sequences. A filtergraph with multiple chains represents parallel structure that cannot be flattened into a single chain. Use compose instead."}))})
 
-(defn accumulate-error* [env error]
-  (let [info (ex-data error)] (log/warn (if *warn-verbose* info (:error-type info))))
-  (swap! (:errors env) conj error)
-  (make-filtergraph []))
+(defn accumulate-error*
+  ([env error]
+   (accumulate-error* (make-filtergraph []) env error))
+  ([return-val env error]
+   (let [info (ex-data error)]
+     (log/warn (if *warn-verbose* info (:error-type info))))
+   (swap! (:errors env) conj error)
+   return-val))
 
 (defn accumulate-error
   ([env sym err-code]
    (accumulate-error* env ((err-code errors) sym)))
-  ([env sym spec err-code]
-   (accumulate-error* env ((err-code errors) sym spec))))
+  ([return-val env sym err-code]
+   (accumulate-error* return-val env ((err-code errors) sym)))
+  ([return-val env sym spec err-code]
+   (accumulate-error* return-val env ((err-code errors) sym spec))))
 
 (defn error-processing [env]
   (when *debug-mode* (log/debug env))

@@ -5,8 +5,7 @@
 ;; DSL functions available inside bioscoop macro
 
 (def dsl-functions
-  #{'compose
-    'aap
+  #{'aap
     'abench
     'acompressor
     'acontrast

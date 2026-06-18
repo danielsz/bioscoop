@@ -18,8 +18,7 @@
                                          bioscoop.macro/bioscoop
                                          bioscoop.macro/defgraph
                                         ;; DSL functions (when used outside namespaces)
-                                         scale crop overlay fade
-                                         filter chain graph
+                                         pipeline chain graph compose if
                                          input-labels output-labels]}
 
            ;; Reduce noise for DSL usage

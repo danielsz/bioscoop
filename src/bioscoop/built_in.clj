@@ -1,7 +1,7 @@
 (ns bioscoop.built-in
   (:refer-clojure :exclude [format concat loop])
   (:require
-   [bioscoop.domain.records :refer [make-filter]]
+   [bioscoop.domain.records :refer [make-filter make-filtergraph]]
    [bioscoop.domain.spec :as spec]
    [bioscoop.domain.specs.color :as color]
    [bioscoop.domain.specs.hue :as hue]
@@ -94,12 +94,12 @@
       (let [m (first arg)]
         (if (s/valid? spec m)
           (make-filter (name spec) (spec/spec-aware-namespace-map spec m))
-          (accumulate-error env m spec :invalid-parameter)))
+          (accumulate-error (make-filtergraph []) env m spec :invalid-parameter)))
       (let [formal-keys (last (s/form spec))
             m (zipmap formal-keys arg)]
         (if (s/valid? spec m)
           (make-filter (name spec) m)
-          (accumulate-error env m spec :invalid-parameter))))
+          (accumulate-error (make-filtergraph []) env m spec :invalid-parameter))))
     (make-filter (name spec))))
 
 (defn help* [s]
