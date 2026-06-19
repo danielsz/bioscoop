@@ -42,11 +42,11 @@
             [:binding [:symbol "height"] [:number "1080"]]
             [:list [:symbol "scale"] [:symbol "width"] [:symbol "height"]]]
            (form->ast '(let [width 1920 height 1080] (scale width height)))))
-    (is (= [:for-binding [:symbol "i"] [:number "3"] [:list [:symbol "scale"]]]
-           (form->ast '(for [i 3] (scale)))))
+    (is (= [:for-binding [:symbol "i"] [:list [:symbol "range"] [:number "3"]] [:list [:symbol "scale"]]]
+           (form->ast '(for [i (range 3)] (scale)))))
     (is (= [:for-binding
             [:symbol "i"]
-            [:number "3"]
+            [:list [:symbol "range"] [:number "3"]]
             [:list
              [:symbol "lagfun"]
              [:map
@@ -55,7 +55,7 @@
                [:symbol "/"]
                [:list [:symbol "-"] [:number "99.0"] [:symbol "i"]]
                [:number "100.0"]]]]]
-           (form->ast '(for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)})))))))
+           (form->ast '(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)})))))))
 
 (deftest test-bioscoop-macro
   (testing "arithmetic expressions"
@@ -113,15 +113,15 @@
       (is (= text-result macro-result ffmpeg-string))))
 
   (testing "for bindings"
-    (let [macro-result (to-ffmpeg (bioscoop (for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)}))))
-          text-result (to-ffmpeg (dsl/compile-dsl "(for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)}))"))
+    (let [macro-result (to-ffmpeg (bioscoop (for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)}))))
+          text-result (to-ffmpeg (dsl/compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)}))"))
           ffmpeg-string "lagfun=decay=0.99;lagfun=decay=0.98;lagfun=decay=0.97"]
       (is (= text-result macro-result ffmpeg-string))))
 
   (testing "compose top-level filtergraphs and filters"
     (let [macro-result (bioscoop
                          (compose
-                          (for [i 2]
+                          (for [i (range 2)]
                             (loop {:loop 124 :size 1}
                               {:input (str i)}
                               {:output (str "l" i)}))

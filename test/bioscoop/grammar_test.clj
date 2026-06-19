@@ -41,10 +41,10 @@
       (is (not (insta/failure? ast))))
     (let [ast (dsl-parser "[[i1] (scale {:x 1080})[02]]")]
       (is (not (insta/failure? ast))))
-    (let [ast (dsl-parser "[[(for [i 5] (str i))] (scale {:x 1080})[02]]")]
+    (let [ast (dsl-parser "[[(for [i (range 5)] (str i))] (scale {:x 1080})[02]]")]
       (is (not (insta/failure? ast))))
-    (is (= (to-ffmpeg (compile-dsl "[[(for [i 5] (str \"in\" i))] (scale {:x 1080})[02]]"))
+    (is (= (to-ffmpeg (compile-dsl "[[(for [i (range 5)] (str \"in\" i))] (scale {:x 1080})[02]]"))
            "[in0][in1][in2][in3][in4]scale=x=1080[2]"))
-    (is (= (to-ffmpeg (compile-dsl "[[(for [i 5] (str \"in\" i))] (scale {:x 1080})[(for [i 5] (str \"out\" i))]]"))
+    (is (= (to-ffmpeg (compile-dsl "[[(for [i (range 5)] (str \"in\" i))] (scale {:x 1080})[(for [i (range 5)] (str \"out\" i))]]"))
            "[in0][in1][in2][in3][in4]scale=x=1080[out0][out1][out2][out3][out4]"))
     (is (not (insta/failure? (dsl-parser "[[i1] (scale {:x 1080})]"))))))

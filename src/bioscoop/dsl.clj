@@ -41,15 +41,11 @@
   s)
 
 (defmethod eval-label-content :for-binding [[_ [_ sym-name] range-node & body] env]
-  (let [range-val (transform-ast range-node env)
-        xs        (cond
-                    (and (integer? range-val) (pos? range-val)) (range range-val)
-                    (and (seqable? range-val) (not (string? range-val))) range-val
-                    :else [])]
-    (vec (for [x    xs
+  (let [xs (transform-ast range-node env)]
+    (vec (for [x xs
                :let [loop-env (env-put env sym-name x)]
                expr body]
-           (str (transform-ast expr loop-env))))))
+           (transform-ast expr loop-env)))))
 
 (defmethod eval-label-content :default [content env]
   (transform-ast content env))
@@ -173,15 +169,11 @@
     ))
 
 (defmethod transform-ast :for-binding [[_ [_ sym-name] range-node & body] env]
-  (let [range-val (transform-ast range-node env)
-        xs     (cond
-                 (and (integer? range-val) (pos? range-val)) (range range-val)
-                 (and (seqable? range-val) (not (string? range-val))) range-val                 
-                 :else                                        [])]
+  (let [xs (transform-ast range-node env)]
     (apply compose-filtergraphs
            (for [x xs
                  :let [loop-env (env-put env sym-name x)]]
-              (->> body
+             (->> body
                   (mapv #(transform-ast % loop-env))
                   (mapv #(promote-to-filtergraph % loop-env))
                   (apply compose-filtergraphs))))))

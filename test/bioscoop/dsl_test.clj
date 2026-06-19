@@ -276,11 +276,11 @@
 (deftest for-binding
   (testing "Structural tests"
     (testing  "a positive integer range produces exactly N chains"
-      (let [result (compile-dsl "(for [i 3] (scale))")]
+      (let [result (compile-dsl "(for [i (range 3)] (scale))")]
       (is (instance? FilterGraph result))
       (is (= 3 (count (:chains result))))))
     (testing "range of 0 produces a FilterGraph with no chains"
-      (let [result (compile-dsl "(for [i 0] (scale))")]
+      (let [result (compile-dsl "(for [i (range 0)] (scale))")]
       (is (instance? FilterGraph result))
       (is (empty? (:chains result)))))
     (testing "(range 2 5) as range node gives 3 iterations"
@@ -288,14 +288,14 @@
       (is (instance? FilterGraph result))
       (is (= 3 (count (:chains result))))))
     (testing "2 body expressions × 3 iterations produces 6 chains"
-      (let [result (compile-dsl "(for [i 3] (scale) (crop))")]
+      (let [result (compile-dsl "(for [i (range 3)] (scale) (crop))")]
       (is (instance? FilterGraph result))
       (is (= 6 (count (:chains result))))))
     (testing "loop variable is in scope for parameter expressions"
-      (let [result (compile-dsl "(for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)}))")]
+      (let [result (compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)}))")]
         (is (= "lagfun=decay=0.99;lagfun=decay=0.98;lagfun=decay=0.97" (to-ffmpeg result)))))
     (testing "loop variable is in scope for input/output label expressions"
-      (let [result (compile-dsl "(for [i 2] (scale {:input (str \"v\" i)} {:output (str \"out\" i)}))")
+      (let [result (compile-dsl "(for [i (range 2)] (scale {:input (str \"v\" i)} {:output (str \"out\" i)}))")
             chains  (:chains result)
             labels  (fn [chain-idx] 
                     (let [f (first (:filters (nth chains chain-idx)))]
@@ -304,14 +304,14 @@
         (is (= [["v0"] ["out0"]] (labels 0)))
         (is (= [["v1"] ["out1"]] (labels 1)))))
     (testing  "generated filtergraph serialises to expected ffmpeg syntax"
-      (let [result (compile-dsl "(for [i 3] (scale {:input (str \"v\" i)} {:output (str \"out\" i)}))")]
+      (let [result (compile-dsl "(for [i (range 3)] (scale {:input (str \"v\" i)} {:output (str \"out\" i)}))")]
         (is (= "[v0]scale[out0];[v1]scale[out1];[v2]scale[out2]" (to-ffmpeg result)))))
     (testing "lagfun chains with varying decay render as a semicolon-separated string"
-      (let [result (compile-dsl "(for [i 3] (lagfun {:decay (/ (- 99.0 i) 100.0)} {:input (str \"i\" i)} {:output (str \"o\" i)}))")]
+      (let [result (compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)} {:input (str \"i\" i)} {:output (str \"o\" i)}))")]
         (is (= (to-ffmpeg result) "[i0]lagfun=decay=0.99[o0];[i1]lagfun=decay=0.98[o1];[i2]lagfun=decay=0.97[o2]"))))
     (testing "compose-filtergraphs is associative so nesting has no semantic effect. Demonstrates the redundancy of the inner compose for single-body iterations."
       (testing "nested and flat compose produce identical chain sequences"
-        (let [result (compile-dsl "(for [i 4] (scale {:input (str \"v\" i)} {:output (str \"o\" i)}))")]
+        (let [result (compile-dsl "(for [i (range 4)] (scale {:input (str \"v\" i)} {:output (str \"o\" i)}))")]
           (is (= 4 (count (:chains result))))
           (is (= "[v0]scale[o0];[v1]scale[o1];[v2]scale[o2];[v3]scale[o3]" (to-ffmpeg result))))))
     (testing "we can have if logic in labels"
@@ -326,5 +326,5 @@
       (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (zero? i) (str \"out\" i) (str \"t\" i))}))")]
         (is (= (to-ffmpeg result) "[out0]scale;[t1]scale;[t2]scale;[t3]scale"))))
     (testing "for binding in label position")
-    (let [result (compile-dsl "[[(for [i 3] (str \"i\" i))] (scale)[\"out\"]]")]
+    (let [result (compile-dsl "[[(for [i (range 3)] (str \"i\" i))] (scale)[\"out\"]]")]
         (is (= (to-ffmpeg result) "[i0][i1][i2]scale[out]")))))
