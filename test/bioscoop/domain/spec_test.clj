@@ -1,7 +1,6 @@
 (ns bioscoop.domain.spec-test
   (:require [clojure.test :refer :all]
             [clojure.spec.alpha :as s]
-            [bioscoop.domain.spec :as ds]
             [bioscoop.domain.specs.drawtext :as drawtext]
             [bioscoop.domain.specs.scale :as scale]
             [bioscoop.domain.specs.crop :as crop]
