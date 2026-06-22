@@ -7,7 +7,6 @@
             [bioscoop.env :refer [make-env env-get env-put]]
             [bioscoop.resolve :as r :refer [resolve-function]]
             [bioscoop.error-handling :refer [accumulate-error]]
-            [bioscoop.config :refer [*trace-mode*]]
             [bioscoop.trace :refer [trace]])
   (:import [bioscoop.domain.records Filter]))
 
@@ -194,10 +193,7 @@
   (atom []))
 
 (defn transform-ast [node env]
-  (let [result (transform-ast* node env)]
-    (if *trace-mode*
-      (trace node env result)
-      result)))
+  (trace node env (transform-ast* node env)))
 
 (defn run-ast [program-ast env]
   (let [result (transform-ast program-ast env)]
