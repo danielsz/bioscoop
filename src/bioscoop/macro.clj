@@ -2,9 +2,8 @@
   (:require [bioscoop.dsl :as dsl]
             [bioscoop.config :as config]
             [bioscoop.registry :as registry]
-            [bioscoop.resolve :as r :refer [reserved-word?]]
-            [bioscoop.error-handling :refer [error-processing]])
-  (:import [bioscoop.domain.records FilterGraph]))
+            [bioscoop.env :refer [make-env env-put]]
+            [bioscoop.resolve :as r :refer [reserved-word?]]))
 
 (defn form->ast
   "Convert a Clojure form to the same AST structure that Instaparse produces"
@@ -93,8 +92,8 @@
         locals (keys &env)]
     `(binding [config/*dynamic-resolution* true]
        (let [env# (reduce (fn [e# [k# v#]]
-                            (dsl/env-put e# k# v#))
-                          (dsl/make-env)
+                            (env-put e# k# v#))
+                          (make-env)
                           ~(mapv (fn [sym] [(str sym) sym]) locals))]
          (dsl/run-ast ~program-ast env#)))))
 

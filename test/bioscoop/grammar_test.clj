@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest testing is]]
             [clojure.walk :refer [postwalk]]
             [instaparse.core :as insta]
-            [bioscoop.dsl :refer [dsl-parser compile-dsl]]
+            [bioscoop.dsl :refer [compile-dsl]]
+            [bioscoop.parse :refer [dsl-parser]]
             [bioscoop.render :refer [to-ffmpeg]]))
 
 (defn collect-nodes [tag ast]

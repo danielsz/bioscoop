@@ -5,8 +5,7 @@
             [clojure.test :refer [deftest is testing use-fixtures]]
             [bioscoop.registry :refer [clear-registry! get-graph]]
             [bioscoop.built-in]
-            [bioscoop.domain.records :refer [with-labels]]
-            [clojure.tools.logging :as log])
+            [bioscoop.domain.records :refer [with-labels]])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
 (defn once-fixture [f]

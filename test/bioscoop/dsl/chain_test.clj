@@ -3,10 +3,8 @@
             [bioscoop.dsl :refer [compile-dsl last-errors]]
             [bioscoop.macro :refer [bioscoop defgraph]]
             [bioscoop.render :refer [to-ffmpeg]]
-            [bioscoop.domain.records :refer [get-input-labels get-output-labels
-                                             make-filter make-filterchain
-                                             make-filtergraph compose-filtergraphs]])
-  (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
+            [bioscoop.domain.records :refer [get-input-labels get-output-labels]])
+  (:import [bioscoop.domain.records FilterGraph]))
 
 ;; ── Helpers ───────────────────────────────────────────────────────────────────
 
