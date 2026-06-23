@@ -2,7 +2,7 @@
   (:require [bioscoop.render :refer [to-ffmpeg]])
   (:import [bioscoop.domain.records FilterGraph]))
 
-(defn trace [node env result]
+(defn trace> [node env result]
   (tap> {:node-type (first node)
          :node node
          :env  env

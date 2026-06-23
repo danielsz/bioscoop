@@ -5,7 +5,7 @@
        :licenses [{:name "MIT License"
                    :url "https://mit-license.org/"}]}
  :packaging {:uberjar
-             {:enabled true
+             {:enabled false
               :build-properties {:main-class "bioscoop.core"}
               :excludes {:artifacts ["org.clojure:google-closure-library" "com.google.javascript:closure-compiler"]
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
