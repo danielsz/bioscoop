@@ -333,6 +333,7 @@
                (intern 'user 'qux masterpiece))))
     (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] user/qux ["1"]] [["3"] (crop "111") ["2"]])))))))
 
+
 (defn n-transition [n offset]
   (bioscoop (for [i (range 0 n)]
               (xfade {:transition "fade" :duration 1 :offset (+ i offset (* i offset))} {:input (str "in" i)} {:output (str "out" i)}))))

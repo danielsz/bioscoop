@@ -270,7 +270,7 @@
 (deftest ffmpeg-parsing
   (testing "Labels are preserved when parsing ffmpeg command"
     (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
-          bar (meta (first (:filters (second  (:chains foo)))))]
+          bar (first (:filters (second  (:chains foo))))]
       (is (= ["tmp"] (:input-labels bar)))
       (is (= ["right"] (:output-labels bar))))))
 

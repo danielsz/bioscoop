@@ -15,7 +15,7 @@
      (register-graph! (symbol name) graph))))
 
 (defn get-var [name]
-  (when-let [v (resolve name)] ;; allows aliasing of filtergraph in defs
+  (when-let [v (if (namespace name) (find-var name) (resolve name))] ;; allows aliasing of filtergraph in defs
       (when (and (bound? v) (instance? FilterGraph (var-get v)))
         (var-get v))))
 
