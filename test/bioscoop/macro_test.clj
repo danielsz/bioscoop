@@ -191,7 +191,7 @@
   (testing "Automatic wrapping of FilterGraph/filterchain"
     (let [result (bioscoop (graph (scale 1920 1080) (scale 1910 1180) (scale 1920 80)))]
       (is (instance? FilterGraph result))
-      (is (true? (every? #(instance? Filter %) (:chains result))))
+      (is (true? (every? #(instance? FilterChain %) (:chains result))))
       (is (= 3 (count (:chains result))))
       (is (= 3 (count (map :filters (:chains result)))))))
 
@@ -199,7 +199,7 @@
     (let [result (bioscoop (graph (chain (scale 1920 1080) (scale 1910 1180)) (scale 1920 80)))]
       (is (instance? FilterGraph result))
       (is (instance? FilterChain (first (:chains result))))
-      (is (instance? Filter (last (:chains result))))
+      (is (instance? FilterChain (last (:chains result))))
       (is (= 2 (count (:chains result))))
       (is (= 2 (count (:filters (first (:chains result))))))))
 

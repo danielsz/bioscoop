@@ -121,7 +121,7 @@
         transformed-args (mapv #(transform-ast % env) args)]
     (case transformed-op
       "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
-      "graph" (make-filtergraph transformed-args)
+      "graph" (apply compose-filtergraphs (mapv #(promote-to-filtergraph % env) transformed-args)) ;; double duty with compose
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
       (if (seq transformed-args)
         (let [resolved (resolve-function transformed-op env)]

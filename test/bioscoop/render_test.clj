@@ -33,21 +33,20 @@
       (is (= "(drawtext {:text \"Hello\"})" back-to-dsl)))))
 
 (deftest test-to-dsl-with-labels
-  (comment
-    (testing "Filter with input and output labels"
-      (let [structure (compile-dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})")
-            back-to-dsl (to-dsl structure)]
-        (is (= "(scale {:width 1920, :height 1080} {:input \"in\"} {:output \"scaled\"})" back-to-dsl))))
+  (testing "Filter with input and output labels"
+    (let [structure (compile-dsl "[[\"in\"] (scale 1920 1080) [\"scaled\"]]")
+          back-to-dsl (to-dsl structure)]
+      (is (= "[[\"in\"] (scale {:width 1920, :height 1080}) [\"scaled\"]]" back-to-dsl))))
 
-    (testing "Filter with only input label"
-      (let [structure (compile-dsl "(hflip {:input \"tmp\"})")
-            back-to-dsl (to-dsl structure)]
-        (is (= "(hflip {:input \"tmp\"})" back-to-dsl))))
+  (testing "Filter with only input label"
+    (let [structure (compile-dsl "[[\"tmp\"](hflip)]")
+          back-to-dsl (to-dsl structure)]
+      (is (= "[[\"tmp\"] (hflip)]" back-to-dsl))))
 
-    (testing "Filter with only output label"
-      (let [structure (compile-dsl "(split {:output \"left\"})")
-            back-to-dsl (to-dsl structure)]
-        (is (= "(split {:output \"left\"})" back-to-dsl))))))
+  (testing "Filter with only output label"
+    (let [structure (compile-dsl "[(split)[\"left\"]]")
+          back-to-dsl (to-dsl structure)]
+      (is (= "[(split) [\"left\"]]" back-to-dsl)))))
 
 (deftest test-to-dsl-chains-and-graphs
   (testing "Simple chain"
@@ -58,8 +57,7 @@
   (testing "Simple graph"
     (let [structure (compile-dsl "(graph (scale 1920 1080) (overlay))")
           back-to-dsl (to-dsl structure)]
-      (is (= "(graph (scale {:width 1920, :height 1080}) (overlay))" back-to-dsl)))))
-
+      (is (= "(compose (scale {:width 1920, :height 1080}) (overlay))" back-to-dsl)))))
 
 (deftest test-roundtrip-consistency
   (testing "DSL -> structure -> DSL roundtrip preserves semantics"
@@ -67,7 +65,7 @@
                       "(chain (scale 1920 1080) (overlay))"
                       "(graph (scale 1920 1080) (overlay))"
                       "(hflip)"
-                      "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
+                      "[[\"in\"] (scale 1920 1080)[\"scaled\"]]"
                       "(crop \"iw/2\" \"ih\" \"0\" \"0\")"]]
       (doseq [original-dsl test-cases]
         (let [parsed (compile-dsl original-dsl)
@@ -93,16 +91,14 @@
                    "\nReparsed FFmpeg: " reparsed-ffmpeg))))))
 
   (testing "Complex nested structure"
-    (comment
-      (let [structure (compile-dsl "(compose [(chain (crop \"iw/2\" \"ih\" \"0\" \"0\") (split)) [\"left\"][\"tmp\"]]
+    (let [structure (compile-dsl "(compose [(chain (crop \"iw/2\" \"ih\" \"0\" \"0\") (split)) [\"left\"][\"tmp\"]]
                                            [[\"tmp\"] (hflip) [\"right\"]]
                                           [[\"left\"] [\"right\"](hstack)])")
-            back-to-dsl (to-dsl structure)]
-        (let [reparsed (compile-dsl back-to-dsl)]
-          (is (= structure reparsed)))))
+          back-to-dsl (to-dsl structure)reparsed (compile-dsl back-to-dsl)]
+      (is (= structure reparsed)))
 
-    (comment (testing "real world"
-               (let [filtergraph "testsrc,scale=width=qvga[a];rgbtestsrc,scale=width=qvga[b];smptebars,scale=width=qvga[c];yuvtestsrc,scale=width=qvga[d];[a][b][c][d]xstack=inputs=4:layout=0_0|0_h0|w0_0|w0_h0[out]"
-                     structures (ffmpeg-parser/parse filtergraph)
-                     back-to-dsl (to-dsl structures)]
-                 (is (= structures (compile-dsl back-to-dsl))))))))
+    (testing "real world"
+      (let [filtergraph "testsrc,scale=width=qvga[a];rgbtestsrc,scale=width=qvga[b];smptebars,scale=width=qvga[c];yuvtestsrc,scale=width=qvga[d];[a][b][c][d]xstack=inputs=4:layout=0_0|0_h0|w0_0|w0_h0[out]"
+            structures (ffmpeg-parser/parse filtergraph)
+            back-to-dsl (to-dsl structures)]
+        (is (= structures (compile-dsl back-to-dsl)))))))

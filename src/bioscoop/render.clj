@@ -4,8 +4,27 @@
             [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 
-
 (declare drop-namespace-from-map)
+
+(defn- filter-to-dsl [f]
+  (let [{:keys [name args]} f
+        in    (:input-labels f)
+        out   (:output-labels f)
+        call  (if args
+                (str (apply list [(symbol name)
+                                  (drop-namespace-from-map args)]))
+                (str (list (symbol name))))]
+    (if (or (seq in) (seq out))
+      (str "["
+           (when (seq in)
+             (str (str/join " " (map #(str "[\"" % "\"]") in)) " "))
+           call
+           (when (seq out)
+             (str " " (str/join " " (map #(str "[\"" % "\"]") out))))
+           "]")
+      call)))
+
+
 (defprotocol Renderable
   (to-ffmpeg [this] "Convert to ffmpeg filter string")
   (to-dsl [this] "Convert to DSL string"))
@@ -25,44 +44,26 @@
       (str input-str name args-str output-str)))
 
   (to-dsl [filter]
-    (let [{:keys [name args]} filter
-          input-labels (get-input-labels filter)
-          output-labels (get-output-labels filter)
-          filter (if args
-                   [(symbol name) (drop-namespace-from-map args)]
-                   [(symbol name)])
-          with-labels (cond-> filter
-                        (> (count input-labels) 1) (conj `(~(symbol "input-labels") ~@input-labels))
-                        (= 1 (count input-labels)) (conj {:input (first input-labels)})
-                        (> (count output-labels) 1) (conj `(~(symbol "output-labels") ~@output-labels))
-                        (= 1 (count output-labels)) (conj {:output (first output-labels)}))]
-      (str (apply list with-labels))))
+    (filter-to-dsl filter))
   
   FilterChain
   (to-ffmpeg [{:keys [filters]}]
     (str/join "," (map to-ffmpeg filters)))
   
   (to-dsl [{:keys [filters]}]
-    (format "(chain %s)" (str/join " " (map to-dsl filters))))
-
+  (if (= 1 (count filters))
+    (filter-to-dsl (first filters))
+    (format "(chain %s)"
+            (str/join " " (map filter-to-dsl filters)))))
+  
   FilterGraph
   (to-ffmpeg [{:keys [chains]}]
     (str/join ";" (mapv to-ffmpeg chains)))
 
   (to-dsl [{:keys [chains]}]
-    (cond
-      ;; Single chain with single filter - just return the filter
-      (and (= 1 (count chains))
-           (= 1 (count (:filters (first chains)))))
-      (to-dsl (first (:filters (first chains))))
-
-      ;; Single chain with multiple filters - return the chain
-      (= 1 (count chains))
-      (to-dsl (first chains))
-
-      ;; Multiple chains - use graph
-      :else
-      (format "(graph %s)" (str/join " " (map to-dsl chains))))))
+  (if (= 1 (count chains))
+    (to-dsl (first chains))
+    (format "(compose %s)" (str/join " " (map to-dsl chains))))))
 
 
 (defn drop-namespace-from-map
