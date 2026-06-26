@@ -122,34 +122,15 @@
     (case transformed-op
       "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
       "graph" (make-filtergraph transformed-args)
-      "input-labels" (with-meta (vec transformed-args) {:labels :input})
-      "output-labels" (with-meta (vec transformed-args) {:labels :output})
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
-      (let [base-filter (let [fn-args (remove vector? transformed-args)]
-                          (if (seq fn-args)
-                            (let [resolved (resolve-function transformed-op env)]
-                              (resolved fn-args env))
-                            (make-filter transformed-op)))
-            label-args (filter vector? transformed-args)]
-        (if (and (seq label-args) (instance? Filter base-filter))
-          (let [{:keys [input output]} (group-by #(:labels (meta %)) label-args)]
-            (cond-> base-filter
-              (seq input)  (with-input-labels  (apply concat input))
-              (seq output) (with-output-labels (apply concat output))))
-          base-filter)))))
+      (if (seq transformed-args)
+        (let [resolved (resolve-function transformed-op env)]
+          (resolved transformed-args env))
+        (make-filter transformed-op)))))
 
 (defmethod transform-ast* :map [[_ kw v :as m] env]
-  (case (count (rest m))
-    1 m ;; empty map
-    2 (let [k (transform-ast kw env)
-            v (transform-ast v env)]
-        (case k
-          :input (with-meta [v] {:labels :input})
-          :output (with-meta [v] {:labels :output})
-          {k v})) ;; one key-value pair
-    (let [xs (map #(transform-ast % env) (rest m))]
-      (into {} (map vec (partition 2 xs)))) ;; multiple arguments map
-    ))
+  (let [xs (map #(transform-ast % env) (rest m))]
+      (into {} (map vec (partition 2 xs)))))
 
 (defmethod transform-ast* :for-binding [[_ [_ sym-name] range-node & body] env]
   (let [xs (transform-ast range-node env)]

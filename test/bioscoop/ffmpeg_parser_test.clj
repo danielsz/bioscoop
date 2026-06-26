@@ -16,13 +16,11 @@
           bar (ffmpeg/parse "scale=w=1920:h=1080")]
       (is (= foo bar))))
   (testing "Filter with labels - structural equivalence"
-    (let [dsl "(let [input-vid (input-labels \"in\")
-                     scaled (scale 1920 1080 input-vid (output-labels \"scaled\"))]
-                 scaled)"
+    (let [dsl "[[\"in\"] (scale 1920 1080) [\"scaled\"]]"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar)))
-    (let [dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
+    (let [dsl "[[\"in\"] (scale 1920 1080) [\"scaled\"]]"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "[in]scale=1920:1080[scaled]")]
       (is (= foo bar)))))
@@ -52,10 +50,10 @@
           bar (ffmpeg/parse "scale=width=1920:height=1080")]
       (is (= foo bar))))
   (testing "more complicated dsl"
-    (let [structures (bioscoop (graph (chain (smptebars {:output "v0"}))
-                              (chain (testsrc {:output "v1"}))
-                              (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
-                              (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))
+    (let [structures (bioscoop (compose [(smptebars) ["v0"]]
+                                        [(testsrc) ["v1"]]
+                                        [["v0"](chain (pad {:width "iw*2" :height "ih"})) ["out0"]]
+                                        [["out0"] ["v1"] (overlay {:x "w"})]))
           s (to-ffmpeg structures)
           back (ffmpeg/parse s)]
       (is (= structures back)))))

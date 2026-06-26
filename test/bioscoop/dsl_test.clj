@@ -38,12 +38,7 @@
     :dsl "(scale 1920 1080)"
     :expected "scale=width=1920:height=1080"}
    {:title "Filter with labels"
-    :dsl "(scale 1920 1080 {:input \"in\"} {:output \"scaled\"})"
-    :expected "[in]scale=width=1920:height=1080[scaled]"}
-   {:title "Filter with label in local binding"
-    :dsl "(let [input-vid (input-labels \"in\")
-                scaled (scale 1920 1080 input-vid (output-labels \"scaled\"))]
-              scaled)"
+    :dsl "[[\"in\"] (scale 1920 1080) [\"scaled\"]]"
     :expected "[in]scale=width=1920:height=1080[scaled]"}
    {:title "Multiple expressions, implicit filterchain"
     :dsl "(scale 1920 1080) (overlay)"
@@ -71,23 +66,9 @@
                      (scale 1080 width))))"
     :expected "scale=width=1080:height=800"}
    {:title "Real world - flip"
-    :dsl "(let [out-left-tmp (output-labels \"left\" \"tmp\")
-                     in-tmp (input-labels \"tmp\")
-                     out-right (output-labels \"right\")
-                     in-left-right (input-labels \"left\" \"right\")]
-                 (graph (chain
-                            (crop \"iw/2\" \"ih\" \"0\" \"0\")
-                            (split  out-left-tmp))
-                         (hflip in-tmp out-right)
-                         (hstack in-left-right)))"
-    :expected "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"}
-   {:title "flip inline labels"
-    :dsl "(graph
-                  (chain
-                     (crop \"iw/2\" \"ih\" \"0\" \"0\")
-                     (split {:output \"left\"} {:output \"tmp\"}))
-                  (hflip {:input \"tmp\"} {:output \"right\"})
-                  (hstack {:input \"left\"} {:input \"right\"}))"
+    :dsl "(compose [(chain (crop \"iw/2\" \"ih\" \"0\" \"0\") (split)) [\"left\"][\"tmp\"]]
+                   [[\"tmp\"] (hflip) [\"right\"]]
+                   [[\"left\"] [\"right\"](hstack)])"
     :expected "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"}
    {:title "defgraph is being compiled before expressions"
     :dsl "(defgraph a (scale 1920 1080)) a"
@@ -296,36 +277,34 @@
       (let [result (compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)}))")]
         (is (= "lagfun=decay=0.99;lagfun=decay=0.98;lagfun=decay=0.97" (to-ffmpeg result)))))
     (testing "loop variable is in scope for input/output label expressions"
-      (let [result (compile-dsl "(for [i (range 2)] (scale {:input (str \"v\" i)} {:output (str \"out\" i)}))")
-            chains  (:chains result)
-            labels  (fn [chain-idx] 
-                    (let [f (first (:filters (nth chains chain-idx)))]
-                      [(get-input-labels f) (get-output-labels f)]))]
-        (is (= 2 (count chains)))
-        (is (= [["v0"] ["out0"]] (labels 0)))
-        (is (= [["v1"] ["out1"]] (labels 1)))))
+      (let [result (compile-dsl "[[(for [i (range 2)] (str \"v\" i))] (scale) [(for [i (range 2)] (str \"out\" i))]]")
+            filter (first (:filters (first (:chains result))))            ]
+        (is (= (get-input-labels filter) ["v0" "v1"]))
+        (is (= (get-output-labels filter) ["out0" "out1"]))))
     (testing  "generated filtergraph serialises to expected ffmpeg syntax"
-      (let [result (compile-dsl "(for [i (range 3)] (scale {:input (str \"v\" i)} {:output (str \"out\" i)}))")]
+      (let [result (compile-dsl "(for [i (range 3)] [[(str \"v\" i)] (scale) [(str \"out\" i)]])")]
         (is (= "[v0]scale[out0];[v1]scale[out1];[v2]scale[out2]" (to-ffmpeg result)))))
     (testing "lagfun chains with varying decay render as a semicolon-separated string"
-      (let [result (compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)} {:input (str \"i\" i)} {:output (str \"o\" i)}))")]
+      (let [result (compile-dsl "(for [i (range 3)] [[(str \"i\" i)] (lagfun {:decay (/ (- 99.0 i) 100.0)}) [(str \"o\" i)]])")]
         (is (= (to-ffmpeg result) "[i0]lagfun=decay=0.99[o0];[i1]lagfun=decay=0.98[o1];[i2]lagfun=decay=0.97[o2]"))))
     (testing "compose-filtergraphs is associative so nesting has no semantic effect. Demonstrates the redundancy of the inner compose for single-body iterations."
       (testing "nested and flat compose produce identical chain sequences"
-        (let [result (compile-dsl "(for [i (range 4)] (scale {:input (str \"v\" i)} {:output (str \"o\" i)}))")]
+        (let [result (compile-dsl "(for [i (range 4)] [[(str \"v\" i)] (scale) [(str \"o\" i)]])")]
           (is (= 4 (count (:chains result))))
           (is (= "[v0]scale[o0];[v1]scale[o1];[v2]scale[o2];[v3]scale[o3]" (to-ffmpeg result))))))
     (testing "we can have if logic in labels"
-      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (= i 1) (str \"v\" i) (str \"in\" i))}))")]
+      (let [result (compile-dsl "(for [i (range 0 4)] [[(if (= i 1) (str \"v\" i) (str \"in\" i))] (scale)])")]
         (is (= (to-ffmpeg result) "[in0]scale;[v1]scale;[in2]scale;[in3]scale")))
-      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (> i 1) (str \"v\" i) (str \"in\" i))}))")]
+      (let [result (compile-dsl "(for [i (range 0 4)] [[(if (> i 1) (str \"v\" i) (str \"in\" i))](scale)])")]
         (is (= (to-ffmpeg result) "[in0]scale;[in1]scale;[v2]scale;[v3]scale")))
-      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (< i 1) (str \"v\" i) (str \"in\" i))}))")]
+      (let [result (compile-dsl "(for [i (range 0 4)] [[(if (< i 1) (str \"v\" i) (str \"in\" i))](scale)])")]
         (is (= (to-ffmpeg result) "[v0]scale;[in1]scale;[in2]scale;[in3]scale")))
-      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (<= i 1) (str \"v\" i) (str \"in\" i))}))")]
+      (let [result (compile-dsl "(for [i (range 0 4)] [[(if (<= i 1) (str \"v\" i) (str \"in\" i))](scale)])")]
         (is (= (to-ffmpeg result) "[v0]scale;[v1]scale;[in2]scale;[in3]scale")))
-      (let [result (compile-dsl "(for [i (range 0 4)] (scale {:input (if (zero? i) (str \"out\" i) (str \"t\" i))}))")]
+      (let [result (compile-dsl "(for [i (range 0 4)] [[(if (zero? i) (str \"out\" i) (str \"t\" i))](scale)])")]
         (is (= (to-ffmpeg result) "[out0]scale;[t1]scale;[t2]scale;[t3]scale"))))
     (testing "for binding in label position")
     (let [result (compile-dsl "[[(for [i (range 3)] (str \"i\" i))] (scale)[\"out\"]]")]
-        (is (= (to-ffmpeg result) "[i0][i1][i2]scale[out]")))))
+      (is (= (to-ffmpeg result) "[i0][i1][i2]scale[out]")))
+    ))
+

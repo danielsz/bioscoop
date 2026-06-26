@@ -1,6 +1,6 @@
 (ns bioscoop.render
   (:require [clojure.string :as str]
-            [bioscoop.domain.records :refer [make-filterchain make-filtergraph get-input-labels get-output-labels]]
+            [bioscoop.domain.records :refer [get-input-labels get-output-labels]]
             [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records Filter FilterChain FilterGraph]))
 

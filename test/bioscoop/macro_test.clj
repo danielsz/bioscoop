@@ -63,9 +63,7 @@
       (is (= "scale=width=2020:height=1080" (to-ffmpeg structures)))))
 
   (testing "labels"
-    (let [structures (bioscoop (scale 1920 1080
-                                      (input-labels "input")
-                                      (output-labels "scaled")))]
+    (let [structures (bioscoop [["input"] (scale 1920 1080) ["scaled"]])]
       (is (= "[input]scale=width=1920:height=1080[scaled]" (to-ffmpeg structures))))
     (testing "We can have multiple strings in a label"
       (let [result (bioscoop [["0:v" "1:v"] (chain (scale 1920 1080) (crop "222")) ["v01"]])]
@@ -106,8 +104,8 @@
     (let [text-result (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height))")
           macro-result (bioscoop (let [width 1920 height 1080] (scale width height)))]
       (is (= text-result macro-result)))
-    (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] (scale width height {:input \"tmp\"}))"))
-          macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] (scale width height {:input "tmp"}))))
+    (let [text-result (to-ffmpeg (dsl/compile-dsl "(let [width 1920 height 1080] [[\"tmp\"] (scale width height)])"))
+          macro-result (to-ffmpeg (bioscoop (let [width 1920 height 1080] [["tmp"](scale width height)])))
           ffmpeg-string "[tmp]scale=width=1920:height=1080"]
       (is (= text-result macro-result ffmpeg-string))))
 
@@ -121,37 +119,22 @@
     (let [macro-result (bioscoop
                          (compose
                           (for [i (range 2)]
-                            (loop {:loop 124 :size 1}
-                              {:input (str i)}
-                              {:output (str "l" i)}))
-                          (xfade {:transition "fade" :duration 1 :offset 3}
-                                 {:input "l0"} {:input "l1"} {:output "v1"})
+                            [[(str i)](loop {:loop 124 :size 1}) [(str "l" i)]])
+                          [["l0"] ["l1"] (xfade {:transition "fade" :duration 1 :offset 3}) ["v1"]]
                           (for [i (range 1 3)]
-                            (xfade {:transition "fade"
-                                    :duration 1
-                                    :offset (+ (* i 4) 3)}
-                                   {:input (str "v" i)}
-                                   {:input (str "l" (inc i))}
-                                   {:output (str "v" (inc i))}))))]
+                            [[(str "v" i)] [(str "l" (inc i))] (xfade {:transition "fade"
+                                                                      :duration 1
+                                                                       :offset (+ (* i 4) 3)}) [(str "v" (inc i))]])))]
       (is (= "[0]loop=loop=124:size=1[l0];[1]loop=loop=124:size=1[l1];[l0][l1]xfade=transition=fade:duration=1:offset=3[v1];[v1][l2]xfade=transition=fade:duration=1:offset=7[v2];[v2][l3]xfade=transition=fade:duration=1:offset=11[v3]" (to-ffmpeg macro-result)))))
 
   (testing "real world examples"
-    (let [dsl (bioscoop 
-             (let [out-left-tmp (output-labels "left" "tmp")
-                   in-tmp (input-labels "tmp")
-                   out-right (output-labels "right")
-                   in-left-right (input-labels "left" "right")]
-               (graph (chain 
-                       (crop "iw/2" "ih" "0" "0")
-                       (split  out-left-tmp))
-                      (hflip  in-tmp out-right)
-                      (hstack in-left-right))))]
+    (let [dsl (bioscoop (compose [(chain (crop "iw/2" "ih" "0" "0") (split)) ["left"]["tmp"]]
+                                 [["tmp"] (hflip) ["right"]]
+                                 [["left"] ["right"](hstack)]))]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack" (to-ffmpeg dsl))))
-    (let [dsl (bioscoop (graph (chain
-                                (crop "iw/2" "ih" "0" "0")
-                                (split {:output "left"} {:output "tmp"}))
-                               (hflip {:input "tmp"} {:output "right"})
-                               (hstack {:input "left"} {:input "right"})))]
+    (let [dsl (bioscoop (compose [(chain (crop "iw/2" "ih" "0" "0") (split)) ["left"]["tmp"]]
+                                 [["tmp"] (hflip) ["right"]]
+                                 [["left"] ["right"](hstack)]))]
       (is (= "crop=out_w=iw/2:w=ih:out_h=0:h=0,split[left][tmp];[tmp]hflip[right];[left][right]hstack"
              (to-ffmpeg dsl))))
     (let [dsl (bioscoop (chain (color "white" "480x480" 25 3) (format "rgb24") (drawtext {:fontcolor "black" :fontsize 600 :text "'%{eif\\:t\\:d}'" :x "(w-text_w)/2" :y "(h-text_h)/2"})))]
@@ -160,23 +143,23 @@
       (is (= "zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2)" (to-ffmpeg dsl))))
     (let [dsl (bioscoop (let [zoom {:z "'min(zoom+0.0015,1.5)'" :d 700 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)"}
                               f {:type "out" :start_frame 600 :duration 1}]
-                          (graph (chain (zoompan zoom {:input "0:v"}) (fade f {:output "v0"}))
-                                 (chain (zoompan zoom {:input "1:v"}) (fade f {:output "v1"}))
-                                 (chain (concat {:n 2 :v 1 :a 0} {:input "v0"} {:input "v1"}) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
+                          (compose [["0:v"] (chain (zoompan zoom) (fade f)) ["v0"]] 
+                                   [["1:v"] (chain (zoompan zoom) (fade f)) ["v1"]]
+                                   [["v0"] ["v1"] (chain (concat {:n 2 :v 1 :a 0}) (format {:pix_fmts "yuv420p"})) ["outv"]])))]
       (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl))))
     (let [dsl (bioscoop (let [zoom {:z "'min(zoom+0.0015,1.5)'" :d 700 :x "iw/2-(iw/zoom/2)" :y "ih/2-(ih/zoom/2)"}
                               f {:type "out" :start_frame 600 :duration 1}]
-                          (graph (chain (zoompan zoom {:input "0:v"}) (fade f {:output "v0"}))
-                                 (chain (zoompan zoom {:input "1:v"}) (fade f {:output "v1"}))
-                                 (chain (concat {:n 2 :v 1 :a 0} (input-labels "v0" "v1")) (format {:pix_fmts "yuv420p"} {:output "outv"})))))]
+                          (compose [["0:v"] (chain (zoompan zoom) (fade f)) ["v0"]] 
+                                   [["1:v"] (chain (zoompan zoom) (fade f)) ["v1"]]
+                                   [["v0"] ["v1"] (chain (concat {:n 2 :v 1 :a 0}) (format {:pix_fmts "yuv420p"})) ["outv"]])))]
       (is (= "[0:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v0];[1:v]zoompan=z='min(zoom+0.0015,1.5)':d=700:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2),fade=type=out:start_frame=600:duration=1[v1];[v0][v1]concat=n=2:v=1:a=0,format=pix_fmts=yuv420p[outv]" (to-ffmpeg dsl)))))
 
   (testing "bioscoop ad"
     (is (= "smptebars[v0];testsrc[v1];[v0]pad=width=iw*2:height=ih[out0];[out0][v1]overlay=x=w"
-         (to-ffmpeg (bioscoop (graph (chain (smptebars {:output "v0"}))
-                              (chain (testsrc {:output "v1"}))
-                              (chain (pad {:width "iw*2" :height "ih"} {:input "v0"} {:output "out0"}))
-                              (chain (overlay {:x "w"} {:input "out0"} {:input "v1"}))))))))
+           (to-ffmpeg (bioscoop (compose [(smptebars) ["v0"]]
+                                         [(testsrc)["v1"]]
+                                         [["v0"] (pad {:width "iw*2" :height "ih"}) ["out0"]]
+                                         [["out0"] ["v1"](overlay {:x "w"})]))))))
 
   (testing "maps as args"
     (let [dsl (bioscoop (color {:color "blue" :size "1920x1080" :rate 24 :duration "10" :sar "16/9"}))]
@@ -336,7 +319,7 @@
 
 (defn n-transition [n offset]
   (bioscoop (for [i (range 0 n)]
-              (xfade {:transition "fade" :duration 1 :offset (+ i offset (* i offset))} {:input (str "in" i)} {:output (str "out" i)}))))
+              [[(str "in" i)] (xfade {:transition "fade" :duration 1 :offset (+ i offset (* i offset))}) [(str "out" i)]])))
 
 (deftest macro-&env-binding
   (testing " Clojure macros have access to the local binding map at expansion time. We can generate code that injects those bindings into the DSL env at runtime"

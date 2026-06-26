@@ -31,7 +31,6 @@
 
 (defn extract-filter-args [args-node]
   (when args-node
-    (log/debug (str/join (map last (rest args-node))))
     (let [[_ inner-node] args-node]
       (cond
         (and (vector? inner-node) (= :unquoted-args (first inner-node)))
