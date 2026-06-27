@@ -71,11 +71,11 @@ error-prone and difficult to debug.
 
 *Solution*: Decoupling of labels and filtergraphs.
 
-This is achieved internally by implementing labels as metadata on filters:
+This is achieved internally by implementing filters as Clojure records
+as the intermediate representation.
 
 #+begin_src clojure
-(-> (make-filter 'scale {:width 1920 :height 1080})
-    (with-labels ["in"] ["out"]))
+(defrecord Filter [name args input-labels output-labels])
 #+end_src
 
 User-facing syntax stays close the FFmpeg convention: input labels at
@@ -110,12 +110,12 @@ they can't be easily analyzed or modified.
 #+begin_src clojure
 ;; Parse FFmpeg string to data structure
 (def parsed (ffmpeg/parse "scale=1920:1080,overlay"))
-
 ;; Modify the data structure
-(def modified (update-in parsed [:chains 0 :filters] conj (crop {:width 800})))
-
+(def modified (update-in parsed [:chains 0 :filters 0 :args] assoc :bioscoop.domain.specs.scale/width 800))
+;; Render in our DSL
+(to-dsl modified) "(chain (scale {:width 800, :height 1080}) (overlay))"
 ;; Render back to FFmpeg string
-(to-ffmpeg modified) ; => "scale=1920:1080,overlay,crop=width=800"
+(to-ffmpeg modified) ; => "scale=width=800:height=1080,overlay"
 #+end_src
 
 *Benefits*:
@@ -125,16 +125,16 @@ they can't be easily analyzed or modified.
 
 *** Parameterization
 
-In Ffmpeg, filters take parameters. This is what makes them flexible,
+In FFmpeg, filters take parameters. This is what makes them flexible,
 expressive and powerful. However, those parameters need to be
 hard-coded in the filtergraph expression. Not so with bioscoop.
 
 #+begin_src clojure
 (defn transition [duration offset i]
-  (bioscoop (xfade {:transition "fade" :duration duration :offset (+ i offset (* i offset))}
-                   {:input (if (zero? i) (str "r" i) (str "s" i))}
-                   {:output (str "t" (inc i))})))
-
+  (bioscoop [[(if (zero? i) (str "r" i) (str "s" i))] ;; logic in labels
+             (xfade {:transition "fade" :duration duration :offset (+ i offset (* i offset))})
+             [(str "t" (inc i))]]))
+ 
 (to-ffmpeg (transition 4 5 9))
 #+end_src
 
@@ -160,12 +160,12 @@ results, all within the DSL itself.
 #+end_src
 
 ~range~ can be a positive integer — iterating from 0 to n — or any
-sequence. ~body~ is one or more DSL expressions evaluated for each
-value of the binding, with the result merged into a single
-filtergraph. All of Clojure's arithmetic and string functions are
-available inside the body.
+sequence. ~body~ is a DSL expression evaluated repeatedly for each value
+of the binding, with the result merged into a single filtergraph. All
+of Clojure's arithmetic and string functions are available inside the
+body.
 
-The following example builds a slideshow of N images. Each image is
+The following example builds a slideshow of n images. Each image is
 looped, then cross-faded into the next. In FFmpeg this would require
 generating the filtergraph string by hand, with explicit labels for
 every intermediate connection. In Bioscoop it is expressed directly:
@@ -173,19 +173,17 @@ every intermediate connection. In Bioscoop it is expressed directly:
 #+begin_src clojure
 (defn slideshow [n]
   (bioscoop
-    (for [i n]
+    (for [i (range 1 n)]
       [[(str i)] (loop {:loop 124 :size 1}) [(str "l" i)]])
     (for [i (range 1 n)]
-      [[(if (= i 1) "l0" (str "v" i)) (str "l" i)]
+      [[(if (= i 1) (str "v" i) (str "l" i))]
        (xfade {:transition "fade" :duration 1 :offset (+ (* i 4) 3)})
        [(str "v" i)]])))
 #+end_src
 
 #+begin_src sh
-"[0]loop=loop=124:size=1[l0];[1]loop=loop=124:size=1[l1];[2]loop=loop=124:size=1[l2];[3]loop=loop=124:size=1[l3];[4]loop=loop=124:size=1[l4];[5]loop=loop=124:size=1[l5];[6]loop=loop=124:size=1[l6];[7]loop=loop=124:size=1[l7];[8]loop=loop=124:size=1[l8];[9]loop=loop=124:size=1[l9];[l0][l1]xfade=transition=fade:duration=1:offset=7[v1];[v2][l2]xfade=transition=fade:duration=1:offset=11[v2];[v3][l3]xfade=transition=fade:duration=1:offset=15[v3];[v4][l4]xfade=transition=fade:duration=1:offset=19[v4];[v5][l5]xfade=transition=fade:duration=1:offset=23[v5];[v6][l6]xfade=transition=fade:duration=1:offset=27[v6];[v7][l7]xfade=transition=fade:duration=1:offset=31[v7];[v8][l8]xfade=transition=fade:duration=1:offset=35[v8];[v9][l9]xfade=transition=fade:duration=1:offset=39[v9]"
+"[1]loop=loop=124:size=1[l1];[2]loop=loop=124:size=1[l2];[3]loop=loop=124:size=1[l3];[4]loop=loop=124:size=1[l4];[5]loop=loop=124:size=1[l5];[6]loop=loop=124:size=1[l6];[7]loop=loop=124:size=1[l7];[8]loop=loop=124:size=1[l8];[9]loop=loop=124:size=1[l9];[v1]xfade=transition=fade:duration=1:offset=7[v1];[l2]xfade=transition=fade:duration=1:offset=11[v2];[l3]xfade=transition=fade:duration=1:offset=15[v3];[l4]xfade=transition=fade:duration=1:offset=19[v4];[l5]xfade=transition=fade:duration=1:offset=23[v5];[l6]xfade=transition=fade:duration=1:offset=27[v6];[l7]xfade=transition=fade:duration=1:offset=31[v7];[l8]xfade=transition=fade:duration=1:offset=35[v8];[l9]xfade=transition=fade:duration=1:offset=39[v9]"
 #+end_src
-
-
 
 A slideshow of ten images ~(slideshow 10)~ produces the
 equivalent of ninety lines of hand-written FFmpeg filtergraph syntax.
