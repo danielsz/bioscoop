@@ -48,8 +48,9 @@
    (accumulate-error* (make-filtergraph []) env error))
   ([return-val env error]
    (let [info (ex-data error)]
-     (log/warn (if *warn-verbose* info (:error-type info))))
-   (swap! (:errors env) conj error)
+     (when-not (some #(= (ex-data %) info) @(:errors env))
+       (log/warn (if *warn-verbose* info (:error-type info)))
+       (swap! (:errors env) conj error)))
    return-val))
 
 (defn accumulate-error
