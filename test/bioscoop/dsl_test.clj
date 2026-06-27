@@ -269,10 +269,10 @@
       (let [result (compile-dsl "(for [i (range 2 5)] (scale))")]
       (is (instance? FilterGraph result))
       (is (= 3 (count (:chains result))))))
-    (testing "2 body expressions × 3 iterations produces 6 chains"
-      (let [result (compile-dsl "(for [i (range 3)] (scale) (crop))")]
+    (testing "3 iterations produces 3 chains"
+      (let [result (compile-dsl "(for [i (range 3)] (chain (scale) (crop)))")]
       (is (instance? FilterGraph result))
-      (is (= 6 (count (:chains result))))))
+      (is (= 3 (count (:chains result))))))
     (testing "loop variable is in scope for parameter expressions"
       (let [result (compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)}))")]
         (is (= "lagfun=decay=0.99;lagfun=decay=0.98;lagfun=decay=0.97" (to-ffmpeg result)))))

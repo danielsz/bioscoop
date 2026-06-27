@@ -55,7 +55,7 @@
       (is (= "(chain (scale {:width 1920, :height 1080}) (overlay))" back-to-dsl))))
 
   (testing "Simple graph"
-    (let [structure (compile-dsl "(graph (scale 1920 1080) (overlay))")
+    (let [structure (compile-dsl "(compose (scale 1920 1080) (overlay))")
           back-to-dsl (to-dsl structure)]
       (is (= "(compose (scale {:width 1920, :height 1080}) (overlay))" back-to-dsl)))))
 
@@ -63,7 +63,7 @@
   (testing "DSL -> structure -> DSL roundtrip preserves semantics"
     (let [test-cases ["(scale 1920 1080)"
                       "(chain (scale 1920 1080) (overlay))"
-                      "(graph (scale 1920 1080) (overlay))"
+                      "(compose (scale 1920 1080) (overlay))"
                       "(hflip)"
                       "[[\"in\"] (scale 1920 1080)[\"scaled\"]]"
                       "(crop \"iw/2\" \"ih\" \"0\" \"0\")"]]
@@ -78,7 +78,7 @@
   (testing "FFmpeg compatibility is preserved"
     (let [test-cases ["(scale 1920 1080)"
                       "(chain (scale 1920 1080) (overlay))"
-                      "(graph (scale 1920 1080) (overlay))"]]
+                      "(compose (scale 1920 1080) (overlay))"]]
       (doseq [original-dsl test-cases]
         (let [original-structure (compile-dsl original-dsl)
               original-ffmpeg (to-ffmpeg original-structure)

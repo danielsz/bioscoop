@@ -7,7 +7,8 @@
             [bioscoop.env :refer [make-env env-get env-put]]
             [bioscoop.resolve :as r :refer [resolve-function]]
             [bioscoop.error-handling :refer [accumulate-error]]
-            [bioscoop.trace :refer [trace>]])
+            [bioscoop.trace :refer [trace>]]
+            [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records Filter]))
 
 
@@ -15,26 +16,6 @@
 
 (def promote-to-filtergraph (promote-to-filtergraph* accumulate-error))
 (def promote-to-filterchain (promote-to-filterchain* (partial accumulate-error [])))  ; must return [] since the result feeds into mapcat
-
-(defmulti eval-label-content
-  (fn [content _env]
-    (if (string? content)
-      :raw-string
-      (first content))))
-
-(defmethod eval-label-content :raw-string [s _env]
-  s)
-
-(defmethod eval-label-content :for-binding [[_ [_ sym-name] range-node & body] env]
-  (let [xs (transform-ast range-node env)]
-    (vec (for [x xs
-               :let [loop-env (env-put env sym-name x)]
-               expr body]
-           (transform-ast expr loop-env)))))
-
-(defmethod eval-label-content :default [content env]
-  (transform-ast content env))
-
 (defmulti transform-ast* (fn [node env] (first node)))
 
 (defmethod transform-ast* :program [[_ & expressions] env]
@@ -81,15 +62,14 @@
                (-> filters
                   (update 0 with-input-labels
                           (vec (mapcat (fn [node]
-                                         (let [v (eval-label-content (second node) env)]
+                                         (let [v (transform-ast node env)]
                                            (if (sequential? v) v [v])))
                                        input)))
                   (update (dec (count filters)) with-output-labels
                           (vec (mapcat (fn [node]
-                                         (let [v (eval-label-content (second node) env)]
+                                         (let [v (transform-ast node env)]
                                            (if (sequential? v) v [v])))
-                                       output)))
-                  ))]))]
+                                       output)))))]))]
     (cond
       (empty? (:chains filtergraph)) filtergraph
       (= 1 (count (:chains filtergraph))) (f (:filters (first (:chains filtergraph))))
@@ -121,8 +101,8 @@
         transformed-args (mapv #(transform-ast % env) args)]
     (case transformed-op
       "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
-      "graph" (apply compose-filtergraphs (mapv #(promote-to-filtergraph % env) transformed-args)) ;; double duty with compose
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
+      "when" (if (first transformed-args) (second transformed-args) (make-filtergraph []))
       (if (seq transformed-args)
         (let [resolved (resolve-function transformed-op env)]
           (resolved transformed-args env))
@@ -132,15 +112,11 @@
   (let [xs (map #(transform-ast % env) (rest m))]
       (into {} (map vec (partition 2 xs)))))
 
-(defmethod transform-ast* :for-binding [[_ [_ sym-name] range-node & body] env]
+(defmethod transform-ast* :for-binding [[_ [_ sym-name] range-node body] env]
   (let [xs (transform-ast range-node env)]
-    (apply compose-filtergraphs
-           (for [x xs
-                 :let [loop-env (env-put env sym-name x)]]
-             (->> body
-                  (mapv #(transform-ast % loop-env))
-                  (mapv #(promote-to-filtergraph % loop-env))
-                  (apply compose-filtergraphs))))))
+    (vec (for [x xs
+               :let [loop-env (env-put env sym-name x)]]
+           (transform-ast body loop-env)))))
 
 (defmethod transform-ast* :symbol [[_ sym] env]
   (let [env-val (env-get env sym)
@@ -159,7 +135,9 @@
   s)
 
 (defmethod transform-ast* :label [[_ content] env]
-  (eval-label-content content env))
+  (if (string? content)
+    content
+    (transform-ast content env)))
 
 (defmethod transform-ast* :number [[_ n] env]
   (if (str/includes? n ".")

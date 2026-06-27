@@ -189,14 +189,14 @@
       (is (= 3 (count (map :filters (:chains result)))))))
   
   (testing "Automatic wrapping of FilterGraph/filterchain"
-    (let [result (bioscoop (graph (scale 1920 1080) (scale 1910 1180) (scale 1920 80)))]
+    (let [result (bioscoop (compose (scale 1920 1080) (scale 1910 1180) (scale 1920 80)))]
       (is (instance? FilterGraph result))
       (is (true? (every? #(instance? FilterChain %) (:chains result))))
       (is (= 3 (count (:chains result))))
       (is (= 3 (count (map :filters (:chains result)))))))
 
   (testing "Automatic wrapping of FilterGraph/filterchain"
-    (let [result (bioscoop (graph (chain (scale 1920 1080) (scale 1910 1180)) (scale 1920 80)))]
+    (let [result (bioscoop (compose (chain (scale 1920 1080) (scale 1910 1180)) (scale 1920 80)))]
       (is (instance? FilterGraph result))
       (is (instance? FilterChain (first (:chains result))))
       (is (instance? FilterChain (last (:chains result))))
@@ -269,7 +269,7 @@
     ;; The local binding takes precedence.
     (do (defgraph foo (scale 1920 1080))
         (is (instance? FilterGraph (bioscoop (let [foo 1]
-                                               (compose [[0] (graph (chain (scale {:width 1920 :height foo}))) [1]] [[0] foo [1]]))))))))
+                                               (compose [[0] (chain (scale {:width 1920 :height foo})) [1]] [[0] foo [1]]))))))))
 
 
 (defn n-fun [n]

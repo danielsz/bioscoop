@@ -39,12 +39,13 @@
   (make-filtergraph (mapcat :chains filtergraphs)))
 
 (defn promote-to-filtergraph* [f]
-  (fn [x env]
+  (fn promote [x env]
     (cond
       (instance? FilterGraph x) x
       (instance? FilterChain x) (make-filtergraph [x])
       (instance? Filter x)      (make-filtergraph [(make-filterchain [x])])
-      :else (f env x :not-a-filtergraph))))
+      (sequential? x)           (apply compose-filtergraphs (map #(promote % env) x))
+      :else                     (f env x :not-a-filtergraph))))
 
 (defn promote-to-filterchain* [f]
   (fn [x env]
