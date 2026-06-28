@@ -1,0 +1,103 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Motivating Example}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Parameterized slideshow in Bioscoop}{1}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Background and Related Work}{1}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}FFmpeg Filtergraph Syntax}{1}{subsection.2.1}\protected@file@percent }
+\citation{ffmpegpython}
+\citation{fluentffmpeg}
+\citation{moviepy}
+\citation{ffmpegio}
+\citation{hudak}
+\citation{racket}
+\citation{krishnamurthi}
+\citation{instaparse}
+\citation{gll}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}FFmpeg filtergraph grammar (simplified)}{2}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Existing Approaches}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}DSL Implementation in Lisp}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Architecture}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Overview}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}AST Convergence}{2}{subsection.3.2}\protected@file@percent }
+\citation{taha}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}The bioscoop macro}{3}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Multi-Stage Programming via \texttt  {\&env}}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}Parameterized iteration with lexical scope}{3}{lstlisting.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}The locals injection mechanism}{3}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}The Intermediate Representation}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Algebraic Structure}{3}{subsection.4.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}IR record definitions}{3}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Isomorphism with the Target Grammar}{3}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces IR to FFmpeg Grammar Correspondence}}{3}{table.1}\protected@file@percent }
+\newlabel{tab:isomorphism}{{I}{3}{IR to FFmpeg Grammar Correspondence}{table.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}to-ffmpeg as serializer}{3}{lstlisting.7}\protected@file@percent }
+\citation{reynolds}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Round-Trip Correctness}{4}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Labels as First-Class Fields}{4}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}The Evaluator}{4}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Definitional Interpreter in Environment-Passing Style}{4}{subsection.5.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}The evaluator entry point}{4}{lstlisting.8}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}The trace> helper}{4}{lstlisting.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Environment Model}{5}{subsection.5.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}Environment operations}{5}{lstlisting.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}The \texttt  {for} Construct}{5}{subsection.5.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}for-binding evaluation}{5}{lstlisting.11}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}promote-to-filtergraph* with sequential? branch}{5}{lstlisting.12}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}for in label position}{5}{lstlisting.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Chain Flattening}{5}{subsection.5.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}chain flattening via promote-to-filterchain}{5}{lstlisting.14}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}promote-to-filterchain* factory}{5}{lstlisting.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Error Handling}{5}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Fail-Soft with Typed Sentinel}{5}{subsection.6.1}\protected@file@percent }
+\citation{clojurespec}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {16}Error accumulation with deduplication}{6}{lstlisting.16}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {17}Direct wiring of promotion functions to error handler}{6}{lstlisting.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Invariant: transform-ast Always Returns FilterGraph}{6}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Spec-Driven Validation}{6}{section.7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {18}Example spec for the lagfun filter}{6}{lstlisting.18}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {19}Namespace resolution via spec introspection}{6}{lstlisting.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Discussion}{6}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-A}}Applicability of the Isomorphic IR Approach}{6}{subsection.8.1}\protected@file@percent }
+\citation{mps}
+\citation{xtext}
+\citation{nanopass}
+\citation{carette}
+\citation{sass}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-B}}AST Convergence as a Design Pattern}{7}{subsection.8.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {20}Convergence test pattern}{7}{lstlisting.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-C}}Single-Pass Architecture}{7}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-D}}Dual Resolution Strategies}{7}{subsection.8.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-E}}Limitations}{7}{subsection.8.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Related Work}{7}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Language Workbenches}{7}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Nanopass Framework}{7}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-C}}Typed DSLs}{7}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-D}}Source-to-Source Compilation for Domain Notation Languages}{7}{subsection.9.4}\protected@file@percent }
+\citation{hiccup}
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{ffmpegpython}{1}
+\bibcite{fluentffmpeg}{2}
+\bibcite{moviepy}{3}
+\bibcite{hudak}{4}
+\bibcite{racket}{5}
+\bibcite{clojure}{6}
+\bibcite{krishnamurthi}{7}
+\bibcite{instaparse}{8}
+\bibcite{gll}{9}
+\bibcite{taha}{10}
+\bibcite{reynolds}{11}
+\bibcite{clojurespec}{12}
+\bibcite{mps}{13}
+\bibcite{xtext}{14}
+\bibcite{nanopass}{15}
+\bibcite{carette}{16}
+\bibcite{ffmpegio}{17}
+\bibcite{sass}{18}
+\bibcite{hiccup}{19}
+\@writefile{toc}{\contentsline {section}{\numberline {X}Conclusion}{8}{section.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{8}{section*.2}\protected@file@percent }
+\gdef \@abspage@last{8}

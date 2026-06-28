@@ -19,22 +19,36 @@
     (contains? built-in-functions name) :built-in
     (contains? clojure-core-functions name) :clojure-core  ))
 
+(defn- wrap-apply [f]
+  (fn [arg _] (apply f arg)))
+
+(defn- wrap-user [f]
+  (fn [arg _]
+    (let [result (apply f arg)]
+      (cond
+        (instance? FilterGraph result) result
+        (seqable? result)              (apply compose-filtergraphs result)
+        :else                          (make-filtergraph [])))))
+
+(defn- unresolved [op env]
+  (accumulate-error env op :unresolved-function)
+  (fn [_ _] (make-filtergraph [])))
+
+
 (defmulti resolve-function (fn [op env] *dynamic-resolution*))
 
 (defmethod resolve-function true [op env]
-  (let [f (ns-resolve 'bioscoop.built-in (symbol op))]
-    (case (str (:ns (meta f)))
-      "bioscoop.built-in" f
-      "clojure.core" (fn [arg _] (apply f arg))
-      (if-let [f (ns-resolve *ns* (symbol op))]
-        (fn [arg _]
-          (let [result (apply f arg)]
-            (cond
-              (instance? FilterGraph result) result
-              (seqable? result)              (apply compose-filtergraphs result)
-              :else                          (make-filtergraph []))))
-        (do (accumulate-error env op :unresolved-function)
-            (fn [_ _] (make-filtergraph [])))))))
+  (cond
+    (keyword? op) (wrap-apply op)
+    :else
+    (let [built-in (ns-resolve 'bioscoop.built-in (symbol op))
+          ns-name  (str (:ns (meta built-in)))]
+      (case ns-name
+        "bioscoop.built-in" built-in
+        "clojure.core" (wrap-apply built-in)
+        (if-let [f (ns-resolve *ns* (symbol op))]
+          (wrap-user f)
+          (unresolved op env))))))
 
 (defmethod resolve-function false [op env]
   (cond

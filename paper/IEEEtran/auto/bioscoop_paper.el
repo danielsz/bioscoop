@@ -1,22 +1,12 @@
 ;; -*- lexical-binding: t; -*-
 
 (TeX-add-style-hook
- "ast_convergence_paper_revised"
+ "bioscoop_paper"
  (lambda ()
    (TeX-add-to-alist 'LaTeX-provided-class-options
                      '(("IEEEtran" "conference")))
    (TeX-add-to-alist 'LaTeX-provided-package-options
                      '(("fancyhdr" "") ("graphicx" "") ("amsmath" "") ("amssymb" "") ("amsfonts" "") ("amsthm" "") ("algorithmic" "") ("textcomp" "") ("xcolor" "") ("listings" "") ("booktabs" "") ("multirow" "") ("ulem" "normalem") ("hyperref" "")))
-   (add-to-list 'LaTeX-verbatim-environments-local "lstlisting")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "lstinline")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "path")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "url")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "nolinkurl")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "hyperbaseurl")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "hyperimage")
-   (add-to-list 'LaTeX-verbatim-macros-with-braces-local "href")
-   (add-to-list 'LaTeX-verbatim-macros-with-delims-local "lstinline")
-   (add-to-list 'LaTeX-verbatim-macros-with-delims-local "path")
    (TeX-run-style-hooks
     "latex2e"
     "IEEEtran"
@@ -44,6 +34,7 @@
     "hudak"
     "racket"
     "clojure"
+    "krishnamurthi"
     "instaparse"
     "gll"
     "taha"
@@ -52,15 +43,13 @@
     "mps"
     "xtext"
     "nanopass"
-    "carette")
-   (LaTeX-add-bibliographies
-    "references")
-   (LaTeX-add-amsthm-newtheorems
+    "carette"
+    "ffmpegio"
+    "sass"
+    "hiccup")
+   (LaTeX-add-environments
     "theorem")
-   (LaTeX-add-xcolor-definecolors
-    "codegreen"
-    "codegray"
-    "codepurple"
-    "backcolour"))
+   (LaTeX-add-bibliographies
+    "references"))
  :latex)
 
