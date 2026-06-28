@@ -103,10 +103,10 @@
       "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
       "when" (if (first transformed-args) (second transformed-args) (make-filtergraph []))
-      (if (seq transformed-args)
-        (let [resolved (resolve-function transformed-op env)]
-          (resolved transformed-args env))
-        (make-filter transformed-op)))))
+      (let [resolved (resolve-function transformed-op env)]
+        (if (seq transformed-args)
+        (resolved transformed-args env)
+        (resolved nil env))))))
 
 (defmethod transform-ast* :map [[_ kw v :as m] env]
   (let [xs (map #(transform-ast % env) (rest m))]

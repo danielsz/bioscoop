@@ -307,6 +307,6 @@
     (let [result (compile-dsl "[[(for [i (range 3)] (str \"i\" i))] (scale)[\"out\"]]")]
       (is (= (to-ffmpeg result) "[i0][i1][i2]scale[out]")))
     (testing "interleaving values in label position")
-    (let [result (compile-dsl "[[(interleave (for [i (range 3)] (str \"foo\" i)) (for [i (range 3)] (str \"bar\" i)))] (assembly) [\"out\"]]")]
-      (is (= (to-ffmpeg result) "[foo0][bar0][foo1][bar1][foo2][bar2]assembly[out]")))))
+    (let [result (compile-dsl "[[(interleave (for [i (range 3)] (str \"foo\" i)) (for [i (range 3)] (str \"bar\" i)))] (hue) [\"out\"]]")]
+      (is (= (to-ffmpeg result) "[foo0][bar0][foo1][bar1][foo2][bar2]hue[out]")))))
 

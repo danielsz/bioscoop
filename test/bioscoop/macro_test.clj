@@ -314,7 +314,16 @@
       (eval '(do
                (defgraph masterpiece (testsrc))
                (intern 'user 'qux masterpiece))))
-    (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] user/qux ["1"]] [["3"] (crop "111") ["2"]])))))))
+    (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] user/qux ["1"]] [["3"] (crop "111") ["2"]]))))))
+  (testing "Able to resolve a function in another namespace"
+    (create-ns 'bioscoop.masterpiece)
+    (binding [*ns* (the-ns 'bioscoop.masterpiece)]
+      (refer-clojure)
+      (require '[bioscoop.macro :refer [bioscoop defgraph]] '[bioscoop.built-in])
+      (eval '(do
+               (intern *ns* 'another (fn [size] (bioscoop (testsrc {:size size}))))
+               (intern 'user 'qux #'another))))
+    (is (= "[0]testsrc=size=320x240[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] (user/qux "320x240") ["1"]] [["3"] (crop "111") ["2"]])))))))
 
 
 (defn n-transition [n offset]

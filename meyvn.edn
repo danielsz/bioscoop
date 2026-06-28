@@ -1,11 +1,11 @@
 {:pom {:group-id "com.github.danielsz"
        :artifact-id "bioscoop"
-       :version "1.0.7"
+       :version "1.0.8-SNAPSHOT"
        :name "bioscoop"
        :licenses [{:name "MIT License"
                    :url "https://mit-license.org/"}]}
  :packaging {:uberjar
-             {:enabled true
+             {:enabled false
               :build-properties {:main-class "bioscoop.core"}
               :excludes {:artifacts ["org.clojure:google-closure-library" "com.google.javascript:closure-compiler"]
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
