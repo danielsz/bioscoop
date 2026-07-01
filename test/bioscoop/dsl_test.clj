@@ -4,7 +4,6 @@
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [bioscoop.built-in]
-            [bioscoop.registry :refer [get-graph clear-registry!]]
             [clojure.test :refer [testing deftest is use-fixtures]]
             [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
@@ -13,11 +12,7 @@
             [bioscoop.domain.records :refer [get-input-labels get-output-labels]])
   (:import [bioscoop.domain.records FilterGraph]))
 
-(defn once-fixture [f]
-  (f)
-  (clear-registry!))
 
-(use-fixtures :once once-fixture)
 
 ;; Native image testing support
 (def native-binary-path "target/bioscoop")
@@ -224,9 +219,9 @@
 
 (deftest defgraph
   (testing "Parsing graph definitions is done for their side effects"
-    (let [dsl "(defgraph my-scale (scale 1920 1080))"]
-      (compile-dsl dsl)
-      (is (instance? FilterGraph (get-graph 'my-scale)))))
+    (let [result (compile-dsl "(defgraph my-scale (scale 1920 1080))")]
+      (is (instance? FilterGraph result))
+      (is (nil? (seq (:chains result))))))
   (testing "Parsing a regular expression and a graph definition - only the regular expression is transformed and returned"
     (let [dsl "(defgraph my-crop (crop \"1920\" \"1080\"))\n(scale 1920 180)"]
       (is (= (compile-dsl dsl)
@@ -236,10 +231,9 @@
           result (compile-dsl dsl)]
       (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result)))))
   (testing "we can compose filtergraphs"
-    (do (compile-dsl "(defgraph my-scale (scale 1920 1080))")
-        (compile-dsl "(defgraph my-crop (crop \"1920\" \"1080\"))")
-        (let [result (compile-dsl "(compose my-scale my-crop)")]
-          (is (= 2 (count (.-chains result))))))))
+    (let [result (compile-dsl "(defgraph my-scale (scale 1920 1080))\n(defgraph my-crop (crop \"1920\" \"1080\"))\n(compose my-scale my-crop)")]
+      (is (= 2 (count (:chains result))))
+      (is (= "scale=width=1920:height=1080;crop=out_w=1920:w=1080" (to-ffmpeg result))))))
 
 (deftest name-shadowing
   (testing "When we use the name of built-in function in a let binding, we shadow the built-in function so reject it"
@@ -315,9 +309,9 @@
 
 (deftest defgraph
   (testing "Parsing graph definitions is done for their side effects"
-    (let [dsl "(defgraph my-scale (scale 1920 1080))"]
-      (compile-dsl dsl)
-      (is (instance? FilterGraph (get-graph 'my-scale)))))
+    (let [result (compile-dsl "(defgraph my-scale (scale 1920 1080))")]
+      (is (instance? FilterGraph result))
+      (is (nil? (seq (:chains result))))))
   (testing "Parsing a regular expression and a graph definition - only the regular expression is transformed and returned"
     (let [dsl "(defgraph my-crop (crop \"1920\" \"1080\"))\n(scale 1920 180)"]
       (is (= (compile-dsl dsl)
@@ -326,13 +320,6 @@
     (let [dsl "(defgraph my-scale (scale 1920 1080))"
           result (compile-dsl dsl)]
       (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result)))))
-  (testing "we can compose filtergraphs"
-    (do (compile-dsl "(defgraph my-scale (scale 1920 1080))")
-        (compile-dsl "(defgraph my-crop (crop \"1920\" \"1080\"))")
-        (let [result (compile-dsl "(compose my-scale my-crop)")]
-          (is (= 2 (count (.-chains result)))))))
   (testing "registering a graph under an already-registered name redefines it"
-    (compile-dsl "(defgraph dupe-graph (scale 1920 1080))")
-    (is (= "scale" (:name (first (:filters (first (:chains (get-graph 'dupe-graph))))))))
-    (compile-dsl "(defgraph dupe-graph (crop \"640\" \"480\"))")
-    (is (= "crop" (:name (first (:filters (first (:chains (get-graph 'dupe-graph))))))))))
+    (let [result (compile-dsl "(defgraph dupe-graph (scale 1920 1080))\n(defgraph dupe-graph (crop \"640\" \"480\"))\ndupe-graph")]
+      (is (= "crop" (:name (first (:filters (first (:chains result))))))))))

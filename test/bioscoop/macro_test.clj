@@ -3,17 +3,10 @@
             [bioscoop.dsl :as dsl :refer [last-errors]]
             [bioscoop.render :refer [to-ffmpeg]]
             [clojure.test :refer [deftest is testing use-fixtures]]
-            [bioscoop.registry :refer [clear-registry! get-graph]]
             [bioscoop.built-in]
             [bioscoop.domain.records :refer [with-labels]])
   (:import [bioscoop.domain.records FilterGraph FilterChain Filter]))
 
-(defn once-fixture [f]
-  (f)
-  (remove-ns 'user)
-  (clear-registry!))
-
-(use-fixtures :once once-fixture)
 
 (deftest test-form->ast
   (testing "Simple expressions"

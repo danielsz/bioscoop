@@ -5,11 +5,10 @@
             [bioscoop.registry :as registry]
             [bioscoop.parse :refer [dsl-parser]]
             [bioscoop.env :refer [make-env env-get env-put]]
-            [bioscoop.resolve :refer [resolve-function reserved-word-type]]
+            [bioscoop.resolve :refer [resolve-function reserved-word-type get-var reserved-word?]]
             [bioscoop.error-handling :refer [accumulate-error]]
             [bioscoop.trace :refer [trace>]]
             [clojure.tools.logging :as log]))
-
 
 (declare transform-ast)
 
@@ -19,9 +18,16 @@
 
 (defmethod transform-ast* :program [[_ & expressions] env]
   (let [defgraph-exprs (filter #(= :graph-definition (first %)) expressions)
-        regular-exprs  (remove #(= :graph-definition (first %)) expressions)]
-    (doseq [expr defgraph-exprs]
-      (transform-ast expr env))
+        regular-exprs  (remove #(= :graph-definition (first %)) expressions)
+        compute-graphs (fn [env name body]
+                         (if (reserved-word? name)
+                           (do (accumulate-error env name :reserved-word)
+                               env)
+                           (env-put env name body)))
+        env   (reduce (fn [acc-env [_ [_ name-str] & body]]
+                          (compute-graphs acc-env name-str (transform-ast (into [:program] body) acc-env)))
+                      env
+                      defgraph-exprs)]
     (->> regular-exprs
          (mapv #(transform-ast % env))
          (mapv #(promote-to-filtergraph % env))
@@ -32,12 +38,6 @@
                       (mapv #(transform-ast % env))
                       (mapv #(promote-to-filtergraph % env)))]
     (apply compose-filtergraphs children)))
-
-(defmethod transform-ast* :graph-definition [[_ [_ graph-name-str] & body] env]
-  (let [graph-body (into [:program] body)
-        graph      (transform-ast graph-body env)]
-    (registry/register-graph! graph-name-str graph env)
-    graph))
 
 (defn padded-graph-helper [body]
   (loop [xs body
@@ -116,7 +116,7 @@
 
 (defmethod transform-ast* :symbol [[_ sym] env]
   (let [env-val (env-get env sym)
-        graph-val (registry/get-graph (symbol sym))]
+        graph-val (get-var (symbol sym))]
     (cond
       (and env-val graph-val) (do (accumulate-error env sym :ambiguous-symbol)
                                   env-val)
