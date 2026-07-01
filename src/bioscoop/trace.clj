@@ -8,10 +8,8 @@
 
 (defn trace> [node env result]
   (when (seq *debug-mode*)
-    (when-let [xs (registry/debug)]
-      (log/debug "registry:" (str/join ", " xs)))
     (when (some *debug-mode* [(first node)])
-      (log/debug node result)))
+      (log/debug node result (type result))))
   (tap> (cond-> {:node-type (first node)
                  :node node
                  :env  env

@@ -211,11 +211,11 @@
     (defgraph foo (let [shade "red"
                         background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
                     (chain background-color (scale 450 300))))
-    (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))    
+    (is (= (to-ffmpeg (bioscoop foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))
     (defgraph foo (let [shade "red"
                         background-color (color {:c shade :size "1920x1280" :rate 25 :duration 16})]
                     (chain background-color (scale 450 300))))
-    (is (= (to-ffmpeg (get-graph 'foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))))
+    (is (= (to-ffmpeg (bioscoop foo)) "color=c=red:size=1920x1280:rate=25:duration=16,scale=width=450:height=300"))))
 
 (deftest padded-graph
   (testing "single filter"
@@ -304,8 +304,8 @@
     (binding [*ns* (the-ns 'bioscoop.masterpiece)]
       (refer-clojure)
       (require '[bioscoop.macro :refer [bioscoop defgraph]] '[bioscoop.built-in])
-      (eval '(defgraph masterpiece (testsrc))))
-    (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] bioscoop.masterpiece/masterpiece ["1"]] [["3"] (crop "111") ["2"]]))))))
+      (eval '(defgraph foo (testsrc))))
+    (is (= "[0]testsrc[1];[3]crop=out_w=111[2]" (to-ffmpeg (bioscoop (compose [["0"] bioscoop.masterpiece/foo ["1"]] [["3"] (crop "111") ["2"]]))))))
   (testing "Able to resolve another Var in another namespace"
     (create-ns 'bioscoop.masterpiece)
     (binding [*ns* (the-ns 'bioscoop.masterpiece)]
@@ -337,3 +337,7 @@
     (let [result (n-transition 3 9)]
       (is (instance? FilterGraph result))
       (is (= (to-ffmpeg result) "[in0]xfade=transition=fade:duration=1:offset=9[out0];[in1]xfade=transition=fade:duration=1:offset=19[out1];[in2]xfade=transition=fade:duration=1:offset=29[out2]")))))
+
+(deftest namespaced-environment
+  (testing "graph definitions"
+    (defgraph foo (scale {:width 1080 :height 800}))))

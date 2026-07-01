@@ -98,10 +98,10 @@
          (dsl/run-ast ~program-ast env#)))))
 
 (defmacro defgraph [name & body]
-  `(let [graph# (bioscoop ~@body)]
-     (if (reserved-word? (str '~name))
-       (println (str '~name " is a reserved word."))
-       (do (registry/register-graph! '~name graph#)
-           (intern *ns* '~name graph#)))))
+  `(binding [config/*dynamic-resolution* true]
+     (let [graph# (bioscoop ~@body)]
+        (if (reserved-word? (str '~name))
+          (println (str '~name " is a reserved word."))
+          (intern *ns* '~name graph#)))))
 
 

@@ -310,3 +310,26 @@
     (let [result (compile-dsl "[[(interleave (for [i (range 3)] (str \"foo\" i)) (for [i (range 3)] (str \"bar\" i)))] (hue) [\"out\"]]")]
       (is (= (to-ffmpeg result) "[foo0][bar0][foo1][bar1][foo2][bar2]hue[out]")))))
 
+(deftest defgraph
+  (testing "Parsing graph definitions is done for their side effects"
+    (let [dsl "(defgraph my-scale (scale 1920 1080))"]
+      (compile-dsl dsl)
+      (is (instance? FilterGraph (get-graph 'my-scale)))))
+  (testing "Parsing a regular expression and a graph definition - only the regular expression is transformed and returned"
+    (let [dsl "(defgraph my-crop (crop \"1920\" \"1080\"))\n(scale 1920 180)"]
+      (is (= (compile-dsl dsl)
+             (compile-dsl "(scale 1920 180)")))))
+  (testing "If no regular expressions are present, return empty Filtergraph"
+    (let [dsl "(defgraph my-scale (scale 1920 1080))"
+          result (compile-dsl dsl)]
+      (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result)))))
+  (testing "we can compose filtergraphs"
+    (do (compile-dsl "(defgraph my-scale (scale 1920 1080))")
+        (compile-dsl "(defgraph my-crop (crop \"1920\" \"1080\"))")
+        (let [result (compile-dsl "(compose my-scale my-crop)")]
+          (is (= 2 (count (.-chains result)))))))
+  (testing "registering a graph under an already-registered name redefines it"
+    (compile-dsl "(defgraph dupe-graph (scale 1920 1080))")
+    (is (= "scale" (:name (first (:filters (first (:chains (get-graph 'dupe-graph))))))))
+    (compile-dsl "(defgraph dupe-graph (crop \"640\" \"480\"))")
+    (is (= "crop" (:name (first (:filters (first (:chains (get-graph 'dupe-graph))))))))))

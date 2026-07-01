@@ -1,0 +1,549 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{carette}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=90e0ce01e5f496d374a631f92177ea75}{%
+           family={Carette},
+           familyi={C\bibinitperiod},
+           given={Jacques},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2490faaded6565a67d109de78760b4c6}{%
+           family={Kiselyov},
+           familyi={K\bibinitperiod},
+           given={Oleg},
+           giveni={O\bibinitperiod}}}%
+        {{hash=a0556a70ac5960b57d6194e299c32a7a}{%
+           family={Shan},
+           familyi={S\bibinitperiod},
+           given={Chung-chieh},
+           giveni={C\bibinithyphendelim c\bibinitperiod}}}%
+      }
+      \strng{namehash}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{fullhash}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{fullhashraw}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{bibnamehash}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{authorbibnamehash}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{authornamehash}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{authorfullhash}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \strng{authorfullhashraw}{73b77de476bf0aad9a62d6c43cbc00a4}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Functional Programming}
+      \field{number}{5}
+      \field{title}{Finally Tagless, Partially Evaluated: Tagless Staged Interpreters for Simpler Typed Languages}
+      \field{volume}{19}
+      \field{year}{2009}
+      \field{pages}{509\bibrangedash 543}
+      \range{pages}{35}
+      \verb{doi}
+      \verb 10.1017/S0956796809007205
+      \endverb
+    \endentry
+    \entry{sass}{misc}{}{}
+      \name{author}{2}{}{%
+        {{hash=be84b1b1bdca4937d59190759f9824dc}{%
+           family={Catlin},
+           familyi={C\bibinitperiod},
+           given={Hampton},
+           giveni={H\bibinitperiod}}}%
+        {{hash=2f047096098bf61627a75277c0c758fd}{%
+           family={Weizenbaum},
+           familyi={W\bibinitperiod},
+           given={Natalie},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{fullhash}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{fullhashraw}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{bibnamehash}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{authorbibnamehash}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{authornamehash}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{authorfullhash}{ec271d47d34656e4f8421e0730a0328c}
+      \strng{authorfullhashraw}{ec271d47d34656e4f8421e0730a0328c}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://sass-lang.com/}}
+      \field{note}{Accessed: 2024}
+      \field{title}{{Sass}: Syntactically Awesome Style Sheets}
+      \field{year}{2023}
+    \endentry
+    \entry{mps}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=a9070af9123a076c649d5ff2ebfc1fc2}{%
+           family={Dmitriev},
+           familyi={D\bibinitperiod},
+           given={Sergey},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{fullhash}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{fullhashraw}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{bibnamehash}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{authorbibnamehash}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{authornamehash}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{authorfullhash}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \strng{authorfullhashraw}{a9070af9123a076c649d5ff2ebfc1fc2}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{JetBrains onBoard}
+      \field{number}{1}
+      \field{title}{Language Oriented Programming: The Next Programming Paradigm}
+      \field{volume}{1}
+      \field{year}{2004}
+    \endentry
+    \entry{instaparse}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=88864db4ef357520d0947c672b223286}{%
+           family={Engelberg},
+           familyi={E\bibinitperiod},
+           given={Mark},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{88864db4ef357520d0947c672b223286}
+      \strng{fullhash}{88864db4ef357520d0947c672b223286}
+      \strng{fullhashraw}{88864db4ef357520d0947c672b223286}
+      \strng{bibnamehash}{88864db4ef357520d0947c672b223286}
+      \strng{authorbibnamehash}{88864db4ef357520d0947c672b223286}
+      \strng{authornamehash}{88864db4ef357520d0947c672b223286}
+      \strng{authorfullhash}{88864db4ef357520d0947c672b223286}
+      \strng{authorfullhashraw}{88864db4ef357520d0947c672b223286}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/Engelberg/instaparse}}
+      \field{note}{Accessed: 2024}
+      \field{title}{Instaparse: What if context-free grammars were as easy to use as regular expressions?}
+      \field{year}{2023}
+    \endentry
+    \entry{xtext}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=ee86d63cb7aeccef0f9d22142cb14b31}{%
+           family={Eysholdt},
+           familyi={E\bibinitperiod},
+           given={Sven},
+           giveni={S\bibinitperiod}}}%
+        {{hash=6ec16a4b514c7bd5cc8bd8e6c53c36b2}{%
+           family={Behrens},
+           familyi={B\bibinitperiod},
+           given={Heiko},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{fullhash}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{fullhashraw}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{bibnamehash}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{authorbibnamehash}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{authornamehash}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{authorfullhash}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \strng{authorfullhashraw}{cb2a9cbf8f8a5a9355736c137d665bfc}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the ACM International Conference Companion on Object Oriented Programming Systems Languages and Applications Companion}
+      \field{title}{Xtext: Implement Your Language Faster Than the Quick and Dirty Way}
+      \field{year}{2010}
+      \field{pages}{307\bibrangedash 309}
+      \range{pages}{3}
+      \verb{doi}
+      \verb 10.1145/1869542.1869625
+      \endverb
+    \endentry
+    \entry{racket}{report}{}{}
+      \name{author}{2}{}{%
+        {{hash=f67be08dba35f19beb90d091395a0a1d}{%
+           family={Flatt},
+           familyi={F\bibinitperiod},
+           given={Matthew},
+           giveni={M\bibinitperiod}}}%
+        {{hash=a274c558dfd14f2bcaf7bfb145efb1a7}{%
+           family={PLT},
+           familyi={P\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {PLT Inc.}%
+      }
+      \strng{namehash}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{fullhash}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{fullhashraw}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{bibnamehash}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{authorbibnamehash}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{authornamehash}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{authorfullhash}{6dbccf496acf4d44f30e0733eb2db20e}
+      \strng{authorfullhashraw}{6dbccf496acf4d44f30e0733eb2db20e}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{number}{PLT-TR-2010-1}
+      \field{title}{Reference: Racket}
+      \field{type}{techreport}
+      \field{year}{2010}
+      \verb{urlraw}
+      \verb https://racket-lang.org/tr1/
+      \endverb
+      \verb{url}
+      \verb https://racket-lang.org/tr1/
+      \endverb
+    \endentry
+    \entry{clojurespec}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=6853ad7c3984018095201bb9fb8571fe}{%
+           family={Hickey},
+           familyi={H\bibinitperiod},
+           given={Rich},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{fullhash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{fullhashraw}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{bibnamehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authorbibnamehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authornamehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authorfullhash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authorfullhashraw}{6853ad7c3984018095201bb9fb8571fe}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://clojure.org/guides/spec}}
+      \field{note}{Accessed: 2024}
+      \field{title}{clojure.spec}
+      \field{year}{2016}
+    \endentry
+    \entry{hudak}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=ebfbf9d5ed6e5a1698b8fe9fb2b322a4}{%
+           family={Hudak},
+           familyi={H\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{fullhash}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{fullhashraw}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{bibnamehash}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{authorbibnamehash}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{authornamehash}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{authorfullhash}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \strng{authorfullhashraw}{ebfbf9d5ed6e5a1698b8fe9fb2b322a4}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{{ACM} Computing Surveys}
+      \field{number}{4es}
+      \field{title}{Building Domain-Specific Embedded Languages}
+      \field{volume}{28}
+      \field{year}{1996}
+      \field{pages}{196}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1145/242224.242477
+      \endverb
+    \endentry
+    \entry{nanopass}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=110f1a41b640ce330a8e4cc7cdbf811e}{%
+           family={Keep},
+           familyi={K\bibinitperiod},
+           given={Andrew\bibnamedelima W.},
+           giveni={A\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+        {{hash=899c4de12d3294d061e5d9df79f32b56}{%
+           family={Dybvig},
+           familyi={D\bibinitperiod},
+           given={R.\bibnamedelimi Kent},
+           giveni={R\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+      }
+      \strng{namehash}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{fullhash}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{fullhashraw}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{bibnamehash}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{authorbibnamehash}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{authornamehash}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{authorfullhash}{a809adfe41a72dd7d57b0e86a09c2961}
+      \strng{authorfullhashraw}{a809adfe41a72dd7d57b0e86a09c2961}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 18th ACM SIGPLAN International Conference on Functional Programming}
+      \field{title}{A Nanopass Framework for Commercial Compiler Development}
+      \field{year}{2013}
+      \field{pages}{343\bibrangedash 350}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1145/2500365.2500537
+      \endverb
+    \endentry
+    \entry{krishnamurthi}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=f7416298c547d841aa97cdf04c4564f7}{%
+           family={Krishnamurthi},
+           familyi={K\bibinitperiod},
+           given={Shriram},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{fullhash}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{fullhashraw}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{bibnamehash}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{authorbibnamehash}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{authornamehash}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{authorfullhash}{f7416298c547d841aa97cdf04c4564f7}
+      \strng{authorfullhashraw}{f7416298c547d841aa97cdf04c4564f7}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Parenthetically Speaking}
+      \field{note}{Accessed: 2024}
+      \field{title}{Bicameral, Not Homoiconic}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://parentheticallyspeaking.org/articles/bicameral-not-homoiconic/
+      \endverb
+      \verb{url}
+      \verb https://parentheticallyspeaking.org/articles/bicameral-not-homoiconic/
+      \endverb
+    \endentry
+    \entry{ffmpegpython}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=e99ec2896e68f418532df94cf1802c2d}{%
+           family={Kroening},
+           familyi={K\bibinitperiod},
+           given={Karl},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{fullhash}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{fullhashraw}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{bibnamehash}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{authorbibnamehash}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{authornamehash}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{authorfullhash}{e99ec2896e68f418532df94cf1802c2d}
+      \strng{authorfullhashraw}{e99ec2896e68f418532df94cf1802c2d}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/kkroening/ffmpeg-python}}
+      \field{note}{Accessed: 2024}
+      \field{title}{ffmpeg-python: Python bindings for {FFmpeg}}
+      \field{year}{2023}
+    \endentry
+    \entry{ffmpegio}{misc}{}{}
+      \field{sortinit}{p}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/python-ffmpegio/python-ffmpegio}}
+      \field{note}{Accessed: 2024}
+      \field{title}{python-ffmpegio: {Python} package to read/write/transcode media files with {FFmpeg}}
+      \field{year}{2023}
+    \endentry
+    \entry{hiccup}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=d5baf0636d74d86d58d1d22e3477ceeb}{%
+           family={Reeves},
+           familyi={R\bibinitperiod},
+           given={James},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{fullhash}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{fullhashraw}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{bibnamehash}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{authorbibnamehash}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{authornamehash}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{authorfullhash}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \strng{authorfullhashraw}{d5baf0636d74d86d58d1d22e3477ceeb}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/weavejester/hiccup}}
+      \field{note}{Accessed: 2024}
+      \field{title}{Hiccup: A {Clojure} Library for Representing {HTML} in {Clojure} Data Structures}
+      \field{year}{2023}
+    \endentry
+    \entry{reynolds}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=34c2c5f9ff95cb3442400d374c40483b}{%
+           family={Reynolds},
+           familyi={R\bibinitperiod},
+           given={John\bibnamedelima C.},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{fullhash}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{fullhashraw}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{bibnamehash}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{authorbibnamehash}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{authornamehash}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{authorfullhash}{34c2c5f9ff95cb3442400d374c40483b}
+      \strng{authorfullhashraw}{34c2c5f9ff95cb3442400d374c40483b}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Higher-Order and Symbolic Computation}
+      \field{number}{4}
+      \field{title}{Definitional Interpreters for Higher-Order Programming Languages}
+      \field{volume}{11}
+      \field{year}{1998}
+      \field{pages}{363\bibrangedash 397}
+      \range{pages}{35}
+      \verb{doi}
+      \verb 10.1023/A:1010027404223
+      \endverb
+    \endentry
+    \entry{fluentffmpeg}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=8fc32bf039c0074e3dd106d9a262ea0c}{%
+           family={Schaffe},
+           familyi={S\bibinitperiod},
+           given={Damien},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{fullhash}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{fullhashraw}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{bibnamehash}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{authorbibnamehash}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{authornamehash}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{authorfullhash}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \strng{authorfullhashraw}{8fc32bf039c0074e3dd106d9a262ea0c}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/fluent-ffmpeg/node-fluent-ffmpeg}}
+      \field{note}{Accessed: 2024}
+      \field{title}{fluent-ffmpeg: A fluent {API} for {FFmpeg}}
+      \field{year}{2023}
+    \endentry
+    \entry{gll}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=31e7b5199158de0149b645e64ae734e2}{%
+           family={Scott},
+           familyi={S\bibinitperiod},
+           given={Elizabeth},
+           giveni={E\bibinitperiod}}}%
+        {{hash=fd14a4da6db8d0423cbcbcd18c2da761}{%
+           family={Johnstone},
+           familyi={J\bibinitperiod},
+           given={Adrian},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{fullhash}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{fullhashraw}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{bibnamehash}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{authorbibnamehash}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{authornamehash}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{authorfullhash}{453ba63c08d947c487b3822a234bb0a7}
+      \strng{authorfullhashraw}{453ba63c08d947c487b3822a234bb0a7}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Electronic Notes in Theoretical Computer Science}
+      \field{number}{7}
+      \field{title}{{GLL} Parsing}
+      \field{volume}{253}
+      \field{year}{2010}
+      \field{pages}{177\bibrangedash 189}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1016/j.entcs.2010.08.041
+      \endverb
+    \endentry
+    \entry{taha}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=adc1d6ad76b1c29ffa306fb2d2fe4eb6}{%
+           family={Taha},
+           familyi={T\bibinitperiod},
+           given={Walid},
+           giveni={W\bibinitperiod}}}%
+        {{hash=df86c731af4fe9a008ba08ee140463a7}{%
+           family={Sheard},
+           familyi={S\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{fullhash}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{fullhashraw}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{bibnamehash}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{authorbibnamehash}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{authornamehash}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{authorfullhash}{773fe681e0dd6351f2f1045ac2915d53}
+      \strng{authorfullhashraw}{773fe681e0dd6351f2f1045ac2915d53}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Theoretical Computer Science}
+      \field{number}{1--2}
+      \field{title}{{MetaML} and Multi-Stage Programming with Explicit Annotations}
+      \field{volume}{248}
+      \field{year}{2000}
+      \field{pages}{211\bibrangedash 242}
+      \range{pages}{32}
+      \verb{doi}
+      \verb 10.1016/S0304-3975(00)00053-0
+      \endverb
+    \endentry
+    \entry{moviepy}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=5b383311167a854124a43f4bada8ce60}{%
+           family={Zulko},
+           familyi={Z\bibinitperiod}}}%
+      }
+      \strng{namehash}{5b383311167a854124a43f4bada8ce60}
+      \strng{fullhash}{5b383311167a854124a43f4bada8ce60}
+      \strng{fullhashraw}{5b383311167a854124a43f4bada8ce60}
+      \strng{bibnamehash}{5b383311167a854124a43f4bada8ce60}
+      \strng{authorbibnamehash}{5b383311167a854124a43f4bada8ce60}
+      \strng{authornamehash}{5b383311167a854124a43f4bada8ce60}
+      \strng{authorfullhash}{5b383311167a854124a43f4bada8ce60}
+      \strng{authorfullhashraw}{5b383311167a854124a43f4bada8ce60}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://zulko.github.io/moviepy/}}
+      \field{note}{Accessed: 2024}
+      \field{title}{{MoviePy}: Video editing with Python}
+      \field{year}{2023}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

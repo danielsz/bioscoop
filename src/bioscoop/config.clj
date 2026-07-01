@@ -2,14 +2,16 @@
 
 (def ^:dynamic *debug-mode* #{})
 (def ^:dynamic *warn-verbose* true)
+(def ^:dynamic *trace-registry* true)
 (def ^:dynamic *dynamic-resolution* false)
 
 (defn toggle-warning [] (alter-var-root #'*warn-verbose* not))
+(defn toggle-registry [] (alter-var-root #'*trace-registry* not))
 (defn reset-debug [] (alter-var-root #'*debug-mode* (fn [nodes] (empty nodes))))
 (defn toggle-dynamic-resolution [] (alter-var-root #'*dynamic-resolution* not))
 
 (defn toggle-debug-nodes [& {:as args}]
-  (alter-var-root #'*debug-mode* (fn [nodes] (reduce-kv (fn [acc k v] (if (true? v) (conj acc k) acc)) nodes args))))
+  (alter-var-root #'*debug-mode* (fn [nodes] (reduce-kv (fn [acc k v] (if (true? v) (conj acc k) (disj acc k))) nodes args))))
 
 
 (comment (toggle-debug-nodes :program true
@@ -20,7 +22,7 @@
                              :binding false
                              :list true
                              :map false
-                             :symbol false
+                             :symbol true
                              :keyword false
                              :string false
                              :label false

@@ -1,15 +1,14 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
-            [bioscoop.domain.records :refer [make-filter make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain*]]
+            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain*]]
             [bioscoop.registry :as registry]
             [bioscoop.parse :refer [dsl-parser]]
             [bioscoop.env :refer [make-env env-get env-put]]
-            [bioscoop.resolve :as r :refer [resolve-function]]
+            [bioscoop.resolve :refer [resolve-function reserved-word-type]]
             [bioscoop.error-handling :refer [accumulate-error]]
             [bioscoop.trace :refer [trace>]]
-            [clojure.tools.logging :as log])
-  (:import [bioscoop.domain.records Filter]))
+            [clojure.tools.logging :as log]))
 
 
 (declare transform-ast)
@@ -79,7 +78,7 @@
   (let [bindings (take-while #(= :binding (first %)) content)
         body (drop (count bindings) content)
         validate (fn [sym]
-                   (when-let [reserved-type (r/reserved-word-type sym)]
+                   (when-let [reserved-type (reserved-word-type sym)]
                      (case reserved-type
                        :clojure-core (accumulate-error env sym :clj-reserved-word)
                        :built-in (accumulate-error env sym :reserved-word)
@@ -105,8 +104,8 @@
       "when" (if (first transformed-args) (second transformed-args) (make-filtergraph []))
       (let [resolved (resolve-function transformed-op env)]
         (if (seq transformed-args)
-        (resolved transformed-args env)
-        (resolved nil env))))))
+          (resolved transformed-args env)
+          (resolved nil env))))))
 
 (defmethod transform-ast* :map [[_ kw v :as m] env]
   (let [xs (map #(transform-ast % env) (rest m))]
