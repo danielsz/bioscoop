@@ -322,4 +322,7 @@
       (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result)))))
   (testing "registering a graph under an already-registered name redefines it"
     (let [result (compile-dsl "(defgraph dupe-graph (scale 1920 1080))\n(defgraph dupe-graph (crop \"640\" \"480\"))\ndupe-graph")]
-      (is (= "crop" (:name (first (:filters (first (:chains result))))))))))
+      (is (= "crop" (:name (first (:filters (first (:chains result))))))))
+    (testing "a graph can refer to a previously defined graph"
+      (let [result (compile-dsl "(defgraph foo (scale 1920 1080))\n(defgraph bar (compose foo (crop \"640\" \"480\")))\nbar")]
+      (is (= "scale=width=1920:height=1080;crop=out_w=640:w=480" (to-ffmpeg result)))))))

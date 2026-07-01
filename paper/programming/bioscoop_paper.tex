@@ -461,7 +461,7 @@ The environment is a Clojure map extended with a parent pointer:
 \begin{lstlisting}[caption={Environment operations}]
 (defn make-env
   ([]       {:errors (atom [])})
-  ([parent] (assoc {:errors (atom [])} :parent parent)))
+  ([parent] (assoc {:errors (:errors parent)} :parent parent)))
 
 (defn env-get [env sym]
   (if (contains? env sym)
@@ -472,6 +472,8 @@ The environment is a Clojure map extended with a parent pointer:
 (defn env-put [env sym val]
   (assoc env sym val))
 \end{lstlisting}
+
+New scopes are created with \texttt{(make-env parent)}, establishing the parent chain for lexical scope traversal; child scopes share the parent's error atom, so errors raised at any depth surface in the single atom inspected after compilation.
 
 \texttt{contains?} rather than \texttt{if-let} is used to correctly handle bindings to falsy values. New scopes are created with \texttt{(make-env parent)}, establishing the parent chain for lexical scope traversal.
 
@@ -647,7 +649,7 @@ The mechanism that enforces convergence is the shared AST node type set. Both fr
 
 \subsection{Single-Pass Architecture}
 
-The evaluator is single-pass in the sense that one recursive descent over the AST produces the final IR. There are no analysis phases, no optimization passes, and no separate code generation step. The \texttt{:program} method processes graph definitions before regular expressions via \texttt{doseq}, establishing an ordering constraint, but this does not constitute a second pass: no new representation is produced and the same environment is used throughout.
+The evaluator is single-pass in the sense that one recursive descent over the AST produces the final IR. There are no analysis phases, no optimization passes, and no separate code generation step. The \texttt{:program} method processes graph definitions before regular expressions, threading the environment through each definition in turn so that a later definition may reference an earlier one; this establishes an ordering constraint, but it does not constitute a second pass: no new representation is produced, and every graph definition is resolved through the same environment-passing mechanism as the rest of the evaluator.
 
 This characterization aligns with the classical definition: a compiler pass is a complete traversal of the program representation that produces a new representation. Since Bioscoop uses one representation throughout, it has one pass regardless of the traversal order of individual nodes.
 

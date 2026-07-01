@@ -2,10 +2,9 @@
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
             [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain*]]
-            [bioscoop.registry :as registry]
             [bioscoop.parse :refer [dsl-parser]]
-            [bioscoop.env :refer [make-env env-get env-put]]
-            [bioscoop.resolve :refer [resolve-function reserved-word-type get-var reserved-word?]]
+            [bioscoop.env :refer [make-env env-put]]
+            [bioscoop.resolve :refer [resolve-function reserved-word-type resolve-symbol reserved-word?]]
             [bioscoop.error-handling :refer [accumulate-error]]
             [bioscoop.trace :refer [trace>]]
             [clojure.tools.logging :as log]))
@@ -115,14 +114,7 @@
            (transform-ast body loop-env)))))
 
 (defmethod transform-ast* :symbol [[_ sym] env]
-  (let [env-val (env-get env sym)
-        graph-val (get-var (symbol sym))]
-    (cond
-      (and env-val graph-val) (do (accumulate-error env sym :ambiguous-symbol)
-                                  env-val)
-      graph-val graph-val
-      env-val env-val
-      :else sym)))
+  (resolve-symbol sym env))
 
 (defmethod transform-ast* :keyword [[_ kw] env]
   (keyword kw))

@@ -8,6 +8,7 @@
             [bioscoop.built-in]
             [bioscoop.domain.records :refer [compose-filtergraphs make-filtergraph]]
             [bioscoop.error-handling :refer [accumulate-error]]
+            [bioscoop.env :refer [env-get]]
             [clojure.tools.logging :as log])
   (:import [bioscoop.domain.records FilterGraph]))
 
@@ -59,3 +60,20 @@
   (when-let [v (if (namespace name) (find-var name) (resolve name))] ;; allows aliasing of filtergraph in defs
     (when (and (bound? v) (instance? FilterGraph (var-get v)))
       (var-get v))))
+
+(defmulti resolve-symbol (fn [sym env] *dynamic-resolution*))
+
+(defmethod resolve-symbol false [sym env]
+  (if-let [env-val (env-get env sym)]
+    env-val
+    sym))
+
+(defmethod resolve-symbol true [sym env]
+  (let [env-val (env-get env sym)
+        graph-val (get-var (symbol sym))]
+    (cond
+      (and env-val graph-val) (do (accumulate-error env sym :ambiguous-symbol)
+                                  env-val)
+      graph-val graph-val
+      env-val env-val
+      :else sym)))

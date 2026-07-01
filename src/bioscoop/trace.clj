@@ -1,7 +1,6 @@
 (ns bioscoop.trace
   (:require [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.config :refer [*debug-mode*]]
-            [bioscoop.registry :as registry]
             [clojure.tools.logging :as log]
             [clojure.string :as str])
   (:import [bioscoop.domain.records FilterGraph]))
