@@ -659,7 +659,7 @@ The JVM path uses runtime reflection via \texttt{ns-resolve}. This affords capab
 
 The GraalVM native image path uses a static lookup table populated at compile time from the public vars of \texttt{bioscoop.built-in} and \texttt{clojure.core}. GraalVM's closed-world compilation model restricts dynamic class loading and requires explicit reflection configuration. The static table is the correct response to these constraints: it is fast, allocation-free, and requires no reflection at runtime.
 
-These are not two implementations of the same mechanism but two distinct strategies, each maximizing the affordances of its execution environment. The \texttt{*dynamic-resolution*} dynamic var is the abstraction boundary between them, selected automatically by the macro path and configurable for programmatic use.
+These are not two implementations of the same mechanism but two distinct strategies, each maximizing the affordances of its execution environment---for graph resolution as much as for filter-function resolution. The \texttt{*dynamic-resolution*} dynamic var is the abstraction boundary between them, selected automatically by the macro path and configurable for programmatic use.
 
 \subsection{Limitations}
 
@@ -703,7 +703,8 @@ We have described Bioscoop, a domain-specific language compiler for FFmpeg filte
 \item \emph{Fail-soft error discipline}: appropriate for interactive creative coding, where partial results are more useful than hard failures
 \end{itemize}
 
-The system is available as open-source software and, to our knowledge, the first source-to-source compiler whose target language is FFmpeg's filtergraph syntax. This situates Bioscoop within a lineage of transpilers that target domain notation languages---Sass targeting CSS, Hiccup targeting HTML---where the value is not in replacing the target language but in providing the abstraction mechanisms it deliberately omits. Its most practically significant individual property is the \texttt{for} construct, which closes the expressiveness gap between FFmpeg's static filtergraph syntax and the data-driven, parameterized pipeline descriptions that users of complex filtergraphs actually need: graph topology and filter arguments derived from computed values, not written out by hand.
+These contributions situate Bioscoop within a lineage of transpilers that target domain notation languages---Sass targeting CSS, Hiccup targeting HTML---where the value is not in replacing the target language but in providing the abstraction mechanisms it deliberately omits. Its most practically significant individual property is the \texttt{for} construct, which closes the expressiveness gap between FFmpeg's static filtergraph syntax and the data-driven, parameterized pipeline descriptions that users of complex filtergraphs actually need: graph topology and filter arguments derived from computed values, not written out by hand.
+The system is available as open-source software under the MIT license.
 
 \acks
 The author thanks the Clojure community for their contributions to the ecosystem that made this work possible, and the FFmpeg project for building a framework expressive enough to warrant a compiler.

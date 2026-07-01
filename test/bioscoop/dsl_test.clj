@@ -175,7 +175,10 @@
       ;; Should have two expressions in the let body
       (let [let-binding (second parse-result)
             body-expressions (drop 2 let-binding)]
-        (is (= 2 (count body-expressions)))))))
+        (is (= 2 (count body-expressions))))))
+  (testing "Nested let bindings"
+    (let [result (compile-dsl "(let [foo 2] (let [foo 4] (scale x foo)))")]
+      (is (= "scale=width=x:height=4" (to-ffmpeg result))))))
 
 (deftest test-programs
   (testing "let binding should return valid structures (filter, filterchain, filtergraph)"

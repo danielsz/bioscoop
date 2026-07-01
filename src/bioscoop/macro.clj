@@ -1,7 +1,6 @@
 (ns bioscoop.macro
   (:require [bioscoop.dsl :as dsl]
             [bioscoop.config :as config]
-            [bioscoop.registry :as registry]
             [bioscoop.env :refer [make-env env-put]]
             [bioscoop.resolve :as r :refer [reserved-word?]]))
 

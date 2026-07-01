@@ -76,19 +76,16 @@
 
 (defmethod transform-ast* :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
-        body (drop (count bindings) content)
-        validate (fn [sym]
-                   (when-let [reserved-type (reserved-word-type sym)]
-                     (case reserved-type
-                       :clojure-core (accumulate-error env sym :clj-reserved-word)
-                       :built-in (accumulate-error env sym :reserved-word)
-                       nil)))
-        new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
-                          (validate sym-name)
-                          (let [expr-val (transform-ast expr acc-env)]
-                            (env-put acc-env sym-name expr-val)))
-                        (make-env env)
-                        bindings)
+        body     (drop (count bindings) content)
+        new-env  (reduce (fn [acc-env [_ [_ sym-name] expr]]
+                           (when-let [reserved-type (reserved-word-type sym-name)]
+                             (case reserved-type
+                               :clojure-core (accumulate-error acc-env sym-name :clj-reserved-word)
+                               :built-in     (accumulate-error acc-env sym-name :reserved-word)
+                               nil))
+                           (env-put acc-env sym-name (transform-ast expr acc-env)))
+                         (make-env env)
+                         bindings)
         transformed-body (mapv #(transform-ast % new-env) body)]
     (last transformed-body)))
 
