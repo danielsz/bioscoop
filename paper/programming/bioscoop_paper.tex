@@ -175,6 +175,14 @@ Bioscoop addresses FFmpeg's expressiveness gap by providing:
 
 The system supports two syntactically distinct front-ends that share a single evaluation pipeline. We describe the architectural consequences of this design, with particular attention to the properties that distinguish Bioscoop from string-generation approaches and from prior DSL work in the multimedia domain.
 
+\subsection{Programmatic Video Editing}
+
+Video editing has progressed from destructive techniques---cutting the physical negative---to non-destructive ones, made possible once film became digital: an edit decision list stands in for physical cuts, so the underlying material is never altered. In both regimes, however, the creative process remains manual: edits are made by hand, or by mouse, inside a timeline-based interface.
+
+A third approach, largely unexplored in creative-coding practice, is programmatic: the editor specifies the desired transformations as a program, and an underlying system carries them out. FFmpeg is such a system, capable of expressing nearly any editing operation as a filtergraph. It is embedded in most major platforms and applications that handle media, yet its direct use for making video art remains limited--- creators tend to avoid its string-based syntax, whose information density works against exploratory, iterative use.
+
+Bioscoop is motivated by this gap. By giving FFmpeg's filtergraph notation the abstraction mechanisms it deliberately omits---naming, iteration, parameterization---Bioscoop makes programmatic video editing a practical mode of creative work, not merely a latent capability of the underlying framework.
+
 \subsection{Motivating Example}
 
 Consider generating a slideshow that cross-fades $n$ images. In raw FFmpeg, every intermediate label must be written explicitly. For ten images this requires approximately ninety characters of filtergraph syntax, all of which must be manually regenerated if $n$ changes. In Bioscoop:
@@ -240,6 +248,8 @@ Bioscoop consists of six layers:
 \end{enumerate}
 
 \subsection{AST Convergence}
+
+A DSL with two front-ends conventionally requires two independent transformation pipelines: an external, text-based front-end parses source into a custom AST that a dedicated transformer walks, while an internal, macro-based front-end typically compiles Clojure forms directly into target code, bypassing any shared intermediate representation. This duplicates the logic that gives AST nodes their meaning across two independently maintained implementations, with no structural mechanism keeping them behaviorally aligned. Bioscoop avoids this duplication by converging both front-ends on the same AST before evaluation.
 
 Both front-ends produce ASTs consisting of tagged Clojure vectors. The node types are: \texttt{:program}, \texttt{:compose}, \texttt{:for-binding}, \texttt{:let-binding}, \texttt{:binding}, \texttt{:padded-graph}, \texttt{:list}, \texttt{:map}, \texttt{:symbol}, \texttt{:keyword}, \texttt{:string}, \texttt{:number}, \texttt{:boolean}, \texttt{:label}, \texttt{:graph-definition}.
 
@@ -655,13 +665,13 @@ This characterization aligns with the classical definition: a compiler pass is a
 
 \subsection{Dual Resolution Strategies}
 
-Bioscoop targets two distinct execution environments: the JVM Clojure runtime and GraalVM native image. The \texttt{resolve-function} multimethod selects between two resolution strategies via the \texttt{*dynamic-resolution*} dynamic var.
+Bioscoop targets two distinct execution environments: the JVM Clojure runtime and GraalVM native image. The \texttt{resolve-function} and \texttt{resolve-symbol} multimethods each select between two resolution strategies via the \texttt{*dynamic-resolution*} dynamic var---one for filter and function calls, the other for named-graph references.
 
-The JVM path uses runtime reflection via \texttt{ns-resolve}. This affords capabilities unique to the JVM's open-world execution model: vars defined after the program started, graphs interned via \texttt{defgraph} in arbitrary namespaces, and fully qualified symbol resolution across dynamically loaded code. User-defined filtergraph functions are resolved by searching the current namespace and its transitive dependencies at runtime, enabling interactive development patterns where graphs are defined and redefined at the REPL without restarting the system.
+The JVM path uses runtime reflection via \texttt{ns-resolve}. This affords capabilities unique to the JVM's open-world execution model: vars defined after the program started, graphs interned via \texttt{defgraph} in arbitrary namespaces, and fully qualified symbol resolution across dynamically loaded code. User-defined functions are resolved by searching the current namespace and its transitive dependencies at runtime, enabling interactive development patterns where graphs are defined and redefined at the REPL without restarting the system. Named-graph symbols are resolved the same way, via \texttt{get-var}: both the local environment and the var namespace are consulted, and a symbol present in both is rejected as ambiguous rather than silently disambiguated.
 
-The GraalVM native image path uses a static lookup table populated at compile time from the public vars of \texttt{bioscoop.built-in} and \texttt{clojure.core}. GraalVM's closed-world compilation model restricts dynamic class loading and requires explicit reflection configuration. The static table is the correct response to these constraints: it is fast, allocation-free, and requires no reflection at runtime.
+The GraalVM native image path uses a static lookup table populated at compile time from the public vars of \texttt{bioscoop.built-in} and \texttt{clojure.core}. GraalVM's closed-world compilation model restricts dynamic class loading and requires explicit reflection configuration. The static table is the correct response to these constraints: it is fast, allocation-free, and requires no reflection at runtime. Named-graph symbols follow the same constraint from the other direction: only bindings already present in the local environment resolve, and any other symbol is returned unresolved rather than triggering a var lookup.
 
-These are not two implementations of the same mechanism but two distinct strategies, each maximizing the affordances of its execution environment---for graph resolution as much as for filter-function resolution. The \texttt{*dynamic-resolution*} dynamic var is the abstraction boundary between them, selected automatically by the macro path and configurable for programmatic use.
+These are not two implementations of the same mechanism but two distinct strategies, each maximizing the affordances of its execution environment---for symbol resolution as much as for function resolution.  The \texttt{*dynamic-resolution*} dynamic var is the abstraction boundary between them, selected automatically by the macro path and configurable for programmatic use.
 
 \subsection{Limitations}
 
@@ -705,7 +715,8 @@ We have described Bioscoop, a domain-specific language compiler for FFmpeg filte
 \item \emph{Fail-soft error discipline}: appropriate for interactive creative coding, where partial results are more useful than hard failures
 \end{itemize}
 
-These contributions situate Bioscoop within a lineage of transpilers that target domain notation languages---Sass targeting CSS, Hiccup targeting HTML---where the value is not in replacing the target language but in providing the abstraction mechanisms it deliberately omits. Its most practically significant individual property is the \texttt{for} construct, which closes the expressiveness gap between FFmpeg's static filtergraph syntax and the data-driven, parameterized pipeline descriptions that users of complex filtergraphs actually need: graph topology and filter arguments derived from computed values, not written out by hand.
+These contributions situate Bioscoop within a lineage of transpilers that target domain notation languages---Sass targeting CSS, Hiccup targeting HTML---where the value is not in replacing the target language but in providing the abstraction mechanisms it deliberately omits. Its most practically significant individual property is the \texttt{for} construct, which closes the expressiveness gap between FFmpeg's static filtergraph syntax and the data-driven, parameterized pipeline descriptions that users of complex filtergraphs actually need: graph topology and filter arguments derived from computed values, not written out by hand. More broadly, Bioscoop demonstrates that programmatic video editing---specifying transformations as a program rather than performing them by hand in a timeline---is a practical mode of creative work once the target notation is given the abstraction mechanisms it lacks.
+
 The system is available as open-source software under the MIT license.
 
 \acks

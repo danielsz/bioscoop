@@ -35,6 +35,7 @@
    [bioscoop.domain.specs.split :as split]
    [bioscoop.domain.specs.trim :as trim]
    [bioscoop.domain.specs.fps :as fps]
+   [bioscoop.domain.specs.transpose :as transpose]
    [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.life :as life]
    [bioscoop.domain.specs.cellauto :as cellauto]
@@ -205,6 +206,9 @@
 
 (defn fps [arg env]
   (template arg ::fps/fps env))
+
+(defn transpose [arg env]
+  (template arg ::transpose/transpose env))
 
 (defn split [arg env]
   (template arg ::split/split env))
