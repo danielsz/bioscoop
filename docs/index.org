@@ -347,8 +347,8 @@ The DSL provides access to numerous FFmpeg filters including:
 
 *** Parameters
 
-Bioscoop supports positional parameters, but those are error prone.
-Named parameters are recommended:
+Following FFmpeg, Bioscoop supports positional parameters, but those
+are error prone.  Named parameters are recommended:
 
 #+begin_src clojure
 (= (scale 1920 1080) (scale {:width 1920 :height 1080})) 
