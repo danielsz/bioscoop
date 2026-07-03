@@ -198,7 +198,11 @@
   (testing "Unknown functions still become filters"
     (let [result (compile-dsl "(nonexistent 123 456)")]
       (is (instance? FilterGraph result))
-      (is (= :unresolved-function (:error-type (ex-data (first @last-errors)))) ))))
+      (is (= :unresolved-function (:error-type (ex-data (first @last-errors))))))
+    (testing "Known filters that are unimplemented return empty filtergraph"
+    (let [result (compile-dsl "(find_rect 123 456)")]
+      (is (instance? FilterGraph result))
+      (is (= :not-implemented (:error-type (ex-data (first @last-errors)))) )))))
 
 (deftest instaparse-grammar
   (testing "grammar is not ambiguous"

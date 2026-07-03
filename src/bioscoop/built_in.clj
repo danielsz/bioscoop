@@ -36,6 +36,7 @@
    [bioscoop.domain.specs.trim :as trim]
    [bioscoop.domain.specs.fps :as fps]
    [bioscoop.domain.specs.transpose :as transpose]
+   [bioscoop.domain.specs.vignette :as vignette]
    [bioscoop.domain.specs.setpts :as setpts]
    [bioscoop.domain.specs.life :as life]
    [bioscoop.domain.specs.cellauto :as cellauto]
@@ -209,6 +210,9 @@
 
 (defn transpose [arg env]
   (template arg ::transpose/transpose env))
+
+(defn vignette [arg env]
+  (template arg ::vignette/vignette env))
 
 (defn split [arg env]
   (template arg ::split/split env))

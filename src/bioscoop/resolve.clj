@@ -9,12 +9,17 @@
             [bioscoop.domain.records :refer [compose-filtergraphs make-filtergraph]]
             [bioscoop.error-handling :refer [accumulate-error]]
             [bioscoop.env :refer [env-get]]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.string :as str]
+            [clojure.java.io :as io]
+            [clojure.set :refer [difference]])
   (:import [bioscoop.domain.records FilterGraph]))
 
 (def built-in-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'bioscoop.built-in)))
 (def clojure-core-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'clojure.core)))
-(def reserved-words (merge clojure-core-functions built-in-functions ))
+(def reserved-words (merge clojure-core-functions built-in-functions))
+(def ffmpeg-filters (into #{} (str/split-lines (slurp (io/resource "filters.txt")))))
+(def unimplemented-filters (difference ffmpeg-filters (into #{} (keys built-in-functions))))
 (defn reserved-word? [name] (contains? reserved-words name))
 (defn reserved-word-type [name]
   (cond
@@ -38,6 +43,7 @@
                                        :else                          (make-filtergraph [])))))]
     (cond
       (keyword? op) (wrap-apply op)
+      (contains? unimplemented-filters op) (error op env :not-implemented)
       :else
       (let [built-in (ns-resolve 'bioscoop.built-in (symbol op))
             ns-name  (str (:ns (meta built-in)))]
@@ -54,6 +60,7 @@
     (contains? clojure-core-functions op) (fn [arg _]
                                             (let [f (get clojure-core-functions op)]
                                               (apply f arg)))
+    (contains? unimplemented-filters op) (error op env :not-implemented)
     :else (error op env :unresolved-function)))
 
 (defn get-var [name]

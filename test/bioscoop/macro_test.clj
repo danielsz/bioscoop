@@ -77,6 +77,10 @@
     (let [result (bioscoop (undefined-function 123))]
       (is (= :unresolved-function (:error-type (ex-data (first @last-errors)))))))
 
+  (testing "not implemented"
+    (let [result (bioscoop (find_rect 123))]
+      (is (= :not-implemented (:error-type (ex-data (first @last-errors)))))))
+  
   (testing "Macro produces same results as text parsing"
     (let [text-result (dsl/compile-dsl "(scale 1920 1080)")
           macro-result (bioscoop (scale 1920 1080))]

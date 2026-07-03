@@ -26,6 +26,9 @@
              :unresolved-function (fn [sym] (ex-info "Cannot resolve function" {:error-type :unresolved-function
                                                                                 :explanation "Cannot resolve function"
                                                                                 :symbol sym }))
+             :not-implemented (fn [sym] (ex-info "Not implemented" {:error-type :not-implemented
+                                                                   :explanation "This filter is not yet implemented."
+                                                                   :symbol sym}))
              :invalid-parameter (fn [sym spec] (ex-info "Not a valid parameter" {:symbol sym
                                                                                 :error-type :invalid-parameter
                                                                                 :explanation (s/explain-str spec sym)
