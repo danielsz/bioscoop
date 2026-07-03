@@ -5,7 +5,15 @@
 ;; DSL functions available inside bioscoop macro
 
 (def dsl-functions
-  #{'aap
+  #{'compose
+    'chain
+    'interleave_
+    'format_
+    'loop_
+    'reverse_
+    'identity_
+    'concat_
+    'aap
     'abench
     'acompressor
     'acontrast

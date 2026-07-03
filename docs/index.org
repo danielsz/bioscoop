@@ -322,9 +322,9 @@ the interpreter's environment.
 
 *** Error Handling
 
-Fail-soft policy with typed sentinels. Compilation errors don't abort
-evaluation. A failing subexpression returns an empty FilterGraph in
-place, while the error itself is recorded in a dynamically-scoped,
+Fail-soft discipline with typed sentinels. Compilation errors don't
+abort evaluation. A failing subexpression returns an empty FilterGraph
+in place, while the error itself is recorded in a dynamically-scoped,
 deduplicated error accumulator, printed immediately, and inspectable
 after compilation completes. This is a deliberate REPL-oriented design
 choice — partial results and immediate feedback matter more than hard

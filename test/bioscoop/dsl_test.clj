@@ -249,6 +249,11 @@
       (let [dsl "(let [map red] (color {:c map}))"]
         (is (= "color=c=red" (to-ffmpeg (compile-dsl dsl))))))))
 
+(deftest keywords
+  (testing "Keywords are functions"
+    (let [dsl "(let [data {:width 1920 :height 1080}](scale {:width (:width data) :height (:height data)}))"]
+      (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl dsl)))))))
+
 (deftest ffmpeg-parsing
   (testing "Labels are preserved when parsing ffmpeg command"
     (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
@@ -307,8 +312,8 @@
     (testing "for binding in label position")
     (let [result (compile-dsl "[[(for [i (range 3)] (str \"i\" i))] (scale)[\"out\"]]")]
       (is (= (to-ffmpeg result) "[i0][i1][i2]scale[out]")))
-    (testing "interleaving values in label position")
-    (let [result (compile-dsl "[[(interleave (for [i (range 3)] (str \"foo\" i)) (for [i (range 3)] (str \"bar\" i)))] (hue) [\"out\"]]")]
+    (testing "interleaving values in label position requires alias due to ffmpeg filter bearing same name")
+    (let [result (compile-dsl "[[(interleave_ (for [i (range 3)] (str \"foo\" i)) (for [i (range 3)] (str \"bar\" i)))] (hue) [\"out\"]]")]
       (is (= (to-ffmpeg result) "[foo0][bar0][foo1][bar1][foo2][bar2]hue[out]")))))
 
 (deftest defgraph

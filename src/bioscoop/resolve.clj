@@ -12,56 +12,53 @@
             [clojure.tools.logging :as log]
             [clojure.string :as str]
             [clojure.java.io :as io]
-            [clojure.set :refer [difference]])
+            [clojure.set :refer [difference intersection]])
   (:import [bioscoop.domain.records FilterGraph]))
 
-(def built-in-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'bioscoop.built-in)))
+(def implemented-filters (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'bioscoop.built-in)))
 (def clojure-core-functions (reduce-kv (fn [m k v] (assoc m (str k) v)) {} (ns-publics 'clojure.core)))
-(def reserved-words (merge clojure-core-functions built-in-functions))
+(def reserved-words (merge clojure-core-functions implemented-filters))
 (def ffmpeg-filters (into #{} (str/split-lines (slurp (io/resource "filters.txt")))))
-(def unimplemented-filters (difference ffmpeg-filters (into #{} (keys built-in-functions))))
+(def collisions (intersection ffmpeg-filters (into #{} (keys clojure-core-functions))))
+(def aliases (into #{} (map (fn [n] (str n "_")) collisions)))
+(def unimplemented-filters (difference ffmpeg-filters (into #{} (keys implemented-filters))))
 (defn reserved-word? [name] (contains? reserved-words name))
 (defn reserved-word-type [name]
   (cond
-    (contains? built-in-functions name) :built-in
+    (contains? implemented-filters name) :built-in
     (contains? clojure-core-functions name) :clojure-core  ))
 
 (defn- error [op env error-type]
   (accumulate-error env op error-type)
   (fn [_ _] (make-filtergraph [])))
 
+(defn wrap-apply [f]
+  (fn [arg _] (apply f arg)))
+
+(defn resolve-fn [op env else]
+  (cond
+    (keyword? op) (wrap-apply op)
+    (contains? unimplemented-filters op) (error op env :not-implemented)
+    (contains? implemented-filters op) (get implemented-filters op)
+    (contains? clojure-core-functions op) (wrap-apply (get clojure-core-functions op))
+    (contains? aliases op) (wrap-apply (get clojure-core-functions (subs op 0 (dec (count op)))))
+    :else (else)))
+
 (defmulti resolve-function (fn [op env] *dynamic-resolution*))
 
 (defmethod resolve-function true [op env]
-  (let [wrap-apply (fn [f]
-                     (fn [arg _] (apply f arg)))
-        wrap-user-defined (fn [f] (fn [arg _]
+  (let [wrap-user-defined (fn [f] (fn [arg _]
                                    (let [result (apply f arg)]
                                      (cond
                                        (instance? FilterGraph result) result
                                        (seqable? result)              (apply compose-filtergraphs result)
                                        :else                          (make-filtergraph [])))))]
-    (cond
-      (keyword? op) (wrap-apply op)
-      (contains? unimplemented-filters op) (error op env :not-implemented)
-      :else
-      (let [built-in (ns-resolve 'bioscoop.built-in (symbol op))
-            ns-name  (str (:ns (meta built-in)))]
-        (case ns-name
-          "bioscoop.built-in" built-in
-          "clojure.core" (wrap-apply built-in)
-          (if-let [f (ns-resolve *ns* (symbol op))]
-            (wrap-user-defined f)
-            (error op env :unresolved-function)))))))
+    (resolve-fn op env #(if-let [f (ns-resolve *ns* (symbol op))]
+                          (wrap-user-defined f)
+                          (error op env :unresolved-function)))))
 
 (defmethod resolve-function false [op env]
-  (cond
-    (contains? built-in-functions op) (get built-in-functions op)
-    (contains? clojure-core-functions op) (fn [arg _]
-                                            (let [f (get clojure-core-functions op)]
-                                              (apply f arg)))
-    (contains? unimplemented-filters op) (error op env :not-implemented)
-    :else (error op env :unresolved-function)))
+  (resolve-fn op env #(error op env :unresolved-function)))
 
 (defn get-var [name]
   (when-let [v (if (namespace name) (find-var name) (resolve name))] ;; allows aliasing of filtergraph in defs
