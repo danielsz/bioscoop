@@ -324,7 +324,7 @@ the interpreter's environment.
 
 *** Error Handling
 
-Fail-soft with typed sentinels. Compilation errors don't abort
+Fail-soft policy with typed sentinels. Compilation errors don't abort
 evaluation. A failing subexpression returns an empty FilterGraph in
 place, while the error itself is recorded in a dynamically-scoped,
 deduplicated error accumulator, printed immediately, and inspectable
