@@ -301,7 +301,7 @@ flattened into a padded graph's input/output labels:
 [[(for [i (range n)] (str "b" i "c"))] stacking]
 ;; generates ["b0c" "b1c" ... "b(n-1)c"] as input labels
 #+end_src
-****
+
 **** 5. *Graph Definitions*
 
 Graph definitions are named, reusable components. They can appear anywhere in
