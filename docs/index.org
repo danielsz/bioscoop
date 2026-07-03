@@ -216,8 +216,9 @@ The DSL accepts a Lisp-like syntax with the following core constructs:
 #+end_src
 
 Standard FFmpeg filters are being treated as functions in
-Bioscoop. Clojure functions are available as well, but since all expressions
-in Bioscoop must produce a Filtergraph, this is a valid Bioscoop program:
+Bioscoop. Clojure functions are available as well, but since all
+expressions in Bioscoop must produce a Filtergraph, this is a valid
+Bioscoop program:
 
 #+begin_src clojure
 (scale {:width (inc 1919) :height 1080})
@@ -236,7 +237,7 @@ While this is not:
   (scale {:width width :height height}))
 #+end_src
 
-**** 3. *Filter chains* and filter graphs
+**** 3. *Filterchains* and filtergraphs
 #+begin_src clojure
 (chain
   (scale {:width 1920 :height 1080})
@@ -261,7 +262,7 @@ enclosed in square brackets [v] to link the chains together.
 3. These two unique chains are combined by the overlay filter.
 
 To combine those separate filterchains in one filtergraph, you use
-Bioscoop's compose special form:
+Bioscoop's special form ~compose~:
 
 #+begin_src clojure
 (compose [["0:v"] (scale {:width 1920 :height 1080}) ["scaled"]]
