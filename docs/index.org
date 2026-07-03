@@ -256,29 +256,18 @@ enclosed in square brackets [v] to link the chains together.
 [["scaled"]["flipped"] (overlay) ["out"]]
 #+end_src
 
-1. Chain 1 scales the first video input and names the output [scaled].
-2. Chain 2 vertically flips a second video input and names the output
-[flipped].
+1. Chain 1 scales the first video input and names the output ~[scaled]~.
+2. Chain 2 vertically flips a second video input and names the output ~[flipped]~.
 3. These two unique chains are combined by the overlay filter.
 
-To combine those separate filterchains in one filtergraph, you use Bioscoop's
-compose special form:
+To combine those separate filterchains in one filtergraph, you use
+Bioscoop's compose special form:
 
 #+begin_src clojure
 (compose [["0:v"] (scale {:width 1920 :height 1080}) ["scaled"]]
          [["1:v"] (flip) ["flipped"]]
          [["scaled"]["flipped"] (overlay) ["out"]])
 #+end_src
-
-Note: ~chain~ isn't a dedicated grammar construct the way ~let~, ~for~,
-~defgraph~, and ~compose~ are — it's an ordinary function call, resolved
-and flattened at evaluation time rather than given its own AST node
-type. Practically this means ~chain~ accepts a heterogeneous mix of
-individual filters, other filter chains, and single-chain named graphs
-(i.e. you can drop a ~defgraph~-defined graph straight into a chain and
-it's spliced in transparently) — but a graph with parallel
-(multi-chain) structure inside a chain is rejected as a type error
-rather than silently mis-flattened.
 
 **** 4. Iteration (for)
 
