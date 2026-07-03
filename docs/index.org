@@ -230,6 +230,14 @@ While this is not:
 (inc 1919)
 #+end_src
 
+In typical Clojure fashion, keywords are functions. So you can
+write the following:
+
+#+begin_src clojure
+(let [data {:width 1920 :height 1080}]
+  (scale {:width (:width data) :height (:height data)}))
+#+end_src
+
 **** 2. *Variable Binding (let)*
 #+begin_src clojure
 (let [width 1920
