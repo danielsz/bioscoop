@@ -38,21 +38,22 @@
 (defn compose-filtergraphs [& filtergraphs]
   (make-filtergraph (mapcat :chains filtergraphs)))
 
-(defn promote-to-filtergraph* [f]
+(defn promote-to-filtergraph* [error-f]
   (fn promote [x env]
     (cond
       (instance? FilterGraph x) x
       (instance? FilterChain x) (make-filtergraph [x])
       (instance? Filter x)      (make-filtergraph [(make-filterchain [x])])
       (sequential? x)           (apply compose-filtergraphs (map #(promote % env) x))
-      :else                     (f env x :not-a-filtergraph))))
+      :else                     (error-f env x :not-a-filtergraph))))
 
-(defn promote-to-filterchain* [f]
-  (fn [x env]
+(defn promote-to-filterchain* [error-f]
+  (fn promote [x env]
     (cond
       (instance? Filter x) [x]
       (instance? FilterChain x) (:filters x)
       (instance? FilterGraph x) (if (= 1 (count (:chains x)))
                                   (:filters (first (:chains x)))
-                                  (f env x :chain-parallel-filtergraph))
-      :else (f env x :not-a-filtergraph))))
+                                  (error-f env x :chain-parallel-filtergraph))
+      (sequential? x) (vec (mapcat #(promote % env) x))
+      :else (error-f env x :not-a-filtergraph))))

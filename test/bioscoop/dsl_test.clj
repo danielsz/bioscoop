@@ -4,7 +4,7 @@
             [bioscoop.render :refer [to-ffmpeg]]
             [bioscoop.ffmpeg-parser :as ffmpeg]
             [bioscoop.built-in]
-            [clojure.test :refer [testing deftest is use-fixtures]]
+            [clojure.test :refer [testing deftest is]]
             [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
             [clojure.string :as str]
@@ -335,3 +335,4 @@
     (testing "a graph can refer to a previously defined graph"
       (let [result (compile-dsl "(defgraph foo (scale 1920 1080))\n(defgraph bar (compose foo (crop \"640\" \"480\")))\nbar")]
       (is (= "scale=width=1920:height=1080;crop=out_w=640:w=480" (to-ffmpeg result)))))))
+

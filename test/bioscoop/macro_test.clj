@@ -338,3 +338,115 @@
 (deftest namespaced-environment
   (testing "graph definitions"
     (defgraph foo (scale {:width 1080 :height 800}))))
+
+(deftest chain-absorbs-a-for-result
+  (testing "a for loop of filters expands in place, in iteration order"
+    (is (= (to-ffmpeg (bioscoop (chain (drawtext {:text "0"}) (drawtext {:text "1"}) (drawtext {:text "2"}))))
+           (to-ffmpeg (bioscoop (chain (for [n (range 3)] (drawtext {:text (str n)})))))))
+    (is (empty? @dsl/last-errors))))
+
+(deftest chain-absorbs-a-for-result-among-literal-filters
+  (testing "a for loop can sit between ordinary filter calls in the same chain"
+    (is (= (to-ffmpeg (bioscoop (chain (crop {:out_w "100"})
+                                        (drawtext {:text "0"}) (drawtext {:text "1"})
+                                        (vignette {:angle "1.0"}))))
+           (to-ffmpeg (bioscoop (chain (crop {:out_w "100"})
+                                       (for [n (range 2)] (drawtext {:text (str n)}))
+                                       (vignette {:angle "1.0"}))))))))
+
+(deftest chain-absorbs-two-separate-fors
+  (testing "multiple for loops as separate chain arguments concatenate in argument order"
+    (is (= (to-ffmpeg (bioscoop (chain (crop {:out_w "0"}) (crop {:out_w "1"})
+                                        (vignette {:angle "0"}) (vignette {:angle "1"}))))
+           (to-ffmpeg (bioscoop (chain (for [n (range 2)] (crop {:out_w (str n)}))
+                                       (for [n (range 2)] (vignette {:angle (str n)})))))))))
+
+(deftest chain-absorbs-heterogeneous-filters-from-one-for
+  (testing "a single for loop can yield different filter types per iteration"
+    (is (= (to-ffmpeg (bioscoop (chain (boxblur {:luma_radius "0"}) (vignette {:angle "1"})
+                                        (boxblur {:luma_radius "2"}) (vignette {:angle "3"}))))
+           (to-ffmpeg (bioscoop (chain (for [n (range 4)]
+                                         (if (even? n)
+                                           (boxblur {:luma_radius (str n)})
+                                           (vignette {:angle (str n)}))))))))))
+
+(deftest chain-absorbs-a-for-of-chains
+  (testing "each for iteration can itself be a multi-filter chain; all flatten into one filterchain"
+    (is (= (to-ffmpeg (bioscoop (chain (crop {:out_w "100" :x "0"}) (boxblur {:luma_radius "1"})
+                                        (crop {:out_w "100" :x "10"}) (boxblur {:luma_radius "1"}))))
+           (to-ffmpeg (bioscoop (chain (for [n (range 2)]
+                                         (chain (crop {:out_w "100" :x (str (* n 10))})
+                                                (boxblur {:luma_radius "1"}))))))))))
+
+(deftest chain-absorbs-nested-for-for
+  (testing "for-within-for flattens through two levels of nesting"
+    (is (= (to-ffmpeg (bioscoop (chain (drawtext {:text "0-0"}) (drawtext {:text "0-1"})
+                                        (drawtext {:text "1-0"}) (drawtext {:text "1-1"}))))
+           (to-ffmpeg (bioscoop (chain (for [i (range 2)]
+                                         (for [j (range 2)]
+                                           (drawtext {:text (str i "-" j)}))))))))))
+
+(deftest chain-empty-for-contributes-nothing
+  (testing "an empty for loop contributes no filters, and doesn't disturb its neighbors"
+    (is (= (to-ffmpeg (bioscoop (chain (crop {:out_w "100"}) (vignette {:angle "1.0"}))))
+           (to-ffmpeg (bioscoop (chain (crop {:out_w "100"})
+                                       (for [n (range 0)] (drawtext {:text (str n)}))
+                                       (vignette {:angle "1.0"}))))))
+    (is (empty? @dsl/last-errors))))
+
+(deftest chain-rejects-parallel-filtergraph-from-for
+  (testing "a for iteration that produces a genuinely parallel filtergraph is rejected, not silently linearized"
+    (let [result (bioscoop (chain (crop {:out_w "100"})
+                                   (for [n (range 2)]
+                                     (compose (boxblur {:luma_radius "1"}) (vignette {:angle "1.0"})))
+                                   (drawtext {:text "end"})))]
+      (is (= "crop=out_w=100,drawtext=text=end" (to-ffmpeg result)))
+      (is (some #(= :chain-parallel-filtergraph (:error-type (ex-data %))) @dsl/last-errors)))))
+
+
+(deftest apply-matches-a-literal-call
+  (testing "apply resolves a runtime name and produces the exact same filter a literal call would, across several filters"
+    (is (= (to-ffmpeg (bioscoop (crop {:out_w "3000" :x "1000" :keep_aspect true})))
+           (to-ffmpeg (bioscoop (apply "crop" {:out_w "3000" :x "1000" :keep_aspect true})))))
+    (is (= (to-ffmpeg (bioscoop (vignette {:angle "1.3"})))
+           (to-ffmpeg (bioscoop (apply "vignette" {:angle "1.3"})))))
+    (is (= (to-ffmpeg (bioscoop (boxblur {:luma_radius "2"})))
+           (to-ffmpeg (bioscoop (apply "boxblur" {:luma_radius "2"})))))))
+
+(deftest apply-with-nil-args-matches-a-noarg-literal-call
+  (testing "apply with nil args renders identically to a bare, argument-less literal call -- no trailing '='"
+    (is (= "hflip" (to-ffmpeg (bioscoop (hflip)))))
+    (is (= (to-ffmpeg (bioscoop (hflip)))
+           (to-ffmpeg (bioscoop (apply "hflip" {})))))))
+
+(deftest apply-through-chain-and-for-matches-a-literal-chain
+  (testing "a chain built from a vector of [name args] pairs matches the same chain written out literally, in order"
+    (let [chain-vec [["crop" {:out_w "3000" :x "1000" :keep_aspect true}]
+                     ["hflip" {}]
+                     ["zoompan" {:z "min(1+on*0.0015,1.75)" :x "iw*0.55-(iw/zoom/2)"
+                                 :y "ih/2-(ih/zoom/2)" :s "573x696" :d 200}]
+                     ["vignette" {:angle "1.3"}]]]
+      (is (= (to-ffmpeg (bioscoop (chain (crop {:out_w "3000" :x "1000" :keep_aspect true})
+                                          (hflip)
+                                          (zoompan {:z "min(1+on*0.0015,1.75)" :x "iw*0.55-(iw/zoom/2)"
+                                                    :y "ih/2-(ih/zoom/2)" :s "573x696" :d 200})
+                                          (vignette {:angle "1.3"}))))
+             (to-ffmpeg (bioscoop (chain (for [pair chain-vec] (apply (first pair) (second pair))))))))
+      (is (= "crop=out_w=3000:x=1000:keep_aspect=true,hflip,zoompan=z=min(1+on*0.0015,1.75):x=iw*0.55-(iw/zoom/2):y=ih/2-(ih/zoom/2):s=573x696:d=200,vignette=angle=1.3" (to-ffmpeg (bioscoop (chain (for [pair chain-vec] (apply (first pair) (second pair)))))))))))
+
+
+(deftest apply-fails-like-a-literal-call-on-a-bogus-name
+  (testing "apply degrades the same way a literal call to an unresolvable name does"
+    (let [via-literal (bioscoop (this-filter-does-not-exist {:x "1"}))
+          errors-literal @dsl/last-errors
+          via-apply (bioscoop (apply "this-filter-does-not-exist" {:x "1"}))
+          errors-apply @dsl/last-errors]
+      (is (= "" (to-ffmpeg via-literal) (to-ffmpeg via-apply)))
+      (is (= :unresolved-function (:error-type (ex-data (first errors-literal)))))
+      (is (= :unresolved-function (:error-type (ex-data (first errors-apply))))))))
+
+(deftest apply-distinguishes-unimplemented-from-unresolved
+  (testing "a real but not-yet-coded ffmpeg filter reports :not-implemented, not a generic unresolved error"
+    (let [result (bioscoop (apply "minterpolate" {}))]
+      (is (= "" (to-ffmpeg result)))
+      (is (some #(= :not-implemented (:error-type (ex-data %))) @dsl/last-errors)))))

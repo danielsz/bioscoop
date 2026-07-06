@@ -98,6 +98,11 @@
       "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
       "when" (if (first transformed-args) (second transformed-args) (make-filtergraph []))
+      "apply" (let [[op args-val] transformed-args
+                    resolved (resolve-function op env)]
+                (if (seq args-val)
+                  (resolved [args-val] env)
+                  (resolved nil env)))
       (let [resolved (resolve-function transformed-op env)]
         (if (seq transformed-args)
           (resolved transformed-args env)
