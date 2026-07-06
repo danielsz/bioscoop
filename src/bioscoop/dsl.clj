@@ -9,7 +9,7 @@
             [bioscoop.trace :refer [trace>]]
             [clojure.tools.logging :as log]))
 
-(declare transform-ast)
+(declare transform-ast compile-dsl)
 
 (def promote-to-filtergraph (promote-to-filtergraph* accumulate-error))
 (def promote-to-filterchain (promote-to-filterchain* (partial accumulate-error [])))  ; must return [] since the result feeds into mapcat
@@ -98,11 +98,14 @@
       "chain" (make-filterchain (vec (mapcat #(promote-to-filterchain % env) transformed-args)))
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
       "when" (if (first transformed-args) (second transformed-args) (make-filtergraph []))
-      "apply" (let [[op args-val] transformed-args
-                    resolved (resolve-function op env)]
-                (if (seq args-val)
-                  (resolved [args-val] env)
-                  (resolved nil env)))
+      "dispatch" (let [[op args-val] transformed-args
+                       resolved (resolve-function op env)]
+                   (if (seq args-val)
+                     (resolved [args-val] env)
+                     (resolved nil env)))
+      "eval" (if (every? string? transformed-args)
+               (compile-dsl (apply str transformed-args) (make-env env))
+               (make-filtergraph []))
       (let [resolved (resolve-function transformed-op env)]
         (if (seq transformed-args)
           (resolved transformed-args env)

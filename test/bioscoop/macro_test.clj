@@ -404,22 +404,22 @@
       (is (some #(= :chain-parallel-filtergraph (:error-type (ex-data %))) @dsl/last-errors)))))
 
 
-(deftest apply-matches-a-literal-call
-  (testing "apply resolves a runtime name and produces the exact same filter a literal call would, across several filters"
+(deftest dispatch-matches-a-literal-call
+  (testing "dispatch resolves a runtime name and produces the exact same filter a literal call would, across several filters"
     (is (= (to-ffmpeg (bioscoop (crop {:out_w "3000" :x "1000" :keep_aspect true})))
-           (to-ffmpeg (bioscoop (apply "crop" {:out_w "3000" :x "1000" :keep_aspect true})))))
+           (to-ffmpeg (bioscoop (dispatch "crop" {:out_w "3000" :x "1000" :keep_aspect true})))))
     (is (= (to-ffmpeg (bioscoop (vignette {:angle "1.3"})))
-           (to-ffmpeg (bioscoop (apply "vignette" {:angle "1.3"})))))
+           (to-ffmpeg (bioscoop (dispatch "vignette" {:angle "1.3"})))))
     (is (= (to-ffmpeg (bioscoop (boxblur {:luma_radius "2"})))
-           (to-ffmpeg (bioscoop (apply "boxblur" {:luma_radius "2"})))))))
+           (to-ffmpeg (bioscoop (dispatch "boxblur" {:luma_radius "2"})))))))
 
-(deftest apply-with-nil-args-matches-a-noarg-literal-call
-  (testing "apply with nil args renders identically to a bare, argument-less literal call -- no trailing '='"
+(deftest dispatch-with-nil-args-matches-a-noarg-literal-call
+  (testing "dispatch with nil args renders identically to a bare, argument-less literal call -- no trailing '='"
     (is (= "hflip" (to-ffmpeg (bioscoop (hflip)))))
     (is (= (to-ffmpeg (bioscoop (hflip)))
-           (to-ffmpeg (bioscoop (apply "hflip" {})))))))
+           (to-ffmpeg (bioscoop (dispatch "hflip" {})))))))
 
-(deftest apply-through-chain-and-for-matches-a-literal-chain
+(deftest dispatch-through-chain-and-for-matches-a-literal-chain
   (testing "a chain built from a vector of [name args] pairs matches the same chain written out literally, in order"
     (let [chain-vec [["crop" {:out_w "3000" :x "1000" :keep_aspect true}]
                      ["hflip" {}]
@@ -431,22 +431,27 @@
                                           (zoompan {:z "min(1+on*0.0015,1.75)" :x "iw*0.55-(iw/zoom/2)"
                                                     :y "ih/2-(ih/zoom/2)" :s "573x696" :d 200})
                                           (vignette {:angle "1.3"}))))
-             (to-ffmpeg (bioscoop (chain (for [pair chain-vec] (apply (first pair) (second pair))))))))
-      (is (= "crop=out_w=3000:x=1000:keep_aspect=true,hflip,zoompan=z=min(1+on*0.0015,1.75):x=iw*0.55-(iw/zoom/2):y=ih/2-(ih/zoom/2):s=573x696:d=200,vignette=angle=1.3" (to-ffmpeg (bioscoop (chain (for [pair chain-vec] (apply (first pair) (second pair)))))))))))
+             (to-ffmpeg (bioscoop (chain (for [pair chain-vec] (dispatch (first pair) (second pair))))))))
+      (is (= "crop=out_w=3000:x=1000:keep_aspect=true,hflip,zoompan=z=min(1+on*0.0015,1.75):x=iw*0.55-(iw/zoom/2):y=ih/2-(ih/zoom/2):s=573x696:d=200,vignette=angle=1.3" (to-ffmpeg (bioscoop (chain (for [pair chain-vec] (dispatch (first pair) (second pair)))))))))))
 
 
-(deftest apply-fails-like-a-literal-call-on-a-bogus-name
-  (testing "apply degrades the same way a literal call to an unresolvable name does"
+(deftest dispatch-fails-like-a-literal-call-on-a-bogus-name
+  (testing "dispatch degrades the same way a literal call to an unresolvable name does"
     (let [via-literal (bioscoop (this-filter-does-not-exist {:x "1"}))
           errors-literal @dsl/last-errors
-          via-apply (bioscoop (apply "this-filter-does-not-exist" {:x "1"}))
-          errors-apply @dsl/last-errors]
-      (is (= "" (to-ffmpeg via-literal) (to-ffmpeg via-apply)))
+          via-dispatch (bioscoop (dispatch "this-filter-does-not-exist" {:x "1"}))
+          errors-dispatch @dsl/last-errors]
+      (is (= "" (to-ffmpeg via-literal) (to-ffmpeg via-dispatch)))
       (is (= :unresolved-function (:error-type (ex-data (first errors-literal)))))
-      (is (= :unresolved-function (:error-type (ex-data (first errors-apply))))))))
+      (is (= :unresolved-function (:error-type (ex-data (first errors-dispatch))))))))
 
-(deftest apply-distinguishes-unimplemented-from-unresolved
+(deftest dispatch-distinguishes-unimplemented-from-unresolved
   (testing "a real but not-yet-coded ffmpeg filter reports :not-implemented, not a generic unresolved error"
-    (let [result (bioscoop (apply "minterpolate" {}))]
+    (let [result (bioscoop (dispatch "minterpolate" {}))]
       (is (= "" (to-ffmpeg result)))
       (is (some #(= :not-implemented (:error-type (ex-data %))) @dsl/last-errors)))))
+
+(deftest eval-is-a-full-interpreter
+  (testing "the classics"
+    (is (= "crop=out_w=3000:x=1000:keep_aspect=true"
+           (to-ffmpeg (bioscoop (eval "(crop {:out_w \"3000\" :x \"1000\" :keep_aspect true})")))))))
