@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2026-07-07 Tue 11:57 -->
+<!-- 2026-07-07 Tue 12:06 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -208,18 +208,18 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org5587742">Motivation</a></li>
-<li><a href="#org130282e">AST convergence</a></li>
-<li><a href="#org8a6ec3c">Internals</a></li>
-<li><a href="#org03033de">The filtergraph</a></li>
-<li><a href="#org8f4a649">The Language</a></li>
-<li><a href="#org880052c">Inspiration</a></li>
+<li><a href="#org87a692e">Motivation</a></li>
+<li><a href="#orgb510d94">AST convergence</a></li>
+<li><a href="#org40578e9">Internals</a></li>
+<li><a href="#org61af96a">The filtergraph</a></li>
+<li><a href="#org4210ae4">The Language</a></li>
+<li><a href="#org0b4f37f">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org5587742" class="outline-2">
-<h2 id="org5587742">Motivation</h2>
-<div class="outline-text-2" id="text-org5587742">
+<div id="outline-container-org87a692e" class="outline-2">
+<h2 id="org87a692e">Motivation</h2>
+<div class="outline-text-2" id="text-org87a692e">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -247,9 +247,9 @@ in the center of the creative process.
 </p>
 </div>
 </div>
-<div id="outline-container-org130282e" class="outline-2">
-<h2 id="org130282e">AST convergence</h2>
-<div class="outline-text-2" id="text-org130282e">
+<div id="outline-container-orgb510d94" class="outline-2">
+<h2 id="orgb510d94">AST convergence</h2>
+<div class="outline-text-2" id="text-orgb510d94">
 <p>
 The standout feature in terms of implementation and design is that
 Bioscoop does both standalone compilation and macro expansion without
@@ -314,16 +314,16 @@ language and related concepts.
 </p>
 </div>
 </div>
-<div id="outline-container-org8a6ec3c" class="outline-2">
-<h2 id="org8a6ec3c">Internals</h2>
-<div class="outline-text-2" id="text-org8a6ec3c">
+<div id="outline-container-org40578e9" class="outline-2">
+<h2 id="org40578e9">Internals</h2>
+<div class="outline-text-2" id="text-org40578e9">
 <p>
 The project is structured around several key components:
 </p>
 </div>
-<div id="outline-container-org8bba003" class="outline-4">
-<h4 id="org8bba003"><b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b></h4>
-<div class="outline-text-4" id="text-org8bba003">
+<div id="outline-container-org4e5c0b5" class="outline-4">
+<h4 id="org4e5c0b5"><b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b></h4>
+<div class="outline-text-4" id="text-org4e5c0b5">
 <ul class="org-ul">
 <li>Uses <b>Instaparse</b> to parse a Lisp-like syntax defined in <code>resources/lisp-grammar.bnf</code></li>
 <li>Grammar allows for expressions like <code>(scale 1920 1080)</code> and <code>(let [width 1920] (scale width 1080))</code></li>
@@ -332,9 +332,9 @@ The project is structured around several key components:
 </ul>
 </div>
 </div>
-<div id="outline-container-orgf28acab" class="outline-4">
-<h4 id="orgf28acab"><b>Core Data Structures</b></h4>
-<div class="outline-text-4" id="text-orgf28acab">
+<div id="outline-container-org38aa884" class="outline-4">
+<h4 id="org38aa884"><b>Core Data Structures</b></h4>
+<div class="outline-text-4" id="text-org38aa884">
 <p>
 Three main records represent FFmpeg concepts:
 </p>
@@ -345,18 +345,18 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </div>
-<div id="outline-container-org195492a" class="outline-4">
-<h4 id="org195492a"><b>Domain Model (<code>src/bioscoop/domain/</code>)</b></h4>
-<div class="outline-text-4" id="text-org195492a">
+<div id="outline-container-orgc8aba23" class="outline-4">
+<h4 id="orgc8aba23"><b>Domain Model (<code>src/bioscoop/domain/</code>)</b></h4>
+<div class="outline-text-4" id="text-orgc8aba23">
 <ul class="org-ul">
 <li>Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs</li>
 <li>Provides validation for the core data structures</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org33a4249" class="outline-4">
-<h4 id="org33a4249"><b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b></h4>
-<div class="outline-text-4" id="text-org33a4249">
+<div id="outline-container-org4f7d005" class="outline-4">
+<h4 id="org4f7d005"><b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b></h4>
+<div class="outline-text-4" id="text-org4f7d005">
 <ul class="org-ul">
 <li>Implements the <code>FFmpegRenderable</code> protocol to convert data structures to FFmpeg syntax</li>
 <li>Handles input/output labels for complex filtergraphs</li>
@@ -364,9 +364,9 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </div>
-<div id="outline-container-org379f60c" class="outline-4">
-<h4 id="org379f60c">Bidirectional Translation</h4>
-<div class="outline-text-4" id="text-org379f60c">
+<div id="outline-container-orgf77dae6" class="outline-4">
+<h4 id="orgf77dae6">Bidirectional Translation</h4>
+<div class="outline-text-4" id="text-orgf77dae6">
 <ul class="org-ul">
 <li><i>src/bioscoop/render.clj</i>: Converts DSL → FFmpeg filtergraph strings</li>
 <li><i>src/bioscoop/ffmpeg<sub>parser.clj</sub></i>: Parses existing FFmpeg filtergraph strings → DSL structures</li>
@@ -374,9 +374,9 @@ Three main records represent FFmpeg concepts:
 </div>
 </div>
 </div>
-<div id="outline-container-org03033de" class="outline-2">
-<h2 id="org03033de">The filtergraph</h2>
-<div class="outline-text-2" id="text-org03033de">
+<div id="outline-container-org61af96a" class="outline-2">
+<h2 id="org61af96a">The filtergraph</h2>
+<div class="outline-text-2" id="text-org61af96a">
 <p>
 In FFmpeg, atomic editing operations—such as scaling, cropping,
 blending, and color correction—are implemented as filters. With over
@@ -490,9 +490,9 @@ generate at scale.
 </p>
 </div>
 </div>
-<div id="outline-container-org8f4a649" class="outline-2">
-<h2 id="org8f4a649">The Language</h2>
-<div class="outline-text-2" id="text-org8f4a649">
+<div id="outline-container-org4210ae4" class="outline-2">
+<h2 id="org4210ae4">The Language</h2>
+<div class="outline-text-2" id="text-org4210ae4">
 <p>
 The DSL accepts a Lisp-like syntax with the following core constructs:
 </p>
@@ -520,9 +520,9 @@ The examples below use the external DSL syntax. Every example works
 identically with the <code>bioscoop</code> macro.
 </p>
 </div>
-<div id="outline-container-org7fd758e" class="outline-4">
-<h4 id="org7fd758e">Basic Syntax Elements</h4>
-<div class="outline-text-4" id="text-org7fd758e">
+<div id="outline-container-orge8ee0fc" class="outline-4">
+<h4 id="orge8ee0fc">Basic Syntax Elements</h4>
+<div class="outline-text-4" id="text-orge8ee0fc">
 <p>
 <b>Program Structure:</b>
 </p>
@@ -543,13 +543,13 @@ identically with the <code>bioscoop</code> macro.
 </ul>
 </div>
 </div>
-<div id="outline-container-org2e6ecd0" class="outline-4">
-<h4 id="org2e6ecd0">Core Language Constructs</h4>
-<div class="outline-text-4" id="text-org2e6ecd0">
+<div id="outline-container-org19f9969" class="outline-4">
+<h4 id="org19f9969">Core Language Constructs</h4>
+<div class="outline-text-4" id="text-org19f9969">
 </div>
 <ul class="org-ul">
-<li><a id="org83affe0"></a>1. <b>Function Calls (Lists)</b><br />
-<div class="outline-text-5" id="text-org83affe0">
+<li><a id="orge97a6af"></a>1. <b>Function Calls (Lists)</b><br />
+<div class="outline-text-5" id="text-orge97a6af">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span>scale <span style="color: #7388d6;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #7388d6;">}</span><span style="color: #707183;">)</span>
 <span style="color: #707183;">(</span>drawtext <span style="color: #7388d6;">{</span><span style="color: #008b8b;">:text</span> 'Hello World' <span style="color: #008b8b;">:x</span> 100 <span style="color: #008b8b;">:y</span> 50<span style="color: #7388d6;">}</span><span style="color: #707183;">)</span>
@@ -589,8 +589,8 @@ write the following:
 </div>
 </div>
 </li>
-<li><a id="org707e83a"></a>2. <b>Variable Binding (let)</b><br />
-<div class="outline-text-5" id="text-org707e83a">
+<li><a id="org64a8417"></a>2. <b>Variable Binding (let)</b><br />
+<div class="outline-text-5" id="text-org64a8417">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">let</span> <span style="color: #7388d6;">[</span>width 1920
       height 1080<span style="color: #7388d6;">]</span>
@@ -599,8 +599,8 @@ write the following:
 </div>
 </div>
 </li>
-<li><a id="org30ca532"></a>3. <b>Filterchains</b> and filtergraphs<br />
-<div class="outline-text-5" id="text-org30ca532">
+<li><a id="org4bea59c"></a>3. <b>Filterchains</b> / filtergraphs<br />
+<div class="outline-text-5" id="text-org4bea59c">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span>chain
   <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #909183;">}</span><span style="color: #7388d6;">)</span>
@@ -645,8 +645,8 @@ Bioscoop's special form <code>compose</code>:
 </div>
 </div>
 </li>
-<li><a id="orgcf235c5"></a>4. Iteration (for)<br />
-<div class="outline-text-5" id="text-orgcf235c5">
+<li><a id="org43648bd"></a>4. Iteration<br />
+<div class="outline-text-5" id="text-org43648bd">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">for</span> <span style="color: #7388d6;">[</span>i <span style="color: #909183;">(</span>range n<span style="color: #909183;">)</span><span style="color: #7388d6;">]</span>
   <span style="color: #7388d6;">[</span><span style="color: #909183;">[</span><span style="color: #709870;">(</span>str <span style="color: #8b2252;">"v"</span> i<span style="color: #709870;">)</span><span style="color: #909183;">]</span>
@@ -695,8 +695,8 @@ flattened into a padded graph's input/output labels:
 </div>
 </div>
 </li>
-<li><a id="org9fd6755"></a>5. <b>Graph Definitions</b><br />
-<div class="outline-text-5" id="text-org9fd6755">
+<li><a id="org2ce9297"></a>5. <b>Graph Definitions</b><br />
+<div class="outline-text-5" id="text-org2ce9297">
 <p>
 Graph definitions are named, reusable components. They can appear anywhere in
 the source code. Subsequent definitions can refer to previous
@@ -719,10 +719,10 @@ the interpreter's environment.
 </div>
 </div>
 </li>
-<li><a id="orge1af7e0"></a>6. Special Forms<br />
+<li><a id="org8ce10a0"></a>6. Special Forms<br />
 <ul class="org-ul">
-<li><a id="orge6a77d7"></a>Conditional Evaluation: if / when<br />
-<div class="outline-text-7" id="text-orge6a77d7">
+<li><a id="org9906930"></a>Conditional Evaluation: if / when<br />
+<div class="outline-text-7" id="text-org9906930">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">if</span> <span style="color: #7388d6;">(</span>= i 1<span style="color: #7388d6;">)</span> <span style="color: #7388d6;">(</span>scale 1920 1080<span style="color: #7388d6;">)</span> <span style="color: #7388d6;">(</span>crop <span style="color: #8b2252;">"640"</span> <span style="color: #8b2252;">"480"</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
 <span style="color: #707183;">(</span><span style="color: #a020f0;">when</span> <span style="color: #7388d6;">(</span>&gt; i 0<span style="color: #7388d6;">)</span> <span style="color: #7388d6;">(</span>scale i 1080<span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
@@ -737,8 +737,8 @@ runtime, not at parse time.
 </p>
 </div>
 </li>
-<li><a id="orgf3deaa7"></a>Dynamic Dispatch: dispatch<br />
-<div class="outline-text-7" id="text-orgf3deaa7">
+<li><a id="org37773c9"></a>Dynamic Dispatch: dispatch<br />
+<div class="outline-text-7" id="text-org37773c9">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span>dispatch <span style="color: #8b2252;">"crop"</span> <span style="color: #7388d6;">{</span><span style="color: #008b8b;">:out_w</span> <span style="color: #8b2252;">"3000"</span> <span style="color: #008b8b;">:x</span> <span style="color: #8b2252;">"1000"</span><span style="color: #7388d6;">}</span><span style="color: #707183;">)</span>
 <span style="color: #707183;">(</span>dispatch <span style="color: #8b2252;">"hflip"</span> <span style="color: #7388d6;">{}</span><span style="color: #707183;">)</span>
@@ -753,8 +753,8 @@ results to a literal call of the same filter.
 </p>
 </div>
 </li>
-<li><a id="orgb7e624c"></a>Runtime Re-entry: eval<br />
-<div class="outline-text-7" id="text-orgb7e624c">
+<li><a id="org203eeb2"></a>Runtime Re-entry: eval<br />
+<div class="outline-text-7" id="text-org203eeb2">
 <div class="org-src-container">
 <pre class="src src-clojure"><span style="color: #707183;">(</span>eval <span style="color: #8b2252;">"(crop {:out_w </span><span style="color: #8b2252; font-weight: bold;">\"</span><span style="color: #8b2252;">3000</span><span style="color: #8b2252; font-weight: bold;">\"</span><span style="color: #8b2252;"> :x </span><span style="color: #8b2252; font-weight: bold;">\"</span><span style="color: #8b2252;">1000</span><span style="color: #8b2252; font-weight: bold;">\"</span><span style="color: #8b2252;">})"</span><span style="color: #707183;">)</span>
 </pre>
@@ -771,9 +771,9 @@ dynamically or reading DSL strings from external sources.
 </li>
 </ul>
 </div>
-<div id="outline-container-org6ae3b11" class="outline-4">
-<h4 id="org6ae3b11">Error Handling</h4>
-<div class="outline-text-4" id="text-org6ae3b11">
+<div id="outline-container-org23f6ff4" class="outline-4">
+<h4 id="org23f6ff4">Error Handling</h4>
+<div class="outline-text-4" id="text-org23f6ff4">
 <p>
 Fail-soft discipline with typed sentinels. Compilation errors don't
 abort evaluation. A failing subexpression returns an empty FilterGraph
@@ -785,9 +785,9 @@ failure boundaries for interactive creative coding.
 </p>
 </div>
 </div>
-<div id="outline-container-org0118f5f" class="outline-4">
-<h4 id="org0118f5f">Built-in Functions</h4>
-<div class="outline-text-4" id="text-org0118f5f">
+<div id="outline-container-orgfb2f155" class="outline-4">
+<h4 id="orgfb2f155">Built-in Functions</h4>
+<div class="outline-text-4" id="text-orgfb2f155">
 <p>
 The DSL provides access to numerous FFmpeg filters including:
 </p>
@@ -814,9 +814,9 @@ compand, flanger, loudnorm, lowpass, setparams, anullsrc, aevalsrc</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org723c38f" class="outline-4">
-<h4 id="org723c38f">Parameters</h4>
-<div class="outline-text-4" id="text-org723c38f">
+<div id="outline-container-orgd2be1e7" class="outline-4">
+<h4 id="orgd2be1e7">Parameters</h4>
+<div class="outline-text-4" id="text-orgd2be1e7">
 <p>
 Following FFmpeg, Bioscoop supports positional parameters, but those
 are error prone.  Named parameters are recommended:
@@ -829,9 +829,9 @@ are error prone.  Named parameters are recommended:
 </div>
 </div>
 </div>
-<div id="outline-container-org3b30938" class="outline-4">
-<h4 id="org3b30938">Grammar Rules (BNF Summary)</h4>
-<div class="outline-text-4" id="text-org3b30938">
+<div id="outline-container-org6805ecb" class="outline-4">
+<h4 id="org6805ecb">Grammar Rules (BNF Summary)</h4>
+<div class="outline-text-4" id="text-org6805ecb">
 <p>
 The language follows these production rules:
 </p>
@@ -872,9 +872,9 @@ constraints at the parse level.
 </div>
 </div>
 </div>
-<div id="outline-container-org880052c" class="outline-2">
-<h2 id="org880052c">Inspiration</h2>
-<div class="outline-text-2" id="text-org880052c">
+<div id="outline-container-org0b4f37f" class="outline-2">
+<h2 id="org0b4f37f">Inspiration</h2>
+<div class="outline-text-2" id="text-org0b4f37f">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -902,7 +902,7 @@ all its general ideas are made.</li>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2026-07-07 Tue 11:57</p>
+<p class="date">Created: 2026-07-07 Tue 12:06</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

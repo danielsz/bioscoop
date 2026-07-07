@@ -228,6 +228,7 @@ identically with the =bioscoop= macro.
 *** Core Language Constructs
 
 **** 1. *Function Calls (Lists)*
+
 #+begin_src clojure
 (scale {:width 1920 :height 1080})
 (drawtext {:text 'Hello World' :x 100 :y 50})
@@ -257,13 +258,15 @@ write the following:
 #+end_src
 
 **** 2. *Variable Binding (let)*
+
 #+begin_src clojure
 (let [width 1920
       height 1080]
   (scale {:width width :height height}))
 #+end_src
 
-**** 3. *Filterchains* and filtergraphs
+**** 3. *Filterchains / filtergraphs*
+
 #+begin_src clojure
 (chain
   (scale {:width 1920 :height 1080})
@@ -296,7 +299,7 @@ Bioscoop's special form ~compose~:
          [["scaled"]["flipped"] (overlay) ["out"]])
 #+end_src
 
-**** 4. Iteration (for)
+**** 4. *Iteration (for)* 
 
 #+begin_src clojure
 (for [i (range n)]
@@ -352,7 +355,7 @@ the interpreter's environment.
                                    [["scaled"]["flipped"] (overlay) ["out"]])  [["v:0"] (crop "iw/2" "ih" "0" "0") ])
 #+end_src
 
-**** 6. Special Forms
+**** 6. *Special Forms*
 
 ****** Conditional Evaluation: if / when
 
