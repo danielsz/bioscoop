@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2026-07-04 Sat 02:44 -->
+<!-- 2026-07-07 Tue 11:53 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Bioscoop</title>
@@ -208,18 +208,17 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgf9fb7ec">Motivation</a></li>
-<li><a href="#org7371281">AST convergence</a></li>
-<li><a href="#org45510ca">Internals</a></li>
-<li><a href="#org9551a9a">The filtergraph</a></li>
-<li><a href="#org296551e">The Language</a></li>
-<li><a href="#org6fd9e92">Inspiration</a></li>
+<li><a href="#org4d76c16">Motivation</a></li>
+<li><a href="#org4d903ad">AST convergence</a></li>
+<li><a href="#org0a6f32f">Internals</a></li>
+<li><a href="#orgc5903a7">The filtergraph</a></li>
+<li><a href="#org50f5a37">Inspiration</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgf9fb7ec" class="outline-2">
-<h2 id="orgf9fb7ec">Motivation</h2>
-<div class="outline-text-2" id="text-orgf9fb7ec">
+<div id="outline-container-org4d76c16" class="outline-2">
+<h2 id="org4d76c16">Motivation</h2>
+<div class="outline-text-2" id="text-org4d76c16">
 <p>
 Historically, video editing has progressed from destructive
 techniques, ie. cutting the negative, to non-destructive ones,
@@ -247,9 +246,9 @@ in the center of the creative process.
 </p>
 </div>
 </div>
-<div id="outline-container-org7371281" class="outline-2">
-<h2 id="org7371281">AST convergence</h2>
-<div class="outline-text-2" id="text-org7371281">
+<div id="outline-container-org4d903ad" class="outline-2">
+<h2 id="org4d903ad">AST convergence</h2>
+<div class="outline-text-2" id="text-org4d903ad">
 <p>
 The standout feature in terms of implementation and design is that
 Bioscoop does both standalone compilation and macro expansion without
@@ -314,16 +313,16 @@ language and related concepts.
 </p>
 </div>
 </div>
-<div id="outline-container-org45510ca" class="outline-2">
-<h2 id="org45510ca">Internals</h2>
-<div class="outline-text-2" id="text-org45510ca">
+<div id="outline-container-org0a6f32f" class="outline-2">
+<h2 id="org0a6f32f">Internals</h2>
+<div class="outline-text-2" id="text-org0a6f32f">
 <p>
 The project is structured around several key components:
 </p>
 </div>
-<div id="outline-container-org3148b34" class="outline-4">
-<h4 id="org3148b34"><b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b></h4>
-<div class="outline-text-4" id="text-org3148b34">
+<div id="outline-container-orgb47df31" class="outline-4">
+<h4 id="orgb47df31"><b>DSL Parser (<code>src/bioscoop/dsl.clj</code>)</b></h4>
+<div class="outline-text-4" id="text-orgb47df31">
 <ul class="org-ul">
 <li>Uses <b>Instaparse</b> to parse a Lisp-like syntax defined in <code>resources/lisp-grammar.bnf</code></li>
 <li>Grammar allows for expressions like <code>(scale 1920 1080)</code> and <code>(let [width 1920] (scale width 1080))</code></li>
@@ -332,9 +331,9 @@ The project is structured around several key components:
 </ul>
 </div>
 </div>
-<div id="outline-container-org7b45546" class="outline-4">
-<h4 id="org7b45546"><b>Core Data Structures</b></h4>
-<div class="outline-text-4" id="text-org7b45546">
+<div id="outline-container-org31676b4" class="outline-4">
+<h4 id="org31676b4"><b>Core Data Structures</b></h4>
+<div class="outline-text-4" id="text-org31676b4">
 <p>
 Three main records represent FFmpeg concepts:
 </p>
@@ -345,18 +344,18 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </div>
-<div id="outline-container-org63e6a70" class="outline-4">
-<h4 id="org63e6a70"><b>Domain Model (<code>src/bioscoop/domain/</code>)</b></h4>
-<div class="outline-text-4" id="text-org63e6a70">
+<div id="outline-container-orgc4a295e" class="outline-4">
+<h4 id="orgc4a295e"><b>Domain Model (<code>src/bioscoop/domain/</code>)</b></h4>
+<div class="outline-text-4" id="text-orgc4a295e">
 <ul class="org-ul">
 <li>Uses Clojure Spec to define the structure of filters, filter chains, and filtergraphs</li>
 <li>Provides validation for the core data structures</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgf4853a0" class="outline-4">
-<h4 id="orgf4853a0"><b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b></h4>
-<div class="outline-text-4" id="text-orgf4853a0">
+<div id="outline-container-orgb5707d5" class="outline-4">
+<h4 id="orgb5707d5"><b>Rendering Engine (<code>src/bioscoop/render.clj</code>)</b></h4>
+<div class="outline-text-4" id="text-orgb5707d5">
 <ul class="org-ul">
 <li>Implements the <code>FFmpegRenderable</code> protocol to convert data structures to FFmpeg syntax</li>
 <li>Handles input/output labels for complex filtergraphs</li>
@@ -364,19 +363,19 @@ Three main records represent FFmpeg concepts:
 </ul>
 </div>
 </div>
-<div id="outline-container-org8f41fbc" class="outline-4">
-<h4 id="org8f41fbc">Bidirectional Translation</h4>
-<div class="outline-text-4" id="text-org8f41fbc">
+<div id="outline-container-org2a6e985" class="outline-4">
+<h4 id="org2a6e985">Bidirectional Translation</h4>
+<div class="outline-text-4" id="text-org2a6e985">
 <ul class="org-ul">
 <li><i>src/bioscoop/render.clj</i>: Converts DSL → FFmpeg filtergraph strings</li>
-<li><i>src/bioscoop/ffmpeg.clj</i>: Parses existing FFmpeg filtergraph strings → DSL structures</li>
+<li><i>src/bioscoop/ffmpeg<sub>parser.clj</sub></i>: Parses existing FFmpeg filtergraph strings → DSL structures</li>
 </ul>
 </div>
 </div>
 </div>
-<div id="outline-container-org9551a9a" class="outline-2">
-<h2 id="org9551a9a">The filtergraph</h2>
-<div class="outline-text-2" id="text-org9551a9a">
+<div id="outline-container-orgc5903a7" class="outline-2">
+<h2 id="orgc5903a7">The filtergraph</h2>
+<div class="outline-text-2" id="text-orgc5903a7">
 <p>
 In FFmpeg, atomic editing operations—such as scaling, cropping,
 blending, and color correction—are implemented as filters. With over
@@ -490,281 +489,9 @@ generate at scale.
 </p>
 </div>
 </div>
-<div id="outline-container-org296551e" class="outline-2">
-<h2 id="org296551e">The Language</h2>
-<div class="outline-text-2" id="text-org296551e">
-<p>
-The DSL accepts a Lisp-like syntax with the following core constructs:
-</p>
-</div>
-<div id="outline-container-org7139e20" class="outline-4">
-<h4 id="org7139e20">Basic Syntax Elements</h4>
-<div class="outline-text-4" id="text-org7139e20">
-<p>
-<b>Program Structure:</b>
-</p>
-<ul class="org-ul">
-<li>A program consists of zero or more expressions</li>
-<li>Multiple expressions are automatically composed into filter graphs</li>
-</ul>
-
-<p>
-<b>Atoms:</b>
-</p>
-<ul class="org-ul">
-<li><b>Numbers</b>: <code>42</code>, <code>-3.14</code>, <code>1920</code></li>
-<li><b>Strings</b>: <code>"hello world"</code>, <code>"in"</code>, <code>"1920x1080"</code></li>
-<li><b>Symbols</b>: <code>scale</code>, <code>my-filter</code>, <code>input-vid</code></li>
-<li><b>Keywords</b>: :color, :size</li>
-<li><b>Booleans</b>: <code>true</code>, <code>false</code></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgb31867c" class="outline-4">
-<h4 id="orgb31867c">Core Language Constructs</h4>
-<div class="outline-text-4" id="text-orgb31867c">
-</div>
-<ul class="org-ul">
-<li><a id="orgfecc332"></a>1. <b>Function Calls (Lists)</b><br />
-<div class="outline-text-5" id="text-orgfecc332">
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>scale <span style="color: #7388d6;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #7388d6;">}</span><span style="color: #707183;">)</span>
-<span style="color: #707183;">(</span>drawtext <span style="color: #7388d6;">{</span><span style="color: #008b8b;">:text</span> 'Hello World' <span style="color: #008b8b;">:x</span> 100 <span style="color: #008b8b;">:y</span> 50<span style="color: #7388d6;">}</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-
-<p>
-Standard FFmpeg filters are being treated as functions in
-Bioscoop. Clojure functions are available as well, but since all
-expressions in Bioscoop must produce a Filtergraph, this is a valid
-Bioscoop program:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>scale <span style="color: #7388d6;">{</span><span style="color: #008b8b;">:width</span> <span style="color: #909183;">(</span>inc 1919<span style="color: #909183;">)</span> <span style="color: #008b8b;">:height</span> 1080<span style="color: #7388d6;">}</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-
-<p>
-While this is not:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>inc 1919<span style="color: #707183;">)</span>
-</pre>
-</div>
-
-<p>
-In typical Clojure fashion, keywords are functions. So you can
-write the following:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">let</span> <span style="color: #7388d6;">[</span>data <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #909183;">}</span><span style="color: #7388d6;">]</span>
-  <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> <span style="color: #709870;">(</span><span style="color: #008b8b;">:width</span> data<span style="color: #709870;">)</span> <span style="color: #008b8b;">:height</span> <span style="color: #709870;">(</span><span style="color: #008b8b;">:height</span> data<span style="color: #709870;">)</span><span style="color: #909183;">}</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-</div>
-</li>
-<li><a id="orgeeeae0b"></a>2. <b>Variable Binding (let)</b><br />
-<div class="outline-text-5" id="text-orgeeeae0b">
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">let</span> <span style="color: #7388d6;">[</span>width 1920
-      height 1080<span style="color: #7388d6;">]</span>
-  <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> width <span style="color: #008b8b;">:height</span> height<span style="color: #909183;">}</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-</div>
-</li>
-<li><a id="orgcf68b3c"></a>3. <b>Filterchains</b> and filtergraphs<br />
-<div class="outline-text-5" id="text-orgcf68b3c">
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>chain
-  <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #909183;">}</span><span style="color: #7388d6;">)</span>
-  <span style="color: #7388d6;">(</span>transpose <span style="color: #909183;">{</span><span style="color: #008b8b;">:dir</span> <span style="color: #8b2252;">"cclock"</span><span style="color: #909183;">}</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-
-<p>
-Filters in a single chain are transformations on a stream that flow
-from left to right. The video scales to 1080p, and then that scaled
-output is rotated 90 degrees counter-clockwise.
-</p>
-
-<p>
-Because streams can split or merge, you use input/output labels
-enclosed in square brackets [v] to link the chains together.
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">[</span><span style="color: #7388d6;">[</span><span style="color: #8b2252;">"0:v"</span><span style="color: #7388d6;">]</span> <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #909183;">}</span><span style="color: #7388d6;">)</span> <span style="color: #7388d6;">[</span><span style="color: #8b2252;">"scaled"</span><span style="color: #7388d6;">]</span><span style="color: #707183;">]</span>
-<span style="color: #707183;">[</span><span style="color: #7388d6;">[</span><span style="color: #8b2252;">"1:v"</span><span style="color: #7388d6;">]</span> <span style="color: #7388d6;">(</span>flip<span style="color: #7388d6;">)</span> <span style="color: #7388d6;">[</span><span style="color: #8b2252;">"flipped"</span><span style="color: #7388d6;">]</span><span style="color: #707183;">]</span>
-<span style="color: #707183;">[</span><span style="color: #7388d6;">[</span><span style="color: #8b2252;">"scaled"</span><span style="color: #7388d6;">][</span><span style="color: #8b2252;">"flipped"</span><span style="color: #7388d6;">]</span> <span style="color: #7388d6;">(</span>overlay<span style="color: #7388d6;">)</span> <span style="color: #7388d6;">[</span><span style="color: #8b2252;">"out"</span><span style="color: #7388d6;">]</span><span style="color: #707183;">]</span>
-</pre>
-</div>
-
-<ol class="org-ol">
-<li>Chain 1 scales the first video input and names the output <code>[scaled]</code>.</li>
-<li>Chain 2 vertically flips a second video input and names the output <code>[flipped]</code>.</li>
-<li>These two unique chains are combined by the overlay filter.</li>
-</ol>
-
-<p>
-To combine those separate filterchains in one filtergraph, you use
-Bioscoop's special form <code>compose</code>:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>compose <span style="color: #7388d6;">[</span><span style="color: #909183;">[</span><span style="color: #8b2252;">"0:v"</span><span style="color: #909183;">]</span> <span style="color: #909183;">(</span>scale <span style="color: #709870;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #709870;">}</span><span style="color: #909183;">)</span> <span style="color: #909183;">[</span><span style="color: #8b2252;">"scaled"</span><span style="color: #909183;">]</span><span style="color: #7388d6;">]</span>
-         <span style="color: #7388d6;">[</span><span style="color: #909183;">[</span><span style="color: #8b2252;">"1:v"</span><span style="color: #909183;">]</span> <span style="color: #909183;">(</span>flip<span style="color: #909183;">)</span> <span style="color: #909183;">[</span><span style="color: #8b2252;">"flipped"</span><span style="color: #909183;">]</span><span style="color: #7388d6;">]</span>
-         <span style="color: #7388d6;">[</span><span style="color: #909183;">[</span><span style="color: #8b2252;">"scaled"</span><span style="color: #909183;">][</span><span style="color: #8b2252;">"flipped"</span><span style="color: #909183;">]</span> <span style="color: #909183;">(</span>overlay<span style="color: #909183;">)</span> <span style="color: #909183;">[</span><span style="color: #8b2252;">"out"</span><span style="color: #909183;">]</span><span style="color: #7388d6;">]</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-</div>
-</li>
-<li><a id="org03abbd1"></a>4. Iteration (for)<br />
-<div class="outline-text-5" id="text-org03abbd1">
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span><span style="color: #a020f0;">for</span> <span style="color: #7388d6;">[</span>i <span style="color: #909183;">(</span>range n<span style="color: #909183;">)</span><span style="color: #7388d6;">]</span>
-  <span style="color: #7388d6;">[</span><span style="color: #909183;">[</span><span style="color: #709870;">(</span>str <span style="color: #8b2252;">"v"</span> i<span style="color: #709870;">)</span><span style="color: #909183;">]</span>
-   <span style="color: #909183;">(</span>xfade <span style="color: #709870;">{</span><span style="color: #008b8b;">:transition</span> <span style="color: #8b2252;">"fade"</span> <span style="color: #008b8b;">:duration</span> 1 <span style="color: #008b8b;">:offset</span> <span style="color: #907373;">(</span>+ <span style="color: #6276ba;">(</span>* i 4<span style="color: #6276ba;">)</span> 3<span style="color: #907373;">)</span><span style="color: #709870;">}</span><span style="color: #909183;">)</span>
-   <span style="color: #909183;">[</span><span style="color: #709870;">(</span>str <span style="color: #8b2252;">"v"</span> <span style="color: #907373;">(</span>inc i<span style="color: #907373;">)</span><span style="color: #709870;">)</span><span style="color: #909183;">]</span><span style="color: #7388d6;">]</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-
-<p>
-<code>for</code> binds one symbol to each element of a range expression (any
-seqable — <code>range</code>, <code>map</code>, <code>filter</code>, <code>iterate</code> all work) and evaluates the body
-once per element. The range expression is evaluated in the current
-environment, so it can reference <code>let</code> bindings and injected Clojure
-locals.
-</p>
-
-<p>
-<code>for</code> isn't limited to producing filtergraph bodies — it can also appear
-in label position, generating a sequence of label strings that gets
-flattened into a padded graph's input/output labels:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">[</span><span style="color: #7388d6;">[</span><span style="color: #909183;">(</span><span style="color: #a020f0;">for</span> <span style="color: #709870;">[</span>i <span style="color: #907373;">(</span>range n<span style="color: #907373;">)</span><span style="color: #709870;">]</span> <span style="color: #709870;">(</span>str <span style="color: #8b2252;">"b"</span> i <span style="color: #8b2252;">"c"</span><span style="color: #709870;">)</span><span style="color: #909183;">)</span><span style="color: #7388d6;">]</span> stacking<span style="color: #707183;">]</span>
-<span style="color: #b22222;">;; </span><span style="color: #b22222;">generates ["b0c" "b1c" ... "b(n-1)c"] as input labels</span>
-</pre>
-</div>
-</div>
-</li>
-<li><a id="orgf2c6892"></a>5. <b>Graph Definitions</b><br />
-<div class="outline-text-5" id="text-orgf2c6892">
-<p>
-Graph definitions are named, reusable components. They can appear anywhere in
-the source code. Subsequent definitions can refer to previous
-ones. They are resolved at runtime.
-</p>
-
-<p>
-On the JVM (Clojure runtime), they behave like Vars (which they
-essentially are). In the standalone compiler, they are processed in
-the interpreter's environment.
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>defgraph my-scale <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #909183;">}</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
-
-<span style="color: #707183;">(</span>defgraph mirror-pipeline <span style="color: #7388d6;">(</span>compose <span style="color: #909183;">[</span><span style="color: #709870;">[</span><span style="color: #8b2252;">"0:v"</span><span style="color: #709870;">]</span> my-scale <span style="color: #709870;">[</span><span style="color: #8b2252;">"scaled"</span><span style="color: #709870;">]</span><span style="color: #909183;">]</span>
-                                   <span style="color: #909183;">[</span><span style="color: #709870;">[</span><span style="color: #8b2252;">"1:v"</span><span style="color: #709870;">]</span> <span style="color: #709870;">(</span>flip<span style="color: #709870;">)</span> <span style="color: #709870;">[</span><span style="color: #8b2252;">"flipped"</span><span style="color: #709870;">]</span><span style="color: #909183;">]</span>
-                                   <span style="color: #909183;">[</span><span style="color: #709870;">[</span><span style="color: #8b2252;">"scaled"</span><span style="color: #709870;">][</span><span style="color: #8b2252;">"flipped"</span><span style="color: #709870;">]</span> <span style="color: #709870;">(</span>overlay<span style="color: #709870;">)</span> <span style="color: #709870;">[</span><span style="color: #8b2252;">"out"</span><span style="color: #709870;">]</span><span style="color: #909183;">]</span><span style="color: #7388d6;">)</span>  <span style="color: #7388d6;">[</span><span style="color: #909183;">[</span><span style="color: #8b2252;">"v:0"</span><span style="color: #909183;">]</span> <span style="color: #909183;">(</span>crop <span style="color: #8b2252;">"iw/2"</span> <span style="color: #8b2252;">"ih"</span> <span style="color: #8b2252;">"0"</span> <span style="color: #8b2252;">"0"</span><span style="color: #909183;">)</span> <span style="color: #7388d6;">]</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-</div>
-</li>
-</ul>
-</div>
-<div id="outline-container-orgf2ecbbf" class="outline-4">
-<h4 id="orgf2ecbbf">Error Handling</h4>
-<div class="outline-text-4" id="text-orgf2ecbbf">
-<p>
-Fail-soft discipline with typed sentinels. Compilation errors don't
-abort evaluation. A failing subexpression returns an empty FilterGraph
-in place, while the error itself is recorded in a dynamically-scoped,
-deduplicated error accumulator, printed immediately, and inspectable
-after compilation completes. This is a deliberate REPL-oriented design
-choice — partial results and immediate feedback matter more than hard
-failure boundaries for interactive creative coding.
-</p>
-</div>
-</div>
-<div id="outline-container-org513d38d" class="outline-4">
-<h4 id="org513d38d">Built-in Functions</h4>
-<div class="outline-text-4" id="text-org513d38d">
-<p>
-The DSL provides access to numerous FFmpeg filters including:
-</p>
-
-<ul class="org-ul">
-<li><b>Scaling &amp; Cropping</b>: <code>scale</code>, <code>crop</code>, <code>pad</code></li>
-<li><b>Color &amp; Effects</b>: <code>color</code>, <code>hue</code>, <code>negate</code>, <code>curves</code>, <code>threshold</code></li>
-<li><b>Layout &amp; Composition</b>: <code>hstack</code>, <code>vstack</code>, <code>xstack</code>, <code>overlay</code>, <code>blend</code></li>
-<li><b>Transforms</b>: <code>hflip</code>, <code>vflip</code>, <code>zoompan</code></li>
-<li><b>Text &amp; Drawing</b>: <code>drawtext</code>, <code>drawgrid</code></li>
-<li><b>Sources</b>: <code>testsrc</code>, <code>rgbtestsrc</code>, <code>smptebars</code></li>
-<li><b>Time-based</b>: <code>fade</code>, <code>loop</code>, <code>trim</code>, <code>setpts</code></li>
-<li><b>Advanced</b>: <code>split</code>, <code>concat</code>, <code>lut</code>, <code>lagfun</code>, <code>cellauto</code></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org6a42558" class="outline-4">
-<h4 id="org6a42558">Parameters</h4>
-<div class="outline-text-4" id="text-org6a42558">
-<p>
-Following FFmpeg, Bioscoop supports positional parameters, but those
-are error prone.  Named parameters are recommended:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-clojure"><span style="color: #707183;">(</span>= <span style="color: #7388d6;">(</span>scale 1920 1080<span style="color: #7388d6;">)</span> <span style="color: #7388d6;">(</span>scale <span style="color: #909183;">{</span><span style="color: #008b8b;">:width</span> 1920 <span style="color: #008b8b;">:height</span> 1080<span style="color: #909183;">}</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span> 
-<span style="color: #707183;">(</span>= <span style="color: #7388d6;">(</span>crop <span style="color: #8b2252;">"iw/2"</span> <span style="color: #8b2252;">"400"</span> <span style="color: #8b2252;">"ih"</span> <span style="color: #8b2252;">"800"</span><span style="color: #7388d6;">)</span> <span style="color: #7388d6;">(</span>crop <span style="color: #909183;">{</span><span style="color: #008b8b;">:out_w</span> <span style="color: #8b2252;">"iw/2"</span> <span style="color: #008b8b;">:w</span> <span style="color: #8b2252;">"400"</span> <span style="color: #008b8b;">:out_h</span> <span style="color: #8b2252;">"ih"</span> <span style="color: #008b8b;">:h</span> <span style="color: #8b2252;">"800"</span><span style="color: #909183;">}</span><span style="color: #7388d6;">)</span><span style="color: #707183;">)</span>
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-orgcc8216f" class="outline-4">
-<h4 id="orgcc8216f">Grammar Rules (BNF Summary)</h4>
-<div class="outline-text-4" id="text-orgcc8216f">
-<p>
-The language follows these production rules:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-nil">program = expression*
-&lt;expression&gt; = atom | list | let-binding | for-binding | map | compose | graph-definition | padded-graph
-let-binding = &lt;'('&gt; &lt;'let'&gt; binding-vector expression+ &lt;')'&gt;
-&lt;binding-vector&gt; = &lt;'['&gt; binding* &lt;']'&gt;
-binding = symbol expression
-for-binding = &lt;'('&gt; &lt;'for'&gt; &lt;'['&gt; symbol expression &lt;']'&gt; expression+ &lt;')'&gt;
-graph-definition = &lt;'('&gt; &lt;'defgraph'&gt; symbol expression* &lt;')'&gt;
-padded-graph = &lt;'['&gt; label* expression label* &lt;']'&gt;
-compose = &lt;'('&gt; 'compose' expression+ &lt;')'&gt;
-list = &lt;'('&gt; expression* &lt;')'&gt;
-&lt;mapentry&gt; = keyword expression [&lt;','&gt;]
-map = &lt;'{'&gt; mapentry* &lt;'}'&gt;
-label = &lt;'['&gt; label-content &lt;']'&gt;
-&lt;label-content&gt; = string | number | identifier | for-binding | list
-&lt;atom&gt; = number | boolean | !boolean !number symbol | string | keyword
-number = #'-?\d+(\.\d+)?'
-string = &lt;'"'&gt; #'[^"]*' &lt;'"'&gt;
-&lt;operator&gt; = '=' | '&lt;' | '&gt;' | '&lt;=' | '&gt;=' | '+' | '-' | '*' | '/'
-&lt;identifier&gt; = #'[a-zA-Z_][a-zA-Z0-9_\-:]*[?!]?'
-symbol = operator | identifier
-keyword = &lt;':'&gt; identifier
-boolean = "true" | "false"
-</pre>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org6fd9e92" class="outline-2">
-<h2 id="org6fd9e92">Inspiration</h2>
-<div class="outline-text-2" id="text-org6fd9e92">
+<div id="outline-container-org50f5a37" class="outline-2">
+<h2 id="org50f5a37">Inspiration</h2>
+<div class="outline-text-2" id="text-org50f5a37">
 <blockquote>
 <p>
 The acts of the mind, wherein it exerts its power over simple ideas, are chiefly these three:
@@ -792,7 +519,7 @@ all its general ideas are made.</li>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2026-07-04 Sat 02:44</p>
+<p class="date">Created: 2026-07-07 Tue 11:53</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

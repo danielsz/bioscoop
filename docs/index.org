@@ -103,7 +103,7 @@ Three main records represent FFmpeg concepts:
 
 *** Bidirectional Translation
 - /src/bioscoop/render.clj/: Converts DSL → FFmpeg filtergraph strings
-- /src/bioscoop/ffmpeg.clj/: Parses existing FFmpeg filtergraph strings → DSL structures
+- /src/bioscoop/ffmpeg_parser.clj/: Parses existing FFmpeg filtergraph strings → DSL structures
 
 
 * The filtergraph
@@ -190,9 +190,27 @@ This string-only representation means filtergraphs are essentially
 "write-only" code—difficult to read, maintain, and programmatically
 generate at scale.
 
-* The Language
+* COMMENT The Language
 
 The DSL accepts a Lisp-like syntax with the following core constructs:
+
+
+The DSL can be invoked in two ways — via string compilation (external
+DSL) or via a Clojure macro (internal DSL). Both produce identical
+ASTs:
+
+     #+begin_src clojure
+     ;; External DSL (string-based)
+     (require '[bioscoop.dsl :refer [compile-dsl]])
+     (compile-dsl "(let [w 1920] (scale w 1080))")
+
+     ;; Internal DSL (macro-based)
+     (require '[bioscoop.macro :refer [bioscoop]])
+     (bioscoop (let [w 1920] (scale w 1080)))
+     #+end_src
+
+The examples below use the external DSL syntax. Every example works
+identically with the =bioscoop= macro.
 
 *** Basic Syntax Elements
 
@@ -293,6 +311,20 @@ once per element. The range expression is evaluated in the current
 environment, so it can reference ~let~ bindings and injected Clojure
 locals.
 
+Because =for= returns a FilterGraph, and =chain= works with sequences of
+filters, you can embed a =for= directly inside a =chain= to generate
+filter sequences dynamically:
+
+#+begin_src clojure
+(chain (crop {:out_w "100"})
+       (for [n (range 2)] (drawtext {:text (str n)}))
+       (vignette {:angle "1.0"}))
+#+end_src
+
+This is equivalent to writing out each iteration explicitly. Multiple
+=for= loops, nested =for= loops, and empty =for= loops (contributing no
+filters) all work inside =chain=.
+     
 ~for~ isn't limited to producing filtergraph bodies — it can also appear
 in label position, generating a sequence of label strings that gets
 flattened into a padded graph's input/output labels:
@@ -320,6 +352,43 @@ the interpreter's environment.
                                    [["scaled"]["flipped"] (overlay) ["out"]])  [["v:0"] (crop "iw/2" "ih" "0" "0") ])
 #+end_src
 
+**** 6. Special Forms
+
+****** Conditional Evaluation: if / when
+
+#+begin_src clojure
+(if (= i 1) (scale 1920 1080) (crop "640" "480"))
+(when (> i 0) (scale i 1080))
+#+end_src
+
+=if= expects a predicate, a true-branch expression, and optionally a
+false-branch expression. =when= is a one-armed =if= that evaluates to an
+empty FilterGraph when the predicate is false. Both are evaluated at
+runtime, not at parse time.
+
+
+****** Dynamic Dispatch: dispatch
+
+#+begin_src clojure
+(dispatch "crop" {:out_w "3000" :x "1000"})
+(dispatch "hflip" {})
+#+end_src
+
+
+=dispatch= resolves a filter by its string name at runtime. Useful when
+the filter name is computed or stored externally. Produces identical
+results to a literal call of the same filter.
+
+****** Runtime Re-entry: eval
+
+#+begin_src clojure
+(eval "(crop {:out_w \"3000\" :x \"1000\"})")
+#+end_src
+
+=eval= re-enters the compiler at runtime, parsing and compiling a string
+expression in the current environment. Useful for generating code
+dynamically or reading DSL strings from external sources.
+
 *** Error Handling
 
 Fail-soft discipline with typed sentinels. Compilation errors don't
@@ -334,14 +403,24 @@ failure boundaries for interactive creative coding.
 
 The DSL provides access to numerous FFmpeg filters including:
 
-- *Scaling & Cropping*: =scale=, =crop=, =pad=
-- *Color & Effects*: =color=, =hue=, =negate=, =curves=, =threshold=
-- *Layout & Composition*: =hstack=, =vstack=, =xstack=, =overlay=, =blend=
-- *Transforms*: =hflip=, =vflip=, =zoompan=
-- *Text & Drawing*: =drawtext=, =drawgrid=
-- *Sources*: =testsrc=, =rgbtestsrc=, =smptebars=
-- *Time-based*: =fade=, =loop=, =trim=, =setpts=
-- *Advanced*: =split=, =concat=, =lut=, =lagfun=, =cellauto=
+- *Scaling & Cropping*: scale, scale2ref, crop, pad
+- *Color & Effects*: color, hue, negate, curves, threshold, colorbalance,
+       colorchannelmixer, lut, lut1d, lut3d, lutrgb, lutyuv, eq, geq, lumakey
+- *Layout & Composition*: hstack, vstack, xstack, tile, overlay, blend,
+       tblend, xfade
+- *Transforms*: hflip, vflip, transpose, zoompan
+- *Text & Drawing*: drawtext, drawgrid, drawbox
+- *Sources*: testsrc, testsrc2, rgbtestsrc, smptebars, smptehdbars,
+       haldclutsrc, yuvtestsrc, color, life, cellauto
+- *Time-based*: fade, loop, trim, setpts, asetpts, settb, asettb
+- *Advanced*: split, concat, format, fps, gradients, paletteuse, palettegen,
+       lut, lagfun, random, frei0r, shuffleplanes
+- *Blur & Denoise*: boxblur, gblur, nlmeans, hqdn3d, dctdnoiz, fftdnoiz,
+       atadenoise, arnndn, edgedetect, dilation, erosion, tmix, noise
+- *Audio*: volume, amix, afade, atempo, aecho, adelay, asetrate, asplit, atrim,
+       afir, rubberband, sidechaincompress, afftdn, aresample, bass, treble,
+       compand, flanger, loudnorm, lowpass, setparams, anullsrc, aevalsrc
+- *Subtitles*: subtitles, ass
 
 *** Parameters
 
@@ -381,6 +460,12 @@ symbol = operator | identifier
 keyword = <':'> identifier
 boolean = "true" | "false"
 #+end_src
+
+Note: The generic =list= rule covers all function calls. Special forms
+like =if=, =when=, =chain=, =dispatch=, and =eval= are distinguished at the AST
+transformation stage, not in the grammar. The =compose= and =defgraph=
+forms have dedicated grammar rules because they require structural
+constraints at the parse level.
 
 
 * Inspiration
