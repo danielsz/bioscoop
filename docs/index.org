@@ -190,7 +190,7 @@ This string-only representation means filtergraphs are essentially
 "write-only" code—difficult to read, maintain, and programmatically
 generate at scale.
 
-* COMMENT The Language
+* The Language
 
 The DSL accepts a Lisp-like syntax with the following core constructs:
 
