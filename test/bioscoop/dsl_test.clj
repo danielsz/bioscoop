@@ -12,8 +12,6 @@
             [bioscoop.domain.records :refer [get-input-labels get-output-labels]])
   (:import [bioscoop.domain.records FilterGraph]))
 
-
-
 ;; Native image testing support
 (def native-binary-path "target/bioscoop")
 
@@ -139,8 +137,8 @@
                (hflip)"
           foo (compile-dsl dsl)
           bar (ffmpeg/parse "scale=1920:1080,overlay;hflip")]
-      (is (=  foo bar))))
-  
+      (is (= foo bar))))
+
   (testing "coma in maps is insignificant"
     (let [m1 "{:input \"tmp\" :output \"right\"}"
           m2 "{:input \"tmp\", :output \"right\"}"]
@@ -200,9 +198,9 @@
       (is (instance? FilterGraph result))
       (is (= :unresolved-function (:error-type (ex-data (first @last-errors))))))
     (testing "Known filters that are unimplemented return empty filtergraph"
-    (let [result (compile-dsl "(find_rect 123 456)")]
-      (is (instance? FilterGraph result))
-      (is (= :not-implemented (:error-type (ex-data (first @last-errors)))) )))))
+      (let [result (compile-dsl "(find_rect 123 456)")]
+        (is (instance? FilterGraph result))
+        (is (= :not-implemented (:error-type (ex-data (first @last-errors)))))))))
 
 (deftest instaparse-grammar
   (testing "grammar is not ambiguous"
@@ -257,37 +255,37 @@
 (deftest ffmpeg-parsing
   (testing "Labels are preserved when parsing ffmpeg command"
     (let [foo (ffmpeg/parse "crop=iw/2:ih:0:0,split[left][tmp];[tmp]hflip[right];[left][right]hstack")
-          bar (first (:filters (second  (:chains foo))))]
+          bar (first (:filters (second (:chains foo))))]
       (is (= ["tmp"] (:input-labels bar)))
       (is (= ["right"] (:output-labels bar))))))
 
 (deftest for-binding
   (testing "Structural tests"
-    (testing  "a positive integer range produces exactly N chains"
+    (testing "a positive integer range produces exactly N chains"
       (let [result (compile-dsl "(for [i (range 3)] (scale))")]
-      (is (instance? FilterGraph result))
-      (is (= 3 (count (:chains result))))))
+        (is (instance? FilterGraph result))
+        (is (= 3 (count (:chains result))))))
     (testing "range of 0 produces a FilterGraph with no chains"
       (let [result (compile-dsl "(for [i (range 0)] (scale))")]
-      (is (instance? FilterGraph result))
-      (is (empty? (:chains result)))))
+        (is (instance? FilterGraph result))
+        (is (empty? (:chains result)))))
     (testing "(range 2 5) as range node gives 3 iterations"
       (let [result (compile-dsl "(for [i (range 2 5)] (scale))")]
-      (is (instance? FilterGraph result))
-      (is (= 3 (count (:chains result))))))
+        (is (instance? FilterGraph result))
+        (is (= 3 (count (:chains result))))))
     (testing "3 iterations produces 3 chains"
       (let [result (compile-dsl "(for [i (range 3)] (chain (scale) (crop)))")]
-      (is (instance? FilterGraph result))
-      (is (= 3 (count (:chains result))))))
+        (is (instance? FilterGraph result))
+        (is (= 3 (count (:chains result))))))
     (testing "loop variable is in scope for parameter expressions"
       (let [result (compile-dsl "(for [i (range 3)] (lagfun {:decay (/ (- 99.0 i) 100.0)}))")]
         (is (= "lagfun=decay=0.99;lagfun=decay=0.98;lagfun=decay=0.97" (to-ffmpeg result)))))
     (testing "loop variable is in scope for input/output label expressions"
       (let [result (compile-dsl "[[(for [i (range 2)] (str \"v\" i))] (scale) [(for [i (range 2)] (str \"out\" i))]]")
-            filter (first (:filters (first (:chains result))))            ]
+            filter (first (:filters (first (:chains result))))]
         (is (= (get-input-labels filter) ["v0" "v1"]))
         (is (= (get-output-labels filter) ["out0" "out1"]))))
-    (testing  "generated filtergraph serialises to expected ffmpeg syntax"
+    (testing "generated filtergraph serialises to expected ffmpeg syntax"
       (let [result (compile-dsl "(for [i (range 3)] [[(str \"v\" i)] (scale) [(str \"out\" i)]])")]
         (is (= "[v0]scale[out0];[v1]scale[out1];[v2]scale[out2]" (to-ffmpeg result)))))
     (testing "lagfun chains with varying decay render as a semicolon-separated string"
@@ -334,5 +332,7 @@
       (is (= "crop" (:name (first (:filters (first (:chains result))))))))
     (testing "a graph can refer to a previously defined graph"
       (let [result (compile-dsl "(defgraph foo (scale 1920 1080))\n(defgraph bar (compose foo (crop \"640\" \"480\")))\nbar")]
-      (is (= "scale=width=1920:height=1080;crop=out_w=640:w=480" (to-ffmpeg result)))))))
+        (is (= "scale=width=1920:height=1080;crop=out_w=640:w=480" (to-ffmpeg result)))))))
+
+
 
