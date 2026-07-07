@@ -12,21 +12,21 @@
 (declare transform-ast compile-dsl)
 
 (def promote-to-filtergraph (promote-to-filtergraph* accumulate-error))
-(def promote-to-filterchain (promote-to-filterchain* (partial accumulate-error [])))  ; must return [] since the result feeds into mapcat
+(def promote-to-filterchain (promote-to-filterchain* (partial accumulate-error []))) ; must return [] since the result feeds into mapcat
 (defmulti transform-ast* (fn [node env] (first node)))
 
 (defmethod transform-ast* :program [[_ & expressions] env]
   (let [defgraph-exprs (filter #(= :graph-definition (first %)) expressions)
-        regular-exprs  (remove #(= :graph-definition (first %)) expressions)
+        regular-exprs (remove #(= :graph-definition (first %)) expressions)
         compute-graphs (fn [env name body]
                          (if (reserved-word? name)
                            (do (accumulate-error env name :reserved-word)
                                env)
                            (env-put env name body)))
-        env   (reduce (fn [acc-env [_ [_ name-str] & body]]
-                          (compute-graphs acc-env name-str (transform-ast (into [:program] body) acc-env)))
-                      env
-                      defgraph-exprs)]
+        env (reduce (fn [acc-env [_ [_ name-str] & body]]
+                      (compute-graphs acc-env name-str (transform-ast (into [:program] body) acc-env)))
+                    env
+                    defgraph-exprs)]
     (->> regular-exprs
          (mapv #(transform-ast % env))
          (mapv #(promote-to-filtergraph % env))
@@ -38,7 +38,20 @@
                       (mapv #(promote-to-filtergraph % env)))]
     (apply compose-filtergraphs children)))
 
-(defn padded-graph-helper [body]
+(defn padded-graph-helper
+  "Partition a padded-graph body into input labels, the body expression, and output labels.
+
+   A padded graph has the form [[in-label*] expr [out-label*]].
+   This function walks the AST nodes and collects:
+   - :input  — label nodes before the first non-label expression
+   - :expr   — the single body expression (filter, chain, or graph reference)
+   - :output — label nodes after the body expression
+
+   Uses a boolean flag to track whether the walker has crossed from the
+   input-label region into the body-expression region. Once the first
+   non-label node is encountered, the flag flips and all subsequent
+   labels are classified as output labels."
+  [body]
   (loop [xs body
          result {:input [] :expr nil :output []}
          flag false]
@@ -53,21 +66,21 @@
 (defmethod transform-ast* :padded-graph [[_ & body] env]
   (let [{:keys [input expr output]} (padded-graph-helper body)
         filtergraph (-> (transform-ast expr env)
-                       (promote-to-filtergraph env))
+                        (promote-to-filtergraph env))
         f (fn [filters]
             (make-filtergraph
              [(make-filterchain
                (-> filters
-                  (update 0 with-input-labels
-                          (vec (mapcat (fn [node]
-                                         (let [v (transform-ast node env)]
-                                           (if (sequential? v) v [v])))
-                                       input)))
-                  (update (dec (count filters)) with-output-labels
-                          (vec (mapcat (fn [node]
-                                         (let [v (transform-ast node env)]
-                                           (if (sequential? v) v [v])))
-                                       output)))))]))]
+                   (update 0 with-input-labels
+                           (vec (mapcat (fn [node]
+                                          (let [v (transform-ast node env)]
+                                            (if (sequential? v) v [v])))
+                                        input)))
+                   (update (dec (count filters)) with-output-labels
+                           (vec (mapcat (fn [node]
+                                          (let [v (transform-ast node env)]
+                                            (if (sequential? v) v [v])))
+                                        output)))))]))]
     (cond
       (empty? (:chains filtergraph)) filtergraph
       (= 1 (count (:chains filtergraph))) (f (:filters (first (:chains filtergraph))))
@@ -75,16 +88,16 @@
 
 (defmethod transform-ast* :let-binding [[_ & content] env]
   (let [bindings (take-while #(= :binding (first %)) content)
-        body     (drop (count bindings) content)
-        new-env  (reduce (fn [acc-env [_ [_ sym-name] expr]]
-                           (when-let [reserved-type (reserved-word-type sym-name)]
-                             (case reserved-type
-                               :clojure-core (accumulate-error acc-env sym-name :clj-reserved-word)
-                               :built-in     (accumulate-error acc-env sym-name :reserved-word)
-                               nil))
-                           (env-put acc-env sym-name (transform-ast expr acc-env)))
-                         (make-env env)
-                         bindings)
+        body (drop (count bindings) content)
+        new-env (reduce (fn [acc-env [_ [_ sym-name] expr]]
+                          (when-let [reserved-type (reserved-word-type sym-name)]
+                            (case reserved-type
+                              :clojure-core (accumulate-error acc-env sym-name :clj-reserved-word)
+                              :built-in (accumulate-error acc-env sym-name :reserved-word)
+                              nil))
+                          (env-put acc-env sym-name (transform-ast expr acc-env)))
+                        (make-env env)
+                        bindings)
         transformed-body (mapv #(transform-ast % new-env) body)]
     (last transformed-body)))
 
@@ -113,7 +126,7 @@
 
 (defmethod transform-ast* :map [[_ kw v :as m] env]
   (let [xs (map #(transform-ast % env) (rest m))]
-      (into {} (map vec (partition 2 xs)))))
+    (into {} (map vec (partition 2 xs)))))
 
 (defmethod transform-ast* :for-binding [[_ [_ sym-name] range-node body] env]
   (let [xs (transform-ast range-node env)]
