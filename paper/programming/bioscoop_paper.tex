@@ -185,7 +185,7 @@ Bioscoop is motivated by this gap. By giving FFmpeg's filtergraph notation the a
 
 \subsection{Motivating Example}
 
-Consider generating a slideshow that cross-fades $n$ images. In raw FFmpeg, every intermediate label must be written explicitly. For ten images this requires approximately ninety characters of filtergraph syntax, all of which must be manually regenerated if $n$ changes. In Bioscoop:
+Consider generating a slideshow that cross-fades $n$ images. In raw FFmpeg, every intermediate label must be written explicitly. For ten images this requires approximately ninety words of filtergraph syntax, all of which must be manually regenerated if $n$ changes. In Bioscoop:
 
 \begin{lstlisting}[caption={Parameterized slideshow in Bioscoop}]
 (defn slideshow [n]

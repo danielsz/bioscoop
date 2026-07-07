@@ -14,7 +14,6 @@
     'identity_
     'concat_
     'dispatch
-    'eval
     'aap
     'abench
     'acompressor
