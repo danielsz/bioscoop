@@ -27,11 +27,12 @@
          verbose false
          blocking false
          preset :nil-guard}} & inputs]
-  (let [presets {:h265 ["-c:v" "libx265" "-tag:v" "hvc1" "-preset" "slow" "-crf" "18"]
+  (let [inputs (reduce (fn [acc xs] (if (sequential? xs) (into acc xs) (conj acc xs))) [] inputs)
+        presets {:h265 ["-c:v" "libx265" "-tag:v" "hvc1" "-preset" "slow" "-crf" "18"]
                  :av1 ["-c:v" "libsvtav1" "-preset" "5" "-crf" "18"]}
         log (io/file (str out-dir "/bioscoop.log"))
         cmd (-> [ffmpeg-bin "-y"]
-                (into (interleave (repeat "-i") inputs))
+               (into (interleave (repeat "-i") inputs))
                 (conj "-filter_complex" filtergraph)
                 (into maps)
                 (into (when gop ["-g" gop]))
