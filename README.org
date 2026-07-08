@@ -159,11 +159,10 @@ results, all within the DSL itself.
 (for [binding range] body...)
 #+end_src
 
-~range~ can be a positive integer — iterating from 0 to n — or any
-sequence. ~body~ is a DSL expression evaluated repeatedly for each value
-of the binding, with the result merged into a single filtergraph. All
-of Clojure's arithmetic and string functions are available inside the
-body.
+~range~ is a sequence of positive integers. ~body~ is a DSL expression
+evaluated repeatedly for each value of the binding, with the result
+merged into a single filtergraph. All of Clojure's arithmetic and
+string functions are available inside the body.
 
 The following example builds a slideshow of n images. Each image is
 looped, then cross-faded into the next. In FFmpeg this would require
