@@ -29,67 +29,33 @@
               (str label-node)))
           (rest outputs))))
 
+(defn transform-arg [arg]
+  (or (parse-boolean arg) (parse-long arg) (parse-double arg)  arg))
 
-(defn- node-type [node] (if (vector? node) (first node) :unknown))
-(defn- node-content [node] (if (vector? node) (second node) (str node)))
-
-(defn- extract-positional-args [parts]
-  (->> parts
-       (mapcat (fn [node]
-                 (if (= (node-type node) :unquoted-args)
-                   (str/split (node-content node) #":")
-                   [(node-content node)])))
-       (map str/trim)
-       (remove str/blank?)
-       vec))
-
-(defn- extract-key-value-args [parts]
-  (let [;; 1. Flatten AST nodes into a sequence of string tokens.
-        ;;    Split unquoted args by ":", but keep quoted strings intact.
-        tokens (mapcat (fn [node]
-                         (if (= (node-type node) :unquoted-args)
-                           (->> (str/split (node-content node) #":")
-                                (map str/trim)
-                                (remove str/blank?))
-                           [(node-content node)]))
-                       parts)
-
-        ;; 2. Helper to save the current key-value pair into the result map
-        finalize (fn [result current-key current-val]
-                   (if current-key
-                     (assoc result current-key (str/trim current-val))
-                     result))]
-
-    ;; 3. Reduce over the tokens. If a token has "=", it starts a new key.
-    ;;    Otherwise, it is appended to the current value.
-    (-> (reduce (fn [{:keys [result current-key current-val]} token]
-                  (if (str/includes? token "=")
-                    (let [[k v] (str/split token #"=" 2)]
-                      {:result (finalize result current-key current-val)
-                       :current-key (keyword k)
-                       :current-val v})
-                    {:result result
-                     :current-key current-key
-                     :current-val (str current-val token)}))
-                {:result {} :current-key nil :current-val ""}
-                tokens)
-        ;; 4. Finalize the last key-value pair
-        ((fn [{:keys [result current-key current-val]}]
-           (finalize result current-key current-val))))))
+(defn- parse-arg-node [arg-node]
+  (let [inner (second arg-node)]
+    (if (= (first inner) :key-value)
+      ;; It's a map entry: [:key-value [:key "width"] [:unquoted-value "1920"]]
+      (let [[_ key-node value-node] inner
+            key (keyword (second key-node))
+            val (if (= (first value-node) :quoted-string)
+                  (second value-node)
+                  (transform-arg (second value-node)))]
+        [key val])
+      ;; It's a positional arg: [:unquoted-value "1920"] or [:quoted-string "Hello"]
+      (if (= (first inner) :quoted-string)
+        (second inner)
+        (transform-arg (second inner))))))
 
 (defn extract-filter-args [args-node]
   (when args-node
-    (let [parts (rest args-node)]
-      (if (empty? parts)
-        nil
-        (let [has-keys? (some (fn [p]
-                                (and (= (node-type p) :unquoted-args)
-                                     (str/includes? (node-content p) "=")))
-                              parts)]
-          (if has-keys?
-            (extract-key-value-args parts)
-            (extract-positional-args parts)))))))
-
+    (let [arg-nodes (rest args-node)
+          parsed-args (mapv parse-arg-node arg-nodes)]
+      (if (every? vector? parsed-args)
+        ;; All args are key-value pairs -> return a map
+        (into {} parsed-args)
+        ;; Args are positional -> return a vector of values
+        parsed-args))))
 
 (defn extract-filter-name [name-node]
   (cond
@@ -105,10 +71,6 @@
         filter-args (when args-node (extract-filter-args args-node))]
     [filter-name filter-args]))
 
-
-(defn transform-arg [arg]
-  (or (parse-boolean arg) (parse-long arg) (parse-double arg)  arg))
-
 (defmulti ffmpeg-ast->records first)
 
 (defmethod ffmpeg-ast->records :filtergraph [[_ & content]]
@@ -123,11 +85,10 @@
         output-labels (extract-output-labels parts)
         filter-spec (first (filter #(= :filter-spec (first %)) parts))
         [filter-name filter-args] (extract-filter-spec filter-spec)
-        transformed-args (cond
-                           (map? filter-args) [(into {} (map (fn [[k v]] [k (transform-arg v)]) filter-args))]
-                           (string? filter-args) [(transform-arg filter-args)]
-                           (seq filter-args) (mapv transform-arg filter-args)
-                           :else nil)
+        transformed-args (when filter-args
+                           (if (map? filter-args)
+                             [filter-args]
+                             filter-args))
         base-filter (if filter-args
                       ((ns-resolve 'bioscoop.built-in (symbol filter-name)) transformed-args {:errors (atom [])})
                       (make-filter filter-name))]

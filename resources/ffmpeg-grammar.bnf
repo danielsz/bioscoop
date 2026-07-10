@@ -12,10 +12,13 @@ linklabel      = <lbracket> name <rbracket>
 filter-spec    = filter-name (<equals> filter-arguments)?
 filter-name    = name (at name)?
 
-filter-arguments = (quoted-string | unquoted-args)+
-unquoted-args   = #'[^,;\s\[\]\'"]+'
-
-quoted-string  = <"'">  #"[^']*" <"'">
+filter-arguments = arg (<colon> arg)*
+arg              = key-value | value
+key-value        = key <equals> value
+key              = #'[^=:,;\s\[\]\'"]+'
+<value>          = quoted-string | unquoted-value
+unquoted-value   = #'[^=:,;\s\[\]\'"]*'
+quoted-string    = <"'">  #"[^']*" <"'">
 
 <name>         = #'[a-zA-Z0-9_:]+'
 at           = '@'
@@ -24,4 +27,4 @@ comma        = ','
 semicolon    = ';'
 lbracket     = '['
 rbracket     = ']'
-
+colon        = ':'

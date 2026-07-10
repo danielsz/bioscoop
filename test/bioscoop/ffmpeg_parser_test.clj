@@ -68,7 +68,9 @@
                [:filter
                 [:filter-spec
                  [:filter-name "scale"]
-                 [:filter-arguments [:unquoted-args "640:480"]]]]]]))))
+                 [:filter-arguments
+                  [:arg [:unquoted-value "640"]]
+                  [:arg [:unquoted-value "480"]]]]]]]))))
   (testing "Labeled filter"
     (let [expr "scale@hd=1280:720"]
       (is (= (ffmpeg/ffmpeg-parser expr)
@@ -77,7 +79,9 @@
                [:filter
                 [:filter-spec
                  [:filter-name "scale" [:at "@"] "hd"]
-                 [:filter-arguments [:unquoted-args "1280:720"]]]]]]))))
+                 [:filter-arguments
+                  [:arg [:unquoted-value "1280"]]
+                  [:arg [:unquoted-value "720"]]]]]]]))))
   (testing "Multiple output linklabels"
     (let [expr "[in]scale=1280:720[scaled1][scaled2]"]
       (is (= (ffmpeg/ffmpeg-parser expr)
@@ -87,7 +91,9 @@
                 [:input-linklabels [:linklabel "in"]]
                 [:filter-spec
                  [:filter-name "scale"]
-                 [:filter-arguments [:unquoted-args "1280:720"]]]
+                 [:filter-arguments
+                  [:arg [:unquoted-value "1280"]]
+                  [:arg [:unquoted-value "720"]]]]
                 [:output-linklabels
                  [:linklabel "scaled1"]
                  [:linklabel "scaled2"]]]]])))
@@ -108,7 +114,9 @@
                 [:input-linklabels [:linklabel "in"]]
                 [:filter-spec
                  [:filter-name "scale" [:at "@"] "highres"]
-                 [:filter-arguments [:unquoted-args "1920:1080"]]]
+                 [:filter-arguments
+                  [:arg [:unquoted-value "1920"]]
+                  [:arg [:unquoted-value "1080"]]]]
                 [:output-linklabels [:linklabel "hd"]]]]]))))
   (testing "Quoted string with escapes"
     (let [expr "[v]drawtext=text='Hello\\\"s World':fontsize=24[out]"]
@@ -120,9 +128,9 @@
                 [:filter-spec
                  [:filter-name "drawtext"]
                  [:filter-arguments
-                  [:unquoted-args "text="]
-                  [:quoted-string "Hello\\\"s World"]
-                  [:unquoted-args ":fontsize=24"]]]
+                  [:arg
+                   [:key-value [:key "text"] [:quoted-string "Hello\\\"s World"]]]
+                  [:arg [:key-value [:key "fontsize"] [:unquoted-value "24"]]]]]
                 [:output-linklabels [:linklabel "out"]]]]])))
     (let [expr "[v]drawtext=text='He said \\\"Hi\\\"':fontsize=24[out]"]
       (is (= (ffmpeg/ffmpeg-parser expr)
@@ -133,10 +141,13 @@
                 [:filter-spec
                  [:filter-name "drawtext"]
                  [:filter-arguments
-                  [:unquoted-args "text="]
-                  [:quoted-string "He said \\\"Hi\\\""]
-                  [:unquoted-args ":fontsize=24"]]]
-                [:output-linklabels [:linklabel "out"]]]]]))))
+                  [:arg
+                   [:key-value
+                    [:key "text"]
+                    [:quoted-string "He said \\\"Hi\\\""]]]
+                  [:arg [:key-value [:key "fontsize"] [:unquoted-value "24"]]]]]
+                [:output-linklabels [:linklabel "out"]]]]]
+             ))))
   (testing "Complex argument with special characters"
     (let [expr "[vid]drawtext=text='Price: $50\\%':x=(w-tw)/2:fontsize=24[out]"]
       (is (= (ffmpeg/ffmpeg-parser expr)
@@ -147,9 +158,10 @@
                 [:filter-spec
                  [:filter-name "drawtext"]
                  [:filter-arguments
-                  [:unquoted-args "text="]
-                  [:quoted-string "Price: $50\\%"]
-                  [:unquoted-args ":x=(w-tw)/2:fontsize=24"]]]
+                  [:arg
+                   [:key-value [:key "text"] [:quoted-string "Price: $50\\%"]]]
+                  [:arg [:key-value [:key "x"] [:unquoted-value "(w-tw)/2"]]]
+                  [:arg [:key-value [:key "fontsize"] [:unquoted-value "24"]]]]]
                 [:output-linklabels [:linklabel "out"]]]]]))))
   (testing "Multiple filters in chain"
     (let [expr "[0:v]scale=640:360[small]; [1:a]volume=1.5[loud]"]
@@ -160,14 +172,16 @@
                 [:input-linklabels [:linklabel "0:v"]]
                 [:filter-spec
                  [:filter-name "scale"]
-                 [:filter-arguments [:unquoted-args "640:360"]]]
+                 [:filter-arguments
+                  [:arg [:unquoted-value "640"]]
+                  [:arg [:unquoted-value "360"]]]]
                 [:output-linklabels [:linklabel "small"]]]]
               [:filterchain
                [:filter
                 [:input-linklabels [:linklabel "1:a"]]
                 [:filter-spec
                  [:filter-name "volume"]
-                 [:filter-arguments [:unquoted-args "1.5"]]]
+                 [:filter-arguments [:arg [:unquoted-value "1.5"]]]]
                 [:output-linklabels [:linklabel "loud"]]]]]))))
   (testing "Complex chain"
     (let [expr "[in]scale@thumb=320:240[small];[in]scale@full=1280:720[big]"]
@@ -178,14 +192,18 @@
                 [:input-linklabels [:linklabel "in"]]
                 [:filter-spec
                  [:filter-name "scale" [:at "@"] "thumb"]
-                 [:filter-arguments [:unquoted-args "320:240"]]]
+                 [:filter-arguments
+                  [:arg [:unquoted-value "320"]]
+                  [:arg [:unquoted-value "240"]]]]
                 [:output-linklabels [:linklabel "small"]]]]
               [:filterchain
                [:filter
                 [:input-linklabels [:linklabel "in"]]
                 [:filter-spec
                  [:filter-name "scale" [:at "@"] "full"]
-                 [:filter-arguments [:unquoted-args "1280:720"]]]
+                 [:filter-arguments
+                  [:arg [:unquoted-value "1280"]]
+                  [:arg [:unquoted-value "720"]]]]
                 [:output-linklabels [:linklabel "big"]]]]]))))
   (testing "Sws_flags declaration"
     (let [expr "sws_flags=lanczos+accurate_rnd; [0:v]scale=1920:1080[hd]"]
@@ -197,7 +215,9 @@
                 [:input-linklabels [:linklabel "0:v"]]
                 [:filter-spec
                  [:filter-name "scale"]
-                 [:filter-arguments [:unquoted-args "1920:1080"]]]
+                 [:filter-arguments
+                  [:arg [:unquoted-value "1920"]]
+                  [:arg [:unquoted-value "1080"]]]]
                 [:output-linklabels [:linklabel "hd"]]]]]))))
   (testing "Invalid case (empty linklabel)"
     (let [expr "[in]scale=640:480[]"]
