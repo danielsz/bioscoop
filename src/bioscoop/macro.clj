@@ -45,7 +45,7 @@
 
     ;; Handle keywords
     (keyword? form)
-    [:keyword (keyword form)]
+    [:keyword form]
 
     ;; Handle strings
     (string? form)

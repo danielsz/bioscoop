@@ -1,6 +1,6 @@
 {:pom {:group-id "com.github.danielsz"
        :artifact-id "bioscoop"
-       :version "1.0.8-SNAPSHOT"
+       :version "1.0.9-SNAPSHOT"
        :name "bioscoop"
        :licenses [{:name "MIT License"
                    :url "https://mit-license.org/"}]}

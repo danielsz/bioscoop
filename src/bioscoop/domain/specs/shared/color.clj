@@ -25,13 +25,18 @@
 
 
 (defn capture [s]
-  (let [patt (re-pattern "^(?:(?<name>[a-zA-Z]+)|(?<hex>(?:0x|#)[0-9a-fA-F]{6}))(?:@(?<opacity>\\d*\\.?\\d+))?|(?<hexalpha>(?:0x|#)[0-9a-fA-F]{8})$")
-        matcher (re-matcher patt s)]
-    (re-find matcher)
-    (try (if-let [colorname (.group matcher "name")]
-           (s/valid? ::named-color colorname)
-           true)
-         (catch IllegalStateException _))))
+  (if (string? s)
+    (let [patt #"^(?:(?<name>[a-zA-Z]+)|(?<hex>(?:0x|#)[0-9a-fA-F]{6}))(?:@(?<opacity>\d*\.?\d+))?|(?<hexalpha>(?:0x|#)[0-9a-fA-F]{8})$"
+          m (re-matches patt s)]
+      (if m
+        ;; If the match succeeded, check if it captured a named color.
+        ;; If "name" is present, validate it. If it's absent, it means 
+        ;; it matched a hex/hexalpha pattern, so it's valid.
+        (if-let [colorname (get m "name")]
+          (s/valid? ::named-color colorname)
+          true)
+        false))
+    false))
 
 (s/def ::color capture)
 

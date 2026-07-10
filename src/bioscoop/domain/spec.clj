@@ -1,6 +1,5 @@
 (ns bioscoop.domain.spec
-  (:require [clojure.spec.alpha :as s]
-            [lang-utils.core :refer [seek]]))
+  (:require [clojure.spec.alpha :as s]))
 
 ;; Data structure specifications
 (s/def ::filter-name (s/and string? #(re-matches #"[a-zA-Z0-9_]+(@[a-zA-Z0-9_]+)?" %)))
@@ -15,10 +14,6 @@
     (integer? v) v          ; keep integers as-is; specs using int-in expect Long
     :else        v))
 
-(defn spec-aware-namespace-keyword [spec unqualified-kw]
-  (let [spec-map (apply hash-map (rest (s/form spec)))
-        opt-un-specs (get spec-map :opt-un [])]
-    (seek (fn [kw] (= (name kw) (name unqualified-kw))) opt-un-specs)))
 ;; to process a map: (into {} (map (fn [[k v]] [(spec-aware-namespace-keyword ::scale k) v]) {:width 1920 :height 1080})) or like below
  
 (defn spec-aware-namespace-map

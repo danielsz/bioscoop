@@ -9,11 +9,11 @@
 (deftest simple
   (testing "Basic filter - structural equivalence"
     (let [foo (compile-dsl "(scale 1920 1080)")
-          bar (ffmpeg/parse "scale=w=1920:h=1080")]
+          bar (ffmpeg/parse "scale=width=1920:height=1080")]
       (is (= foo bar))))
   (testing "Basic named filter - structural equivalence"
     (let [foo (compile-dsl "(scale 1920 1080)")
-          bar (ffmpeg/parse "scale=w=1920:h=1080")]
+          bar (ffmpeg/parse "scale=width=1920:height=1080")]
       (is (= foo bar))))
   (testing "Filter with labels - structural equivalence"
     (let [dsl "[[\"in\"] (scale 1920 1080) [\"scaled\"]]"
@@ -38,10 +38,10 @@
     (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [width 1920] (scale width 1080))")))))
   (testing "substitution - structural equivalence"
     (let [foo (compile-dsl "(let [width 1920] (scale width 1080))")
-          bar (ffmpeg/parse "scale=w=1920:h=1080")]
+          bar (ffmpeg/parse "scale=width=1920:height=1080")]
       (is (= foo bar))))
   (let [foo (bioscoop (let [width 1920] (scale width 1080)))
-          bar (ffmpeg/parse "scale=w=1920:h=1080")]
+          bar (ffmpeg/parse "scale=width=1920:height=1080")]
       (is (= foo bar)))
   (testing "arithmetic in let binding expression"
     (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [width (+ 1919 1)] (scale width 1080))")))))
@@ -203,5 +203,36 @@
     (let [expr "[in]scale=640:480[]"]
       (is (contains? (ffmpeg/ffmpeg-parser expr) :reason)))))
 
+
+(deftest argument-extraction
+  (testing "Positional arguments are parsed and namespaced"
+    (let [parsed (ffmpeg/parse "scale=640:480")
+          args (-> parsed :chains first :filters first :args)]
+      (is (map? args) "Should parse into a namespaced map via template")
+      (is (= #:bioscoop.domain.specs.scale{:width 640, :height 480} args))))
+
+  (testing "Key-value arguments are parsed and namespaced"
+    (let [parsed (ffmpeg/parse "scale=width=1920:height=1080")
+          args (-> parsed :chains first :filters first :args)]
+      (is (map? args) "Should parse into a namespaced map when keys are present")
+      (is (= #:bioscoop.domain.specs.scale{:width 1920, :height 1080} args))))
+
+  (testing "Key-value arguments maintain structural equivalence with DSL maps"
+    (let [ffmpeg-parsed (ffmpeg/parse "drawtext=x=10:y=20:fontsize=24")
+          dsl-parsed (compile-dsl "(drawtext {:x 10 :y 20 :fontsize 24})")]
+      (is (= ffmpeg-parsed dsl-parsed) "FFmpeg key-value string should match DSL map syntax")))
+
+  (testing "Quoted string arguments are not split into characters"
+    (let [parsed (ffmpeg/parse "drawtext=text='Hello World':fontsize=24")
+          args (-> parsed :chains first :filters first :args)]
+      (is (= "Hello World" (:bioscoop.domain.specs.drawtext/text args)) "Quoted string should remain intact")
+      (is (= 24 (:bioscoop.domain.specs.drawtext/fontsize args)) "Numeric values should be coerced")))
+
+  (testing "Mixed quoted and unquoted key-value arguments"
+    (let [parsed (ffmpeg/parse "drawtext=text='Hello World':x=(w-tw)/2:fontsize=24")
+          args (-> parsed :chains first :filters first :args)]
+      (is (= "Hello World" (:bioscoop.domain.specs.drawtext/text args)))
+      (is (= "(w-tw)/2" (:bioscoop.domain.specs.drawtext/x args)) "Expression strings should not be evaluated")
+      (is (= 24 (:bioscoop.domain.specs.drawtext/fontsize args))))))
 
 

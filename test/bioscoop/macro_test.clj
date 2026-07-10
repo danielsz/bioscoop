@@ -455,3 +455,37 @@
   (testing "the classics"
     (is (= "crop=out_w=3000:x=1000:keep_aspect=true"
            (to-ffmpeg (bioscoop (eval "(crop {:out_w \"3000\" :x \"1000\" :keep_aspect true})")))))))
+
+(deftest eval-matches-a-literal-chain
+  (testing "a filter built via eval matches the equivalent literal filter"
+    (is (= (to-ffmpeg (bioscoop (crop {:out_w "100"})))
+           (to-ffmpeg (bioscoop (eval "(crop {:out_w \"100\"})")))))))
+
+
+(deftest eval-reaches-chain-unlike-dispatch
+  (testing "eval can build a chain -- one of the DSL's own special forms -- which dispatch structurally cannot reach"
+    (is (= (to-ffmpeg (bioscoop (chain (crop {:out_w "100"}) (vignette {:angle "1.3"}))))
+           (to-ffmpeg (bioscoop (eval "(chain (crop {:out_w \"100\"}) (vignette {:angle \"1.3\"}))")))))))
+
+
+(deftest eval-shares-lexical-scope
+  (testing "symbols bound in the surrounding scope are visible inside the eval'd string"
+    (let [w "100"]
+      (is (= (to-ffmpeg (bioscoop (crop {:out_w w})))
+             (to-ffmpeg (bioscoop (eval "(crop {:out_w w})"))))))))
+
+(deftest eval-concatenates-string-arguments
+  (testing "eval's arguments concatenate into one DSL source string"
+    (is (= (to-ffmpeg (bioscoop (crop {:out_w "100"})))
+           (to-ffmpeg (bioscoop (eval "(crop {:out_w \"" "100" "\"})"))))))
+  (testing "eval's arguments concatenate into one DSL source string, so pieces can be assembled around a computed value"
+    (let [w "100"]
+      (is (= (to-ffmpeg (bioscoop (crop {:out_w w})))
+             (to-ffmpeg (bioscoop (eval "(crop {:out_w \"" w "\"})"))))))))
+
+
+(deftest eval-degrades-gracefully-on-a-runtime-error-in-valid-syntax
+  (testing "valid syntax with an unresolvable name still goes through the ordinary accumulate-error path, unaffected by the two fixes above"
+    (let [result (bioscoop (eval "(this-does-not-exist {:x \"1\"})"))]
+      (is (= "" (to-ffmpeg result)))
+      (is (= :unresolved-function (:error-type (ex-data (first @last-errors))))))))

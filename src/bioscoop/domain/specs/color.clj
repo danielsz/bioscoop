@@ -1,6 +1,6 @@
 (ns bioscoop.domain.specs.color
   (:require [clojure.spec.alpha :as s]
-            [bioscoop.domain.specs.shared.color]
+            [bioscoop.domain.specs.shared.color :as shared]
             [bioscoop.domain.specs.shared.image-size :as image-size]
             [bioscoop.domain.specs.shared.video-rate :as video-rate]
             [bioscoop.domain.specs.shared.duration :as duration]
@@ -12,7 +12,7 @@
 (s/def ::sar ::rational/rational)        
 
 (s/def ::color
-  (s/keys :opt-un [:bioscoop.domain.specs.shared.color/color
+  (s/keys :opt-un [::shared/color
                    ::size 
                    ::rate 
                    ::duration 
