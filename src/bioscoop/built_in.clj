@@ -88,7 +88,8 @@
    [bioscoop.domain.specs.settb :as settb]
    [clojure.spec.alpha :as s]
    [bioscoop.domain.specs.shared.image-size :as image-size]
-   [bioscoop.error-handling :refer [accumulate-error]]))
+   [bioscoop.error-handling :refer [accumulate-error]]
+   [clojure.tools.logging :as log]))
 
 (defn template [arg spec env]
   (if (seq arg)
@@ -97,10 +98,13 @@
         (if (s/valid? spec m)
           (make-filter (name spec) (spec/spec-aware-namespace-map spec m))
           (accumulate-error (make-filtergraph []) env m spec :invalid-parameter)))
-      (let [formal-keys (last (s/form spec))
-            m (zipmap formal-keys arg)]
+      (let [all-keys (-> spec
+                        s/form
+                        spec/spec-form->keys)
+            all-un-keys (map (comp keyword name) all-keys)
+            m (zipmap all-un-keys arg)]
         (if (s/valid? spec m)
-          (make-filter (name spec) m)
+          (make-filter (name spec) (spec/spec-aware-namespace-map spec m))
           (accumulate-error (make-filtergraph []) env m spec :invalid-parameter))))
     (make-filter (name spec))))
 

@@ -15,7 +15,13 @@
     :else        v))
 
 ;; to process a map: (into {} (map (fn [[k v]] [(spec-aware-namespace-keyword ::scale k) v]) {:width 1920 :height 1080})) or like below
- 
+
+(defn spec-form->keys [spec-form]
+  (let [spec-map (apply hash-map (rest spec-form))
+        opt-un-specs (get spec-map :opt-un [])
+        req-un-specs (get spec-map :req-un [])]
+    (concat req-un-specs opt-un-specs)))
+
 (defn spec-aware-namespace-map
   "Convert unnamespaced map to properly namespaced map based on spec registry.
    Looks up where each spec is actually defined and uses that namespace."
@@ -26,10 +32,7 @@
   (let [spec-form (s/form spec-keyword)]
     (if (and (sequential? spec-form) 
              (= 'clojure.spec.alpha/keys (first spec-form)))
-      (let [spec-map (apply hash-map (rest spec-form))
-            opt-un-specs (get spec-map :opt-un [])
-            req-un-specs (get spec-map :req-un [])
-            all-un-specs (concat opt-un-specs req-un-specs)
+      (let [all-un-specs (spec-form->keys spec-form)
             ;; Create mapping from unqualified key to its actual qualified spec
             key-mapping (into {} 
                            (map (fn [qualified-spec-kw]
