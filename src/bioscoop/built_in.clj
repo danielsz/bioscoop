@@ -4,6 +4,7 @@
    [bioscoop.domain.records :refer [make-filter make-filtergraph]]
    [bioscoop.domain.spec :as spec]
    [bioscoop.domain.specs.color :as color]
+   [bioscoop.domain.specs.colorlevels :as colorlevels]
    [bioscoop.domain.specs.hue :as hue]
    [bioscoop.domain.specs.format :as format]
    [bioscoop.domain.specs.drawtext :as drawtext]
@@ -42,6 +43,7 @@
    [bioscoop.domain.specs.cellauto :as cellauto]
    [bioscoop.domain.specs.boxblur :as boxblur]
    [bioscoop.domain.specs.gblur :as gblur]
+   [bioscoop.domain.specs.gradfun :as gradfun]
    [bioscoop.domain.specs.lut :as lut]
    [bioscoop.domain.specs.lagfun :as lagfun]
    [bioscoop.domain.specs.colorchannelmixer :as colorchannelmixer]
@@ -142,6 +144,9 @@
 
 (defn color [arg env]
   (template arg ::color/color env))
+
+(defn colorlevels [arg env]
+  (template arg ::colorlevels/colorlevels env))
 
 (defn format [arg env]
   (template arg ::format/format env))
@@ -286,6 +291,9 @@
 
 (defn gblur [arg env]
   (template arg ::gblur/gblur env))
+
+(defn gradfun [arg env]
+  (template arg ::gradfun/gradfun env))
 
 (defn colorchannelmixer [arg env]
   (template arg ::colorchannelmixer/colorchannelmixer env))

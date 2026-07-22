@@ -7,7 +7,10 @@
             [bioscoop.domain.specs.fade :as fade]
             [bioscoop.domain.specs.audio :as audio]
             [bioscoop.domain.specs.anullsrc :as anullsrc]
-            [bioscoop.domain.specs.aevalsrc :as aevalsrc]))
+            [bioscoop.domain.specs.aevalsrc :as aevalsrc]
+            [bioscoop.domain.specs.hqdn3d :as hqdn3d]
+            [bioscoop.domain.specs.gradfun :as gradfun]
+            [bioscoop.domain.specs.colorlevels :as colorlevels]))
 
 (deftest drawtext-spec-test
   (testing "valid drawtext filter"
@@ -129,6 +132,58 @@
                        {:delays [1000]
                         :decays [0.5]})))))
 
+
+(deftest hqdn3d-spec-test
+  (testing "valid hqdn3d with all params"
+    (is (s/valid? ::hqdn3d/hqdn3d
+                  {:luma_spatial 4.0
+                   :chroma_spatial 3.0
+                   :luma_tmp 6.0
+                   :chroma_tmp 4.5})))
+  (testing "valid hqdn3d with no params (all defaults)"
+    (is (s/valid? ::hqdn3d/hqdn3d {})))
+  (testing "invalid hqdn3d with negative luma_spatial"
+    (is (not (s/valid? ::hqdn3d/hqdn3d
+                       {:luma_spatial -1.0})))))
+
+(deftest gradfun-spec-test
+  (testing "valid gradfun with all params"
+    (is (s/valid? ::gradfun/gradfun
+                  {:strength 2.5
+                   :radius 16})))
+  (testing "valid gradfun with single param"
+    (is (s/valid? ::gradfun/gradfun {:strength 1.5})))
+  (testing "valid gradfun with no params (all defaults)"
+    (is (s/valid? ::gradfun/gradfun {})))
+  (testing "invalid gradfun with strength below minimum"
+    (is (not (s/valid? ::gradfun/gradfun {:strength 0.1}))))
+  (testing "invalid gradfun with strength above maximum"
+    (is (not (s/valid? ::gradfun/gradfun {:strength 100.0}))))
+  (testing "invalid gradfun with radius below minimum"
+    (is (not (s/valid? ::gradfun/gradfun {:radius 2}))))
+  (testing "invalid gradfun with radius above maximum"
+    (is (not (s/valid? ::gradfun/gradfun {:radius 64})))))
+
+(deftest colorlevels-spec-test
+  (testing "valid colorlevels with single param"
+    (is (s/valid? ::colorlevels/colorlevels {:rimax 0.8})))
+  (testing "valid colorlevels with input and output ranges"
+    (is (s/valid? ::colorlevels/colorlevels
+                  {:rimin 0.1
+                   :gimin 0.1
+                   :bimin 0.1
+                   :rimax 0.9
+                   :gimax 0.9
+                   :bimax 0.9
+                   :preserve "lum"})))
+  (testing "valid colorlevels with no params (all defaults)"
+    (is (s/valid? ::colorlevels/colorlevels {})))
+  (testing "invalid colorlevels with rimin out of range"
+    (is (not (s/valid? ::colorlevels/colorlevels {:rimin 2.0}))))
+  (testing "invalid colorlevels with romax out of range"
+    (is (not (s/valid? ::colorlevels/colorlevels {:romax 1.5}))))
+  (testing "invalid colorlevels with unknown preserve mode"
+    (is (not (s/valid? ::colorlevels/colorlevels {:preserve "unknown"})))))
 
 (deftest complete-filter-showcase-test
   (testing "Enhanced drawtext filter with comprehensive parameters"
