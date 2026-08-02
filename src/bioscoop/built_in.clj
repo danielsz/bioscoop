@@ -14,6 +14,7 @@
    [bioscoop.domain.specs.concat :as concat]
    [bioscoop.domain.specs.fade :as fade]
    [bioscoop.domain.specs.scale :as scale]
+   [bioscoop.domain.specs.select :as select]
    [bioscoop.domain.specs.crop :as crop]
    [bioscoop.domain.specs.pad :as pad]
    [bioscoop.domain.specs.overlay :as overlay]
@@ -101,8 +102,8 @@
           (make-filter (name spec) (spec/spec-aware-namespace-map spec m))
           (accumulate-error (make-filtergraph []) env m spec :invalid-parameter)))
       (let [all-keys (-> spec
-                        s/form
-                        spec/spec-form->keys)
+                         s/form
+                         spec/spec-form->keys)
             all-un-keys (map (comp keyword name) all-keys)
             m (zipmap all-un-keys arg)]
         (if (s/valid? spec m)
@@ -444,3 +445,9 @@
 
 (defn asettb [arg env]
   (template arg ::settb/asettb env))
+
+(defn select [arg env]
+  (template arg ::select/select env))
+
+(defn aselect [arg env]
+  (template arg ::select/aselect env))
