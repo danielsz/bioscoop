@@ -60,32 +60,12 @@
 (defmethod resolve-function false [op env]
   (resolve-fn op env #(error op env :unresolved-function)))
 
-
 (defn resolve-top-level-var
   "Resolve `name` to its Var. Returns the Var
    when found and bound, else nil."
   [name]
   (when-let [v (if (namespace name) (find-var name) (resolve name))]
     (when (bound? v) v)))
-
-
-(defn get-var [name]
-  (when-let [v (resolve-top-level-var name)]
-    (when (instance? FilterGraph (var-get v))
-      (var-get v))))
-
-
-(defn symbol-sanity-check
-  "Checks if symbol resolves to a Var
-  If not, treat as filter-name candidate
-  If it does, check that Var resolves to something callable
-  — resolve-function will process user-defined functions"
-  [sym env]
-  (if-let [v (resolve-top-level-var (symbol sym))]
-    (if (ifn? (var-get v))
-      sym
-      (accumulate-error env sym :unscoped-top-level-var))
-    sym))
 
 (defmulti resolve-symbol (fn [sym env] *dynamic-resolution*))
 
@@ -96,11 +76,17 @@
 
 (defmethod resolve-symbol true [sym env]
   (let [env-val (env-get env sym)
-        defgraph-val (get-var (symbol sym))]
+        v       (resolve-top-level-var (symbol sym))]
     (cond
-      (and env-val defgraph-val) (do (accumulate-error env sym :ambiguous-symbol)
-                                  env-val)
-      defgraph-val defgraph-val
+      (and env-val v) (do (accumulate-error env sym :ambiguous-symbol)
+                          env-val) ;; shadowing occurs, this is a warning not an error
+
+      v (let [val (var-get v)]
+          (if (fn? val) sym val))   ;; function → keep as string for dynamic dispatch
+                                    ;; anything else → hand back the real value
+
       env-val env-val
-      :else (symbol-sanity-check sym env))))
+
+      :else sym)))
+
 

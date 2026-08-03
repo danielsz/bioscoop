@@ -45,18 +45,6 @@
                                                  {:symbol sym
                                                   :error-type :ambiguous-symbol
                                                   :explanation "This symbol exists as both a local binding and a graph definition. To resolve this ambiguity, please use a different name for either one of them."}))
-             :unscoped-top-level-var (fn [sym]
-                                       (let [msg (str "Symbol '" sym "' refers to a top-level Var, but its value is "
-                                                      "plain data (not a filtergraph, not a function) — so it isn't "
-                                                      "visible from inside this bioscoop expression.\n\n"
-                                                      "`bioscoop` only auto-captures *lexical* locals (let-bindings, "
-                                                      "fn parameters) present at the (bioscoop ...) call site; it "
-                                                      "cannot see top-level defs.\n\n"
-                                                      "Fix — shadow it locally:\n"
-                                                      "  (let [" sym " " sym "] (bioscoop ... " sym " ...))\n"
-                                                      "or receive it as a parameter:\n"
-                                                      "  (defn my-graph [" sym "] (bioscoop ... " sym " ...))")]
-                                         (ex-info msg {:symbol sym :error-type :unscoped-top-level-var :explanation msg})))
              :chain-parallel-filtergraph (fn [sym] (ex-info "Cannot use a parallel filtergraph inside chain"
                                                            {:value       sym
                                                             :error-type  :chain-parallel-filtergraph

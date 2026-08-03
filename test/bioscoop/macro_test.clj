@@ -483,9 +483,62 @@
       (is (= (to-ffmpeg (bioscoop (crop {:out_w w})))
              (to-ffmpeg (bioscoop (eval "(crop {:out_w \"" w "\"})"))))))))
 
-
 (deftest eval-degrades-gracefully-on-a-runtime-error-in-valid-syntax
   (testing "valid syntax with an unresolvable name still goes through the ordinary accumulate-error path, unaffected by the two fixes above"
     (let [result (bioscoop (eval "(this-does-not-exist {:x \"1\"})"))]
       (is (= "" (to-ffmpeg result)))
       (is (= :unresolved-function (:error-type (ex-data (first @last-errors))))))))
+
+(deftest top-level-var
+  (testing "plain number def is valid"
+    (intern *ns* 'plain-number 42)
+    (bioscoop (scale plain-number 1080))
+    (is (nil? (seq @dsl/last-errors)))
+    (ns-unmap *ns* 'plain-number))
+
+  (testing "string def triggers is valid"
+    (intern *ns* 'plain-string "hello")
+    (bioscoop (scale plain-string 1080))
+    (is (nil? (seq @dsl/last-errors)))
+    (ns-unmap *ns* 'plain-string))
+
+  (testing "nil def triggers invalid parameter"
+    (intern *ns* 'plain-nil nil)
+    (bioscoop (scale plain-nil 1080))
+    (is (= :invalid-parameter (:error-type (ex-data (first @dsl/last-errors)))))
+    (ns-unmap *ns* 'plain-nil))
+
+  (testing "vectors and maps are in Clojure, so they do NOT trigger the error"
+    (intern *ns* 'plain-vec [1 2 3])
+    (intern *ns* 'plain-map {:width 1 :height 1})
+    (bioscoop (scale plain-vec 1080))
+    (is (some #(= :invalid-parameter (:error-type (ex-data %))) @dsl/last-errors))
+    (bioscoop (scale plain-map 1080))
+    (is (nil? (seq @dsl/last-errors)))
+    (ns-unmap *ns* 'plain-vec)
+    (ns-unmap *ns* 'plain-map))
+
+  (testing "a defn is ifn? so does NOT trigger unscoped-top-level-var"
+    (intern *ns* 'my-fn (fn [x] (inc x)))
+    (bioscoop (scale (my-fn 1919) 1080))
+    (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors)))
+    (ns-unmap *ns* 'my-fn))
+
+  (testing "defgraph FilterGraph does NOT trigger unscoped-top-level-var"
+    (intern *ns* 'my-graph (bioscoop (scale 1920 1080)))
+    (let [result (bioscoop (compose my-graph (crop "100")))]
+      (is (= "scale=width=1920:height=1080;crop=out_w=100" (to-ffmpeg result)))
+      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors))))
+    (ns-unmap *ns* 'my-graph))
+
+  (testing "shadowing with let at the bioscoop call site avoids the error"
+    (let [shadowed-val 42
+          result (bioscoop (scale shadowed-val 1080))]
+      (is (= "scale=width=42:height=1080" (to-ffmpeg result)))
+      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors)))))
+
+  (testing "fn parameter avoids the error (the second suggested fix)"
+    (let [my-wrapper (fn [param-val] (bioscoop (scale param-val 1080)))
+          result (my-wrapper 99)]
+      (is (= "scale=width=99:height=1080" (to-ffmpeg result)))
+      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors))))))
