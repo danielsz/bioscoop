@@ -84,7 +84,11 @@
    (bioscoop (let [width 1920] (scale width 1080)))
   
    This produces the same result as:
-   (dsl/compile-dsl \"(let [width 1920] (scale width 1080))\")"
+   (dsl/compile-dsl \"(let [width 1920] (scale width 1080))\")
+
+  Note: bioscoop only sees *lexical* locals in scope at the call site
+   (let-bindings, fn params) — not top-level defs. Shadow a top-level var
+   locally before referencing it inside a bioscoop form."
   [& forms]
   (let [ast-nodes (mapv form->ast forms)
         program-ast (vec (concat [:program] ast-nodes))

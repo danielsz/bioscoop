@@ -60,10 +60,32 @@
 (defmethod resolve-function false [op env]
   (resolve-fn op env #(error op env :unresolved-function)))
 
+
+(defn resolve-top-level-var
+  "Resolve `name` to its Var. Returns the Var
+   when found and bound, else nil."
+  [name]
+  (when-let [v (if (namespace name) (find-var name) (resolve name))]
+    (when (bound? v) v)))
+
+
 (defn get-var [name]
-  (when-let [v (if (namespace name) (find-var name) (resolve name))] ;; allows aliasing of filtergraph in defs
-    (when (and (bound? v) (instance? FilterGraph (var-get v)))
+  (when-let [v (resolve-top-level-var name)]
+    (when (instance? FilterGraph (var-get v))
       (var-get v))))
+
+
+(defn symbol-sanity-check
+  "Checks if symbol resolves to a Var
+  If not, treat as filter-name candidate
+  If it does, check that Var resolves to something callable
+  — resolve-function will process user-defined functions"
+  [sym env]
+  (if-let [v (resolve-top-level-var (symbol sym))]
+    (if (ifn? (var-get v))
+      sym
+      (accumulate-error env sym :unscoped-top-level-var))
+    sym))
 
 (defmulti resolve-symbol (fn [sym env] *dynamic-resolution*))
 
@@ -74,10 +96,11 @@
 
 (defmethod resolve-symbol true [sym env]
   (let [env-val (env-get env sym)
-        graph-val (get-var (symbol sym))]
+        defgraph-val (get-var (symbol sym))]
     (cond
-      (and env-val graph-val) (do (accumulate-error env sym :ambiguous-symbol)
+      (and env-val defgraph-val) (do (accumulate-error env sym :ambiguous-symbol)
                                   env-val)
-      graph-val graph-val
+      defgraph-val defgraph-val
       env-val env-val
-      :else sym)))
+      :else (symbol-sanity-check sym env))))
+

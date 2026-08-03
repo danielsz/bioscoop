@@ -334,5 +334,3 @@
       (let [result (compile-dsl "(defgraph foo (scale 1920 1080))\n(defgraph bar (compose foo (crop \"640\" \"480\")))\nbar")]
         (is (= "scale=width=1920:height=1080;crop=out_w=640:w=480" (to-ffmpeg result)))))))
 
-
-

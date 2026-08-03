@@ -83,7 +83,10 @@
                                         output)))))]))]
     (cond
       (empty? (:chains filtergraph)) filtergraph
-      (= 1 (count (:chains filtergraph))) (f (:filters (first (:chains filtergraph))))
+      (= 1 (count (:chains filtergraph))) (let [filters (:filters (first (:chains filtergraph)))]
+                                            (if (seq filters)
+                                              (f filters)
+                                              (accumulate-error env filtergraph :padded-graph-empty-chain)))
       :else (accumulate-error env filtergraph :padded-graph-multiple-filterchains))))
 
 (defmethod transform-ast* :let-binding [[_ & content] env]

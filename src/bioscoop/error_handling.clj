@@ -37,10 +37,26 @@
                                                                    {:symbol sym
                                                                     :error-type :padded-graph
                                                                     :explanation "Multiple filterchains found. You can only label pads one filterchain at the time"}))
+             :padded-graph-empty-chain (fn [sym] (ex-info "Cannot label pads on an empty filterchain"
+                                                         {:symbol sym
+                                                          :error-type :padded-graph-empty-chain
+                                                          :explanation "The expression inside this padded graph produced a filterchain with zero filters, so there's nothing to attach input/output pad labels to."}))
              :ambiguous-symbol (fn [sym] (ex-info (str "Ambiguous symbol reference: '" sym "'\n")
                                                  {:symbol sym
                                                   :error-type :ambiguous-symbol
                                                   :explanation "This symbol exists as both a local binding and a graph definition. To resolve this ambiguity, please use a different name for either one of them."}))
+             :unscoped-top-level-var (fn [sym]
+                                       (let [msg (str "Symbol '" sym "' refers to a top-level Var, but its value is "
+                                                      "plain data (not a filtergraph, not a function) — so it isn't "
+                                                      "visible from inside this bioscoop expression.\n\n"
+                                                      "`bioscoop` only auto-captures *lexical* locals (let-bindings, "
+                                                      "fn parameters) present at the (bioscoop ...) call site; it "
+                                                      "cannot see top-level defs.\n\n"
+                                                      "Fix — shadow it locally:\n"
+                                                      "  (let [" sym " " sym "] (bioscoop ... " sym " ...))\n"
+                                                      "or receive it as a parameter:\n"
+                                                      "  (defn my-graph [" sym "] (bioscoop ... " sym " ...))")]
+                                         (ex-info msg {:symbol sym :error-type :unscoped-top-level-var :explanation msg})))
              :chain-parallel-filtergraph (fn [sym] (ex-info "Cannot use a parallel filtergraph inside chain"
                                                            {:value       sym
                                                             :error-type  :chain-parallel-filtergraph
