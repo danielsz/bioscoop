@@ -2,7 +2,7 @@
 
 (defn make-env
   ([] {:errors (atom [])})
-  ([parent] (assoc {:errors (:errors parent)} :parent parent)))
+  ([parent] (assoc (select-keys parent [:errors :bioscoop/compile-ns]) :parent parent)))
 
 (defn env-get [env sym]
   (if (contains? env sym)

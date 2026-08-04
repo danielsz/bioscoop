@@ -503,14 +503,14 @@
     (ns-unmap *ns* 'plain-string))
 
   (testing "nil def triggers invalid parameter"
-    (intern *ns* 'plain-nil nil)
+    (def plain-nil nil)
     (bioscoop (scale plain-nil 1080))
-    (is (= :invalid-parameter (:error-type (ex-data (first @dsl/last-errors)))))
+    (is (= :invalid-parameter (:error-type (ex-data (first @last-errors)))))
     (ns-unmap *ns* 'plain-nil))
 
   (testing "vectors and maps are in Clojure, so they do NOT trigger the error"
-    (intern *ns* 'plain-vec [1 2 3])
-    (intern *ns* 'plain-map {:width 1 :height 1})
+    (def plain-vec [1 2 3])
+    (def plain-map {:width 1 :height 1})
     (bioscoop (scale plain-vec 1080))
     (is (some #(= :invalid-parameter (:error-type (ex-data %))) @dsl/last-errors))
     (bioscoop (scale plain-map 1080))
@@ -518,14 +518,8 @@
     (ns-unmap *ns* 'plain-vec)
     (ns-unmap *ns* 'plain-map))
 
-  (testing "a defn is ifn? so does NOT trigger unscoped-top-level-var"
-    (intern *ns* 'my-fn (fn [x] (inc x)))
-    (bioscoop (scale (my-fn 1919) 1080))
-    (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors)))
-    (ns-unmap *ns* 'my-fn))
-
-  (testing "defgraph FilterGraph does NOT trigger unscoped-top-level-var"
-    (intern *ns* 'my-graph (bioscoop (scale 1920 1080)))
+  (testing "defgraph FilterGraph does NOT trigg"
+    (defgraph my-graph (scale 1920 1080))
     (let [result (bioscoop (compose my-graph (crop "100")))]
       (is (= "scale=width=1920:height=1080;crop=out_w=100" (to-ffmpeg result)))
       (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors))))

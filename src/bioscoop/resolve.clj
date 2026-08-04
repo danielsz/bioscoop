@@ -53,18 +53,20 @@
                                        (instance? FilterGraph result) result
                                        (seqable? result)              (apply compose-filtergraphs result)
                                        :else                          (make-filtergraph [])))))]
-    (resolve-fn op env #(if-let [f (ns-resolve *ns* (symbol op))]
+    (resolve-fn op env #(if-let [f (ns-resolve (:bioscoop/compile-ns env) (symbol op))]
                           (wrap-user-defined f)
                           (error op env :unresolved-function)))))
 
 (defmethod resolve-function false [op env]
   (resolve-fn op env #(error op env :unresolved-function)))
 
-(defn resolve-top-level-var
+(defn resolve-var
   "Resolve `name` to its Var. Returns the Var
    when found and bound, else nil."
-  [name]
-  (when-let [v (if (namespace name) (find-var name) (resolve name))]
+  [name env]
+  (when-let [v (if (namespace name)
+                 (find-var name)
+                 (ns-resolve (:bioscoop/compile-ns env) name))]
     (when (bound? v) v)))
 
 (defmulti resolve-symbol (fn [sym env] *dynamic-resolution*))
@@ -76,17 +78,12 @@
 
 (defmethod resolve-symbol true [sym env]
   (let [env-val (env-get env sym)
-        v       (resolve-top-level-var (symbol sym))]
+        v       (resolve-var (symbol sym) env)]
     (cond
       (and env-val v) (do (accumulate-error env sym :ambiguous-symbol)
                           env-val) ;; shadowing occurs, this is a warning not an error
-
       v (let [val (var-get v)]
           (if (fn? val) sym val))   ;; function → keep as string for dynamic dispatch
                                     ;; anything else → hand back the real value
-
       env-val env-val
-
       :else sym)))
-
-

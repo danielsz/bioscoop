@@ -80,6 +80,14 @@
   "Macro that takes Clojure DSL forms and produces the same AST as Instaparse parsing.
    Binds *dynamic-resolution* to true for runtime reflection support.
 
+   Symbols that aren't lexical locals (let-bindings, fn params) are resolved
+   against the namespace this macro was expanded in — captured at compile
+   time — not against whatever `*ns*` happens to be bound to when the
+   resulting code actually runs. This matters because *ns* is a thread-local
+   dynamic binding that can drift from the compiling namespace by the time
+   the code executes (e.g. under test runners that don't rebind *ns* around
+   test invocation).
+
    Example:
    (bioscoop (let [width 1920] (scale width 1080)))
   
@@ -88,19 +96,19 @@
   [& forms]
   (let [ast-nodes (mapv form->ast forms)
         program-ast (vec (concat [:program] ast-nodes))
-        locals (keys &env)]
+        locals (keys &env)
+        ns-sym (ns-name *ns*)]
     `(binding [config/*dynamic-resolution* true]
        (let [env# (reduce (fn [e# [k# v#]]
                             (env-put e# k# v#))
-                          (make-env)
+                          (assoc (make-env) :bioscoop/compile-ns (the-ns '~ns-sym))
                           ~(mapv (fn [sym] [(str sym) sym]) locals))]
          (dsl/run-ast ~program-ast env#)))))
 
 (defmacro defgraph [name & body]
-  `(binding [config/*dynamic-resolution* true]
-     (let [graph# (bioscoop ~@body)]
-        (if (reserved-word? (str '~name))
-          (println (str '~name " is a reserved word."))
-          (intern *ns* '~name graph#)))))
-
-
+  (let [ns-sym (ns-name *ns*)]
+    `(binding [config/*dynamic-resolution* true]
+       (let [graph# (bioscoop ~@body)]
+         (if (reserved-word? (str '~name))
+           (println (str '~name " is a reserved word."))
+           (intern (the-ns '~ns-sym) '~name graph#))))))
