@@ -80,13 +80,13 @@
   "Macro that takes Clojure DSL forms and produces the same AST as Instaparse parsing.
    Binds *dynamic-resolution* to true for runtime reflection support.
 
-   Symbols that aren't lexical locals (let-bindings, fn params) are resolved
-   against the namespace this macro was expanded in — captured at compile
-   time — not against whatever `*ns*` happens to be bound to when the
-   resulting code actually runs. This matters because *ns* is a thread-local
-   dynamic binding that can drift from the compiling namespace by the time
-   the code executes (e.g. under test runners that don't rebind *ns* around
-   test invocation).
+   Symbols that aren't lexical locals (let-bindings, fn params) are
+  resolved against the namespace this macro was expanded in — captured
+  at compile time — not against whatever `*ns*` happens to be bound to
+  at runtime. This matters because *ns* is a thread-local dynamic
+  binding that can drift from the compiling namespace by the time the
+  code executes (e.g. under test runners that don't rebind *ns* around
+  test invocation).
 
    Example:
    (bioscoop (let [width 1920] (scale width 1080)))
