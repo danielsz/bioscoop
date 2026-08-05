@@ -4,7 +4,7 @@
    
    When *dynamic-resolution* is true: Use runtime reflection via ns-resolve/resolve
    When *dynamic-resolution* is false (default): Use static lookup tables"
-  (:require [bioscoop.config :as config :refer [*dynamic-resolution*]]
+  (:require [bioscoop.config :as config :refer [*dynamic-resolution* *warn-on-shadowing*]]
             [bioscoop.built-in]
             [bioscoop.domain.records :refer [compose-filtergraphs make-filtergraph]]
             [bioscoop.error-handling :refer [accumulate-error]]
@@ -80,8 +80,8 @@
   (let [env-val (env-get env sym)
         v       (resolve-var (symbol sym) env)]
     (cond
-      (and env-val v) (do (accumulate-error env sym :ambiguous-symbol)
-                          env-val) ;; shadowing occurs, this is a warning not an error
+      (and env-val v) (do (when *warn-on-shadowing* (accumulate-error env sym :ambiguous-symbol))
+                          env-val) ;; shadowing is ok, follows lexical scoping, this is a warning not an error
       v (let [val (var-get v)]
           (if (fn? val) sym val))   ;; function → keep as string for dynamic dispatch
                                     ;; anything else → hand back the real value

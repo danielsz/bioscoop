@@ -44,7 +44,7 @@
              :ambiguous-symbol (fn [sym] (ex-info (str "Ambiguous symbol reference: '" sym "'\n")
                                                  {:symbol sym
                                                   :error-type :ambiguous-symbol
-                                                  :explanation "This symbol exists as both a local binding and a graph definition. To resolve this ambiguity, please use a different name for either one of them."}))
+                                                  :explanation "This symbol exists as both a local binding and a top-level definition. To resolve this ambiguity, please use a different name for either one of them."}))
              :chain-parallel-filtergraph (fn [sym] (ex-info "Cannot use a parallel filtergraph inside chain"
                                                            {:value       sym
                                                             :error-type  :chain-parallel-filtergraph

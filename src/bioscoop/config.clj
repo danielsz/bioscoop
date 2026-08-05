@@ -3,6 +3,7 @@
 (def ^:dynamic *debug-mode* #{})
 (def ^:dynamic *warn-verbose* true)
 (def ^:dynamic *dynamic-resolution* false)
+(def ^:dynamic *warn-on-shadowing* false)
 
 (defn toggle-warning [] (alter-var-root #'*warn-verbose* not))
 (defn reset-debug [] (alter-var-root #'*debug-mode* (fn [nodes] (empty nodes))))

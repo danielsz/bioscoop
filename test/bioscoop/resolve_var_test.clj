@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest testing is]]
             [bioscoop.macro :refer [bioscoop]]
             [bioscoop.dsl :refer [last-errors]]
-            [bioscoop.domain.records :refer [make-filtergraph make-filterchain make-filter]])
+            [bioscoop.domain.records :refer [make-filtergraph make-filterchain make-filter]]
+            [bioscoop.config :refer [*warn-on-shadowing*]])
   (:import [bioscoop.domain.records FilterGraph]))
 
 ;; Captured at namespace load time, when *ns* is guaranteed to be this
@@ -47,8 +48,9 @@
   (testing "a symbol that's both a local DSL binding and a top-level Var is
             genuinely ambiguous, regardless of what the Var holds"
     (intern this-ns 'shadow-me {:width 640 :height 480})
-    (bioscoop (let [shadow-me {:width 320 :height 240}]
-                (scale shadow-me)))
+    (binding [*warn-on-shadowing* true]
+      (bioscoop (let [shadow-me {:width 320 :height 240}]
+                  (scale shadow-me))))
     (is (some #(= :ambiguous-symbol (:error-type (ex-data %))) @last-errors))
     (ns-unmap this-ns 'shadow-me)))
 
@@ -107,8 +109,9 @@
   (is (empty? @last-errors)))
 
 (deftest shadowing-any-top-level-var-is-still-ambiguous
-  (bioscoop (let [config-map {:text "shadowed"}]
-              (fake-title config-map)))
+  (binding [*warn-on-shadowing* true]
+    (bioscoop (let [config-map {:text "shadowed"}]
+                (fake-title config-map))))
   (is (some #{:ambiguous-symbol} (map (comp :error-type ex-data) @last-errors))))
 
 (comment (deftest data-var-in-call-head-position-errors-cleanly
