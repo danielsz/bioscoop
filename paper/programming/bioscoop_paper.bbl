@@ -228,6 +228,7 @@
       \strng{authornamehash}{6853ad7c3984018095201bb9fb8571fe}
       \strng{authorfullhash}{6853ad7c3984018095201bb9fb8571fe}
       \strng{authorfullhashraw}{6853ad7c3984018095201bb9fb8571fe}
+      \field{extraname}{1}
       \field{sortinit}{H}
       \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
       \field{labelnamesource}{author}
@@ -236,6 +237,36 @@
       \field{note}{Accessed: 2024}
       \field{title}{clojure.spec}
       \field{year}{2016}
+    \endentry
+    \entry{clojure}{inproceedings}{}{}
+      \name{author}{1}{}{%
+        {{hash=6853ad7c3984018095201bb9fb8571fe}{%
+           family={Hickey},
+           familyi={H\bibinitperiod},
+           given={Rich},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{fullhash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{fullhashraw}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{bibnamehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authorbibnamehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authornamehash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authorfullhash}{6853ad7c3984018095201bb9fb8571fe}
+      \strng{authorfullhashraw}{6853ad7c3984018095201bb9fb8571fe}
+      \field{extraname}{2}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 2008 Symposium on Dynamic Languages}
+      \field{title}{The {Clojure} Programming Language}
+      \field{year}{2008}
+      \field{pages}{1}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1145/1408681.1408682
+      \endverb
     \endentry
     \entry{hudak}{article}{}{}
       \name{author}{1}{}{%
@@ -482,42 +513,6 @@
       \range{pages}{13}
       \verb{doi}
       \verb 10.1016/j.entcs.2010.08.041
-      \endverb
-    \endentry
-    \entry{taha}{article}{}{}
-      \name{author}{2}{}{%
-        {{hash=adc1d6ad76b1c29ffa306fb2d2fe4eb6}{%
-           family={Taha},
-           familyi={T\bibinitperiod},
-           given={Walid},
-           giveni={W\bibinitperiod}}}%
-        {{hash=df86c731af4fe9a008ba08ee140463a7}{%
-           family={Sheard},
-           familyi={S\bibinitperiod},
-           given={Tim},
-           giveni={T\bibinitperiod}}}%
-      }
-      \strng{namehash}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{fullhash}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{fullhashraw}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{bibnamehash}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{authorbibnamehash}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{authornamehash}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{authorfullhash}{773fe681e0dd6351f2f1045ac2915d53}
-      \strng{authorfullhashraw}{773fe681e0dd6351f2f1045ac2915d53}
-      \field{sortinit}{T}
-      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{Theoretical Computer Science}
-      \field{number}{1--2}
-      \field{title}{{MetaML} and Multi-Stage Programming with Explicit Annotations}
-      \field{volume}{248}
-      \field{year}{2000}
-      \field{pages}{211\bibrangedash 242}
-      \range{pages}{32}
-      \verb{doi}
-      \verb 10.1016/S0304-3975(00)00053-0
       \endverb
     \endentry
     \entry{moviepy}{misc}{}{}
