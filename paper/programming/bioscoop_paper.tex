@@ -195,7 +195,7 @@ Bioscoop is motivated by this gap. By giving FFmpeg's filtergraph notation the a
 
 \subsection{Motivating Example}\label{sec:motivating-example}
 
-Bioscoop was used to produce two official music videos for indie bands, published on YouTube\footnote{\url{https://youtu.be/FmbC60HiD6k}, \url{https://youtu.be/GUU4zqeleYY}}. The program composites an arbitrary number of photographs with Conway's Game of Life simulations: each iteration renders them as animated cellular automata with per-iteration colour schemes, then layers the photographs through harmonic blending and crossfades. Figure~\ref{fig:screenshot} shows a frame from one output.
+Bioscoop was used to produce two official music videos for indie bands, published on YouTube\footnote{\url{https://youtu.be/FmbC60HiD6k}, \url{https://youtu.be/GUU4zqeleYY}}. In one of them, the program composites an arbitrary number of photographs with Conway's Game of Life simulations: each iteration renders them as animated cellular automata with per-iteration colour schemes, then layers the photographs through harmonic blending and crossfades. Figure~\ref{fig:screenshot} shows a frame from the output.
 
 \begin{figure}[t]
 \centering
@@ -204,7 +204,7 @@ Bioscoop was used to produce two official music videos for indie bands, publishe
 \label{fig:screenshot}
 \end{figure}
 
-The complete program is listed in Appendix~\ref{sec:music-video-code}. With 14 photographs and 20\,s per image, it generates a filtergraph of approximately 3\,200 characters; changing the image count, timing, or colour palette requires editing keyword arguments, not rewriting the filtergraph. A simpler slideshow generator, used as a detailed case study in \S\ref{sec:slideshow}, exercises the same abstraction mechanisms at a smaller scale.
+The core functions are listed in Appendix~\ref{sec:music-video-code}. With 14 photographs and 20\,s per image, it generates a filtergraph of approximately 3\,200 characters; changing the image count, timing, or colour palette requires editing keyword arguments, not rewriting the filtergraph. A simpler slideshow generator, used as a detailed case study in \S\ref{sec:slideshow}, exercises the same abstraction mechanisms at a smaller scale.
 
 \section{Background and Related Work}
 
@@ -692,7 +692,7 @@ The GraalVM native image path uses a static lookup table populated at compile ti
 
 These are not two implementations of the same mechanism but two distinct strategies, each maximizing the affordances of its execution environment---for symbol resolution as much as for function resolution.  The \texttt{*dynamic-resolution*} dynamic var is the abstraction boundary between them, selected automatically by the macro path and configurable for programmatic use.
 
-\subsection{Limitations}
+\subsection{Limitations}\label{sec:limitations}
 
 The current system has one notable limitation. \emph{Label arity at compose boundaries}: The \texttt{for} construct can generate $n$ parallel filtergraph chains, each with computed output labels. But a subsequent \texttt{compose} stage that collects all $n$ outputs as inputs to a single filter---such as \texttt{concat} or \texttt{xstack} with $n$ inputs---must still list those labels explicitly. A splice operator for label sequences at compose boundaries would close this gap.
 
@@ -701,46 +701,69 @@ The current system has one notable limitation. \emph{Label arity at compose boun
 We present a case study that exercises Bioscoop's key abstraction mechanisms at a realistic scale. The program generates a cross-fading slideshow from an arbitrary number of input images, using \texttt{defgraph} for reusable filter stages, \texttt{compose} to combine parallel pipelines, and \texttt{for} with conditional logic to generate filtergraph topology driven by the image count.
 
 \begin{lstlisting}[caption={Slideshow generator (excerpt)}]
+(defn screen [duration]
+  (bioscoop (color {:color "black" :size "hd1080" :rate 120 :duration duration})))
+
 (defgraph padding
-  (chain (pad {:width "'iw*1.25'" :height "'ih*1.25'"
-               :x "'(ow-iw)/2'" :y "'(oh-ih)/2'"})
-         (scale {:size "hd1080"
-                 :force_original_aspect_ratio "decrease"})
+  (chain (pad {:width "'iw*1.25'" :height "'ih*1.25'" :x "'(ow-iw)/2'" :y "'(oh-ih)/2'"})
+         (scale {:size "hd1080" :force_original_aspect_ratio "decrease"})
          (setsar {:sar "1"})))
 
-(defn slideshow-base [& {:keys [n duration index]}]
+(defn transition [& {:keys [duration offset style] :or {style "fade" duration 1}}]
+  (bioscoop (xfade {:transition style :duration duration :offset offset})))
+
+(defn slideshow-base [n duration]
   (bioscoop
    (compose
-    [(chain (screen duration) (split {:outputs (- n index)}))
-     [(for [i (range index n)] (str "screen" i))]]
-    (for [i (range index n)]
+    [(chain (screen duration) (split {:outputs n}))
+     [(for [i (range 0 n)] (str "screen" i))]]
+    (for [i (range 0 n)]
       [[(str i ":v")] padding [(str "padded" i)]])
-    (for [i (range index n)]
+    (for [i (range 0 n)]
       [[(str "screen" i)] [(str "padded" i)]
        (overlay {:x "'(W-w)/2'" :y "'(H-h)/2'"})
        [(str "overlay" i)]]))))
 
+(defn slideshow-concat [{:keys [n duration]}]
+  (bioscoop
+   (compose (slideshow-base n duration)
+            [[(for [i (range 0 n)] (str "overlay" i))]
+             (chain (concat {:n n :v 1 :a 0})
+                    (format {:pix_fmts "yuv420p"}))
+             ["out"]])))
+
 (defn slideshow-xfade [{:keys [n duration]}]
   (bioscoop
-   (compose (slideshow-base :n n :duration (inc duration))
-            (for [i (range (dec n))]
+   (compose (slideshow-base n (inc duration))
+            (for [i (range 0 (dec n))]
               (if (zero? i)
                 [[(str "overlay" i) (str "overlay" (inc i))]
-                 (xfade {:transition "fade" :duration 1
-                         :offset duration})
-                 [(str "out" i)]]
+                 (transition :offset duration) [(str "out" i)]]
                 [[(str "out" (dec i))]
                  [(str "overlay" (inc i))]
-                 (xfade {:transition "fade" :duration 1
-                         :offset (+ (* i duration) duration)})
+                 (transition :offset (+ (* i duration) duration))
                  [(str "out" i)]]))
             [[(str "out" (- n 2))] (format {:pix_fmts "yuv420p"})
              ["out"]])))
+
+(def filtergraph {:xfade  slideshow-xfade :concat slideshow-concat})
+
+(defn make-slideshow [& {:keys [images duration style] :or   {duration 4 style :xfade}}]
+  (with-inputs {:filtergraph (to-ffmpeg ((style filtergraph) {:n (count images) :duration duration}))
+                :maps ["-map" "[out]"]
+                :verbose true
+                :blocking true
+                :out-filename "slideshow.mp4"}
+               images))
 \end{lstlisting}
 
-\texttt{padding} is a reusable filter chain, defined once via \texttt{defgraph} and referenced seven lines later as a filter-stage expression. \texttt{slideshow-base} uses three \texttt{for} blocks inside a single \texttt{compose}: the first splits a colour source into $n$ labelled outputs; the second pads each input image and assigns computed output labels \texttt{padded0}, \texttt{padded1}, etc.; the third overlays corresponding image and screen pairs, producing \texttt{overlay0} through \texttt{overlay($n{-}1$)}. The two \texttt{for} blocks that share an iteration variable are sequenced within the same \texttt{compose}, so their label chains connect: the second block's computed output labels supply the third block's computed input labels.
+\texttt{padding} is a reusable filter chain, defined once via \texttt{defgraph} and referenced as a filter-stage expression in \texttt{slideshow-base}. \texttt{transition} is a parameterized helper that wraps \texttt{xfade} with keyword arguments and defaults, reducing repetition in the crossfade variants that follow. \texttt{slideshow-base} uses three \texttt{for} blocks inside a single \texttt{compose}: the first splits a colour source into $n$ labelled outputs; the second pads each input image and assigns computed output labels \texttt{padded0}, \texttt{padded1}, etc.; the third overlays corresponding image and screen pairs, producing \texttt{overlay0} through \texttt{overlay($n{-}1$)}. The two \texttt{for} blocks that share an iteration variable are sequenced within the same \texttt{compose}, so their label chains connect: the second block's computed output labels supply the third block's computed input labels.
+
+\texttt{slideshow-concat} collects all $n$ overlay outputs at a compose boundary via \texttt{for} in label position---the expression \texttt{(for [i (range 0 n)] (str "overlay" i))} generates the sequence \texttt{"overlay0"} through \texttt{"overlay($n{-}1$)"}---and routes them into a single \texttt{concat} filter. This illustrates the limitation noted in \S\ref{sec:limitations}: a \texttt{for} in label position can generate the label list, but the compose boundary must still list it explicitly; a splice operator would remove that last bit of ceremony.
 
 \texttt{slideshow-xfade} layers cross-fades on top. A single \texttt{for} loop with an \texttt{if} branch generates a cascade: iteration~0 consumes \texttt{overlay0} and \texttt{overlay1} and produces \texttt{out0}; every subsequent iteration consumes the previous \texttt{out($i{-}1$)} together with \texttt{overlay($i{+}1$)} and produces \texttt{out$i$}. A final \texttt{format} stage normalises pixel formats. The offset expression \texttt{(+ (* i duration) duration)} produces the staggered schedule $4, 8, 12, \ldots$ so that each new image appears exactly as the previous transition finishes.
+
+\texttt{filtergraph} is a plain Clojure map associating keywords \texttt{:xfade} and \texttt{:concat} with their implementations. \texttt{make-slideshow} accepts a \texttt{:style} keyword argument, uses it to look up the corresponding function from \texttt{filtergraph}, and passes the image count and duration to the selected constructor. The transition mode is therefore pluggable: changing \texttt{:style} from \texttt{:xfade} to \texttt{:concat} replaces the entire filtergraph structure with a concat-based variant, without touching either implementation. A user-defined transition style would require only a new function conforming to the same calling convention and an entry in the dispatch map.
 
 When invoked with ten images, \texttt{slideshow-xfade} generates the following filtergraph string (typeset to show structure; semicolons separate chains, commas separate filters within a chain):
 
@@ -854,7 +877,7 @@ The listing below shows the three functions that carry the core structure of the
                            :death_color (nth death-colors i)
                            :life_color (nth life-colors i)})
              blur (boxblur {:luma_radius "3"
-                             :luma_power 1})]
+                            :luma_power 1})]
           (chain single blur
                  (scale {:width 1920 :height 1080})))
        [(str "life" i)]])))
