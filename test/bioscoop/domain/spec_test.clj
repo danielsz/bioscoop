@@ -10,7 +10,8 @@
             [bioscoop.domain.specs.aevalsrc :as aevalsrc]
             [bioscoop.domain.specs.hqdn3d :as hqdn3d]
             [bioscoop.domain.specs.gradfun :as gradfun]
-            [bioscoop.domain.specs.colorlevels :as colorlevels]))
+            [bioscoop.domain.specs.colorlevels :as colorlevels]
+            [bioscoop.domain.specs.photosensitivity :as photosensitivity]))
 
 (deftest drawtext-spec-test
   (testing "valid drawtext filter"
@@ -184,6 +185,32 @@
     (is (not (s/valid? ::colorlevels/colorlevels {:romax 1.5}))))
   (testing "invalid colorlevels with unknown preserve mode"
     (is (not (s/valid? ::colorlevels/colorlevels {:preserve "unknown"})))))
+
+(deftest photosensitivity-spec-test
+  (testing "valid photosensitivity with no params (all defaults)"
+    (is (s/valid? ::photosensitivity/photosensitivity {})))
+  (testing "valid photosensitivity with full config"
+    (is (s/valid? ::photosensitivity/photosensitivity
+                  {:frames 60
+                   :threshold 1.5
+                   :skip 2
+                   :bypass true})))
+  (testing "threshold accepts the minimum bound"
+    (is (s/valid? ::photosensitivity/photosensitivity {:threshold 0.1})))
+  (testing "invalid photosensitivity with integer threshold (must be float)"
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:threshold 1}))))
+  (testing "invalid photosensitivity with threshold below 0.1"
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:threshold 0.05}))))
+  (testing "frames range boundaries"
+    (is (s/valid? ::photosensitivity/photosensitivity {:frames 2}))
+    (is (s/valid? ::photosensitivity/photosensitivity {:frames 240}))
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:frames 1})))
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:frames 241}))))
+  (testing "invalid photosensitivity with skip out of range"
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:skip 0})))
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:skip 1025}))))
+  (testing "invalid photosensitivity with non-boolean bypass"
+    (is (not (s/valid? ::photosensitivity/photosensitivity {:bypass 1})))))
 
 (deftest complete-filter-showcase-test
   (testing "Enhanced drawtext filter with comprehensive parameters"

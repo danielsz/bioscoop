@@ -18,6 +18,7 @@
    [bioscoop.domain.specs.crop :as crop]
    [bioscoop.domain.specs.pad :as pad]
    [bioscoop.domain.specs.overlay :as overlay]
+   [bioscoop.domain.specs.photosensitivity :as photosensitivity]
    [bioscoop.domain.specs.sources :as sources]
    [bioscoop.domain.specs.anullsrc :as anullsrc]
    [bioscoop.domain.specs.aevalsrc :as aevalsrc]
@@ -138,6 +139,9 @@
 
 (defn overlay [arg env]
   (template arg ::overlay/overlay env))
+
+(defn photosensitivity [arg env]
+  (template arg ::photosensitivity/photosensitivity env))
 
 (defn hflip [arg env]
   (template arg ::flip/hflip env))

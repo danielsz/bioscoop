@@ -64,8 +64,8 @@
       (is (= 4 (filter-count result)))))
 
   (testing "renders correctly after flattening"
-    (defgraph normalize (chain (curves {:preset "lighter"}) (eq {:contrast "1.1"})))
-    (let [result (bioscoop (chain (scale 1920 1080) normalize))]
+    (defgraph normalization (chain (curves {:preset "lighter"}) (eq {:contrast "1.1"})))
+    (let [result (bioscoop (chain (scale 1920 1080) normalization))]
       (is (= "scale=width=1920:height=1080,curves=preset=lighter,eq=contrast=1.1"
              (to-ffmpeg result))))))
 

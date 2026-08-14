@@ -55,4 +55,21 @@
       (is (seq @(:errors env)) "Should accumulate an error for invalid parameter types")
       (is (= (:error-type (ex-data (first @(:errors env)))) :invalid-parameter)))))
 
+(deftest photosensitivity-args-validation
+  (let [env (make-env)]
+    (testing "Valid keyword args are accepted and namespaced correctly"
+      (let [result (built-in/photosensitivity [{:frames 60 :threshold 1.5 :skip 2 :bypass true}] env)
+            expected (->Filter "photosensitivity"
+                               #:bioscoop.domain.specs.photosensitivity{:frames 60, :threshold 1.5, :skip 2, :bypass true}
+                               [] [])]
+        (is (= expected result))
+        (is (empty? @(:errors env)) "Should not produce any errors for valid arguments")))
+
+    (testing "Invalid arguments fail validation"
+      (let [env (make-env)
+            result (built-in/photosensitivity [{:threshold 1}] env)]
+        (is (= (make-filtergraph []) result) "Should return an empty filtergraph on invalid parameters")
+        (is (seq @(:errors env)) "Should accumulate an error for invalid parameter types")
+        (is (= (:error-type (ex-data (first @(:errors env)))) :invalid-parameter))))))
+
 
