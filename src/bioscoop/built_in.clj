@@ -54,6 +54,8 @@
    [bioscoop.domain.specs.tmix :as tmix]
    [bioscoop.domain.specs.noise :as noise]
    [bioscoop.domain.specs.dctdnoiz :as dctdnoiz]
+   [bioscoop.domain.specs.deflicker :as deflicker]
+   [bioscoop.domain.specs.normalize :as normalize]
    [bioscoop.domain.specs.rgbashift :as rgbashift]
    [bioscoop.domain.specs.tinterlace :as tinterlace]
    [bioscoop.domain.specs.shuffleplanes :as shuffleplanes]
@@ -334,6 +336,12 @@
 
 (defn dctdnoiz [arg env]
   (template arg ::dctdnoiz/dctdnoiz env))
+
+(defn deflicker [arg env]
+  (template arg ::deflicker/deflicker env))
+
+(defn normalize [arg env]
+  (template arg ::normalize/normalize env))
 
 (defn rgbashift [arg env]
   (template arg ::rgbashift/rgbashift env))

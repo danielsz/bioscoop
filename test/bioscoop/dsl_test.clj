@@ -188,7 +188,8 @@
     (is (= "scale=width=4:height=1080" (to-ffmpeg (compile-dsl "(let [width (mod 10 6)] (scale width 1080))"))))
     (is (= "scale=width=1920:height=1920" (to-ffmpeg (compile-dsl "(let [size (max 1920 1080)] (scale size size))"))))
     (is (= "scale=width=10:height=100" (to-ffmpeg (compile-dsl "(let [offset (abs -10)] (scale offset 100))"))))
-    (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [next (inc 1919)] (scale next 1080))")))))
+    (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [next (inc 1919)] (scale next 1080))"))))
+    (is (= "scale=width=1920:height=1080" (to-ffmpeg (compile-dsl "(let [next inc] (scale {:width (next 1919) :height 1080}))")))))
   (testing "Nested expressions work"
     (is (= "scale=width=5:height=100" (to-ffmpeg (compile-dsl "(let [result (inc (mod 10 6))] (scale result 100))")))))
   (testing "Negative numbers work properly"
