@@ -1,6 +1,6 @@
 program = expression*
 
-<expression> = atom | list | let-binding | for-binding | map | compose | graph-definition | padded-graph
+<expression> = atom | list | let-binding | for-binding | map | compose | graph-definition | padded-graph | function-definition | lambda
 
 let-binding = <'('> <'let'> binding-vector expression+ <')'>
 <binding-vector> = <'['> binding* <']'>
@@ -11,6 +11,10 @@ for-binding = <'('> <'for'> <'['> symbol expression <']'> expression+ <')'>
 graph-definition = <'('> <'defgraph'> symbol expression* <')'>
 padded-graph = <'['> label* expression label* <']'>
 compose = <'('> 'compose' expression+ <')'>
+
+function-definition = <'('> <'defn'> symbol params expression+ <')'>
+lambda = <'('> <'fn'> params expression+ <')'>
+params = <'['> symbol* <']'>
 
 list = <'('> expression* <')'>
 <mapentry> = keyword expression [<','>]

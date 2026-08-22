@@ -3,7 +3,7 @@
 (defrecord Filter [name args input-labels output-labels])
 (defrecord FilterChain [filters])
 (defrecord FilterGraph [chains])
-
+(defrecord Lambda [params body closure-env fn-name])
 (defn make-filter
   ([name]
    (->Filter name nil [] []))

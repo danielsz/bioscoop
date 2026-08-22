@@ -1,13 +1,14 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
-            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain*]]
+            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain* ->Lambda]]
             [bioscoop.parse :refer [dsl-parser]]
             [bioscoop.env :refer [make-env env-put]]
             [bioscoop.resolve :refer [resolve-function reserved-word-type resolve-symbol reserved-word?]]
             [bioscoop.error-handling :refer [accumulate-error]]
             [bioscoop.trace :refer [trace>]]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log])
+  (:import [bioscoop.domain.records Lambda]))
 
 (declare transform-ast compile-dsl)
 
@@ -17,16 +18,23 @@
 
 (defmethod transform-ast* :program [[_ & expressions] env]
   (let [defgraph-exprs (filter #(= :graph-definition (first %)) expressions)
-        regular-exprs (remove #(= :graph-definition (first %)) expressions)
+        defn-exprs (filter #(= :function-definition (first %)) expressions)
+        regular-exprs (remove #(contains? #{:graph-definition :function-definition} (first %)) expressions)
         compute-graphs (fn [env name body]
                          (if (reserved-word? name)
                            (do (accumulate-error env name :reserved-word)
                                env)
                            (env-put env name body)))
         env (reduce (fn [acc-env [_ [_ name-str] & body]]
-                      (compute-graphs acc-env name-str (transform-ast (into [:program] body) acc-env)))
-                    env
-                    defgraph-exprs)]
+                      (compute-graphs acc-env name-str (transform-ast (into [:program] body) acc-env))) env defgraph-exprs)
+        compute-fn (fn [env name lambda]
+                     (if (reserved-word? name)
+                       (do (accumulate-error env name :reserved-word) env)
+                       (env-put env name lambda)))
+        env (reduce (fn [acc-env [_ [_ name-str] params-node & body]]
+                      (compute-fn acc-env name-str
+                                  (->Lambda (mapv second (rest params-node)) body acc-env name-str)))
+                    env defn-exprs)]
     (->> regular-exprs
          (mapv #(transform-ast % env))
          (mapv #(promote-to-filtergraph % env))
@@ -107,6 +115,24 @@
 (defmethod transform-ast* :binding [[_ sym expr] env]
   [(transform-ast sym env) (transform-ast expr env)])
 
+(defmethod transform-ast* :lambda [[_ params-node & body] env]
+  (->Lambda (mapv second (rest params-node)) body env nil))
+
+(defn- apply-lambda [{:keys [params body closure-env fn-name] :as lambda} args env]
+  (if (not= (count params) (count args))
+    (accumulate-error env {:fn fn-name :expected (count params) :got (count args)} :arity-mismatch)
+    (let [call-env (as-> closure-env e
+                     (if fn-name (env-put e fn-name lambda) e)
+                     (reduce (fn [e [p v]] (env-put e p v)) e (zipmap params args)))]
+      (transform-ast (into [:program] body) call-env))))
+
+(defn- apply-resolved
+  [op args env]
+  (if (instance? Lambda op)
+    (apply-lambda op args env)
+    (let [resolved (resolve-function op env)]
+      (if (seq args) (resolved args env) (resolved nil env)))))
+
 (defmethod transform-ast* :list [[_ op & args] env]
   (let [transformed-op (transform-ast op env)
         transformed-args (mapv #(transform-ast % env) args)]
@@ -115,17 +141,12 @@
       "if" (if (first transformed-args) (second transformed-args) (nth transformed-args 2 nil))
       "when" (if (first transformed-args) (second transformed-args) (make-filtergraph []))
       "dispatch" (let [[op args-val] transformed-args
-                       resolved (resolve-function op env)]
-                   (if (seq args-val)
-                     (resolved [args-val] env)
-                     (resolved nil env)))
+                       call-args (if (seq args-val) [args-val] [])]
+                   (apply-resolved op call-args env))
       "eval" (if (every? string? transformed-args)
                (compile-dsl (apply str transformed-args) (make-env env))
                (make-filtergraph []))
-      (let [resolved (resolve-function transformed-op env)]
-        (if (seq transformed-args)
-          (resolved transformed-args env)
-          (resolved nil env))))))
+      (apply-resolved transformed-op transformed-args env))))
 
 (defmethod transform-ast* :map [[_ kw v :as m] env]
   (let [xs (map #(transform-ast % env) (rest m))]

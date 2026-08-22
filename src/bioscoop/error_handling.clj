@@ -48,7 +48,11 @@
              :chain-parallel-filtergraph (fn [sym] (ex-info "Cannot use a parallel filtergraph inside chain"
                                                            {:value       sym
                                                             :error-type  :chain-parallel-filtergraph
-                                                            :explanation "chain requires linear filter sequences. A filtergraph with multiple chains represents parallel structure that cannot be flattened into a single chain. Use compose instead."}))})
+                                                            :explanation "chain requires linear filter sequences. A filtergraph with multiple chains represents parallel structure that cannot be flattened into a single chain. Use compose instead."}))
+             :arity-mismatch (fn [{:keys [fn expected got]}]
+                               (ex-info "Arity mismatch" {:error-type :arity-mismatch
+                                                          :explanation (str "Function expected " expected ", got " got "arguments")
+                                                          :symbol fn}))})
 
 (defn accumulate-error*
   ([env error]
