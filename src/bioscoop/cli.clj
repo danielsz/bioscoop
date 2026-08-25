@@ -7,7 +7,7 @@
             [clojure.java.io :as io]))
 
 (def cli-options
- [["-e" "--evaluate" "Evaluate bioscoop code"]
+ [["-e" "--evaluate" "Evaluate a Bioscoop expression"]
   ["-v" nil "Verbosity level, use as a flag (no arguments), repeat flag to increase verbosity" :id :verbosity :default 0 :update-fn inc]
   ["-h" "--help" "This help screen."]])
 

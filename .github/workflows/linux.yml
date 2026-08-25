@@ -13,6 +13,8 @@ jobs:
   build-graalvm:
     name: Graalvm build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
 
       - name: Checkout
@@ -21,7 +23,7 @@ jobs:
       - name: Prepare java
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '25.1'
+          java-version: '25.1'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
@@ -49,8 +51,20 @@ jobs:
       - name: List output
         run: find target -type f
 
-      - name: Upload output
+      - name: Upload binary
         uses: actions/upload-artifact@v7
         with:
           name: graalvm-bioscoop
           path: target/bioscoop
+          retention-days: 15
+
+      - name: Draft release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          name: Release ${{ github.ref_name }}
+          files: target/bioscoop
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
