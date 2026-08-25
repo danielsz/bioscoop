@@ -49,8 +49,8 @@ jobs:
       - name: List output
         run: find target -type f
 
-      # - name: Upload output
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: app-image
-      #     path: target/imagetool/caonima-${{ env.VERSION }}-x86_64.AppImage
+      - name: Upload output
+        uses: actions/upload-artifact@v7
+        with:
+          name: graalvm-bioscoop
+          path: target/bioscoop
