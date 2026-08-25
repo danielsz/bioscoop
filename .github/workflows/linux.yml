@@ -23,7 +23,8 @@ jobs:
         with:
           version: '25.1'
           distribution: 'graalvm'
-	  native-image-job-reports: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
 
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@13
