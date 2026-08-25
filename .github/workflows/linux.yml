@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: 25
-          distribution: temurin
+          distribution: graalvm-community
 
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@13
@@ -41,7 +41,7 @@ jobs:
       - name: Install Meyvn
         run: clojure -Sdeps '{:deps {org.meyvn/meyvn-installer {:mvn/version "1.6.8"}}}' -M -m meyvn-installer.core
 
-      - name: Create the AppImage
+      - name: Meyvn run
         run: xvfb-run myvn clean install
 
       - name: List output
