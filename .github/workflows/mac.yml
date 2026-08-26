@@ -1,4 +1,4 @@
-name: Build Release - Linux
+name: Build Release - Macos
 on:
   push:
     tags:
@@ -12,7 +12,7 @@ jobs:
 
   build-graalvm:
     name: Graalvm build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: write
     steps:
@@ -46,7 +46,7 @@ jobs:
         run: clojure -Sdeps '{:deps {org.meyvn/meyvn-installer {:mvn/version "1.6.8"}}}' -M -m meyvn-installer.core
 
       - name: Meyvn run
-        run: xvfb-run myvn clean install
+        run: myvn clean install
 
       - name: List output
         run: find target -type f
@@ -54,7 +54,7 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v7
         with:
-          name: graalvm-bioscoop
+          name: graalvm-bioscoop-macos
           path: target/bioscoop
           retention-days: 15
 
@@ -64,7 +64,7 @@ jobs:
         with:
           draft: true
           name: Release ${{ github.ref_name }}
-          files: target/bioscoop
+          files: target/bioscoop.exe
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
