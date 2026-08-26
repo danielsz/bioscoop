@@ -1,0 +1,75 @@
+name: Build Release - Windows
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  VERSION: 1.1.0
+
+jobs:
+
+  build-graalvm:
+    name: Graalvm build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Prepare java
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25.1'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@13
+        with:
+          cli: latest
+
+      - name: Cache deps
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('deps.edn') }}
+
+      - name: Install Meyvn
+        run: clojure -Sdeps '{:deps {org.meyvn/meyvn-installer {:mvn/version "1.6.8"}}}' -M -m meyvn-installer.core
+	shell: bash
+	
+      - name: Meyvn run
+        shell: cmd
+        run: myvn clean install
+
+      - name: List files
+        shell: cmd
+        run: |
+          echo CD is: %CD%
+          dir /s /b
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: graalvm-bioscoop
+          path: target/bioscoop.exe
+          retention-days: 15
+
+      - name: Draft release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          name: Release ${{ github.ref_name }}
+          files: target/bioscoop.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
