@@ -44,8 +44,8 @@ jobs:
 
       - name: Install Meyvn
         run: clojure -Sdeps '{:deps {org.meyvn/meyvn-installer {:mvn/version "1.6.8"}}}' -M -m meyvn-installer.core
-	shell: bash
-	
+        shell: bash
+
       - name: Meyvn run
         shell: cmd
         run: myvn clean install
