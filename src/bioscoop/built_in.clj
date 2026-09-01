@@ -19,6 +19,8 @@
    [bioscoop.domain.specs.pad :as pad]
    [bioscoop.domain.specs.overlay :as overlay]
    [bioscoop.domain.specs.exposure :as exposure]
+   [bioscoop.domain.specs.metadata :as metadata]
+   [bioscoop.domain.specs.signalstats :as signalstats]
    [bioscoop.domain.specs.photosensitivity :as photosensitivity]
    [bioscoop.domain.specs.sources :as sources]
    [bioscoop.domain.specs.anullsrc :as anullsrc]
@@ -467,3 +469,9 @@
 
 (defn exposure [arg env]
   (template arg ::exposure/exposure env))
+
+(defn signalstats [arg env]
+  (template arg ::signalstats/signalstats env))
+
+(defn metadata [arg env]
+  (template arg ::metadata/metadata env))

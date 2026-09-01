@@ -1,7 +1,8 @@
 (ns bioscoop.domain.specs.drawtext
   (:require [clojure.spec.alpha :as s]
             [bioscoop.domain.specs.shared.color :as color]
-            [bioscoop.domain.specs.shared.rational :as rational]))
+            [bioscoop.domain.specs.shared.rational :as rational]
+            [bioscoop.domain.specs.shared.flags :as flags]))
 
 ;; Either text, a valid file, a timecode or text source must be provided
 
@@ -21,7 +22,7 @@
 (s/def ::fontfile string?)
 (s/def ::fontsize (s/or :number number? :string string?))
 (s/def ::text_shaping (s/or :int int? :boolean boolean?))
-(s/def ::ft_load_flags #{"default" "no_scale" "no_hinting" "render" "no_bitmap" "vertical_layout" "force_autohint" "crop_bitmap" "pedantic" "ignore_global_advance_width" "no_recurse" "ignore_transform" "monochrome" "linear_design" "no_autohint"})
+(s/def ::ft_load_flags (flags/flags #{"default" "no_scale" "no_hinting" "render" "no_bitmap" "vertical_layout" "force_autohint" "crop_bitmap" "pedantic" "ignore_global_advance_width" "no_recurse" "ignore_transform" "monochrome" "linear_design" "no_autohint"}))
 (s/def ::shadowcolor ::color/color)
 (s/def ::shadowx number?)
 (s/def ::shadowy number?)

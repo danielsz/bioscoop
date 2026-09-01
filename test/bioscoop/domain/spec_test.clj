@@ -11,7 +11,12 @@
             [bioscoop.domain.specs.hqdn3d :as hqdn3d]
             [bioscoop.domain.specs.gradfun :as gradfun]
             [bioscoop.domain.specs.colorlevels :as colorlevels]
-            [bioscoop.domain.specs.photosensitivity :as photosensitivity]))
+            [bioscoop.domain.specs.photosensitivity :as photosensitivity]
+            [bioscoop.domain.specs.signalstats :as signalstats]
+            [bioscoop.domain.specs.metadata :as metadata]
+            [bioscoop.domain.specs.noise :as noise]
+            [bioscoop.domain.specs.edgedetect :as edgedetect]
+            [bioscoop.domain.specs.negate :as negate]))
 
 (deftest drawtext-spec-test
   (testing "valid drawtext filter"
@@ -305,5 +310,58 @@
                                                                :delays [800] :decays [0.4]})
                                       (s/valid? ::scale/scale {:w "640" :h "480"})
                                       (s/valid? ::crop/crop {:out_w "320" :out_h "240"})
-                                      (s/valid? ::fade/fade {:type "in" :start_frame 0 :nb_frames 15})])]
+                                       (s/valid? ::fade/fade {:type "in" :start_frame 0 :nb_frames 15})])]
       (is all-filters-valid?))))
+
+(deftest signalstats-spec-test
+  (testing "valid signalstats with no params (all defaults)"
+    (is (s/valid? ::signalstats/signalstats {})))
+  (testing "valid signalstats with full config"
+    (is (s/valid? ::signalstats/signalstats
+                  {:stat "tout+vrep"
+                   :out "brng"
+                   :c "yellow"
+                   :color "red"})))
+  (testing "valid signalstats with single stat flag"
+    (is (s/valid? ::signalstats/signalstats {:stat "tout"})))
+  (testing "invalid signalstats with unknown stat flag"
+    (is (not (s/valid? ::signalstats/signalstats {:stat "tout+unknown"}))))
+  (testing "invalid signalstats with empty stat"
+    (is (not (s/valid? ::signalstats/signalstats {:stat ""}))))
+  (testing "invalid signalstats with unknown out value"
+    (is (not (s/valid? ::signalstats/signalstats {:out "bogus"})))))
+
+(deftest metadata-spec-test
+  (testing "valid metadata with no params (all defaults)"
+    (is (s/valid? ::metadata/metadata {})))
+  (testing "valid metadata with full config"
+    (is (s/valid? ::metadata/metadata
+                  {:mode "print"
+                   :key "title"
+                   :value "movie"
+                   :function "expr"
+                   :expr "some-expr"
+                   :file "/tmp/meta.txt"
+                   :direct true})))
+  (testing "valid metadata with select mode and comparison function"
+    (is (s/valid? ::metadata/metadata {:mode "select" :function "starts_with"})))
+  (testing "invalid metadata with unknown mode"
+    (is (not (s/valid? ::metadata/metadata {:mode "bogus"}))))
+  (testing "invalid metadata with unknown function"
+    (is (not (s/valid? ::metadata/metadata {:function "bogus"}))))
+  (testing "invalid metadata with non-boolean direct"
+    (is (not (s/valid? ::metadata/metadata {:direct 1})))))
+
+(deftest shared-flags-spec-test
+  (testing "noise flags accept '+' joined allowed tokens"
+    (is (s/valid? ::noise/noise {:all_flags "a+p"}))
+    (is (not (s/valid? ::noise/noise {:all_flags "x"}))))
+  (testing "edgedetect planes accept '+'-joined allowed channels"
+    (is (s/valid? ::edgedetect/edgedetect {:planes "y+u"}))
+    (is (not (s/valid? ::edgedetect/edgedetect {:planes "y+x"}))))
+  (testing "negate components accept '+'-joined allowed channels"
+    (is (s/valid? ::negate/negate {:components "y+a"}))
+    (is (not (s/valid? ::negate/negate {:components "y+z"}))))
+  (testing "drawtext ft_load_flags accept multiple '+'-joined flags"
+    (is (s/valid? ::drawtext/drawtext {:text "hi" :ft_load_flags "default+no_scale"}))
+    (is (not (s/valid? ::drawtext/drawtext {:text "hi" :ft_load_flags "bogus"})))))
