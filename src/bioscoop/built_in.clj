@@ -18,6 +18,7 @@
    [bioscoop.domain.specs.crop :as crop]
    [bioscoop.domain.specs.pad :as pad]
    [bioscoop.domain.specs.overlay :as overlay]
+   [bioscoop.domain.specs.exposure :as exposure]
    [bioscoop.domain.specs.photosensitivity :as photosensitivity]
    [bioscoop.domain.specs.sources :as sources]
    [bioscoop.domain.specs.anullsrc :as anullsrc]
@@ -463,3 +464,6 @@
 
 (defn aselect [arg env]
   (template arg ::select/aselect env))
+
+(defn exposure [arg env]
+  (template arg ::exposure/exposure env))
