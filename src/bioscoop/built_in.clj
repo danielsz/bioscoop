@@ -21,6 +21,7 @@
    [bioscoop.domain.specs.exposure :as exposure]
    [bioscoop.domain.specs.metadata :as metadata]
    [bioscoop.domain.specs.signalstats :as signalstats]
+   [bioscoop.domain.specs.waveform :as waveform]
    [bioscoop.domain.specs.photosensitivity :as photosensitivity]
    [bioscoop.domain.specs.sources :as sources]
    [bioscoop.domain.specs.anullsrc :as anullsrc]
@@ -475,3 +476,6 @@
 
 (defn metadata [arg env]
   (template arg ::metadata/metadata env))
+
+(defn waveform [arg env]
+  (template arg ::waveform/waveform env))

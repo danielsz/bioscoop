@@ -16,7 +16,8 @@
             [bioscoop.domain.specs.metadata :as metadata]
             [bioscoop.domain.specs.noise :as noise]
             [bioscoop.domain.specs.edgedetect :as edgedetect]
-            [bioscoop.domain.specs.negate :as negate]))
+            [bioscoop.domain.specs.negate :as negate]
+            [bioscoop.domain.specs.waveform :as waveform]))
 
 (deftest drawtext-spec-test
   (testing "valid drawtext filter"
@@ -365,3 +366,57 @@
   (testing "drawtext ft_load_flags accept multiple '+'-joined flags"
     (is (s/valid? ::drawtext/drawtext {:text "hi" :ft_load_flags "default+no_scale"}))
     (is (not (s/valid? ::drawtext/drawtext {:text "hi" :ft_load_flags "bogus"})))))
+
+(deftest waveform-spec-test
+  (testing "valid waveform with no params (all defaults)"
+    (is (s/valid? ::waveform/waveform {})))
+  (testing "valid waveform with full config"
+    (is (s/valid? ::waveform/waveform
+                  {:mode "column"
+                   :intensity 0.5
+                   :mirror false
+                   :display "parade"
+                   :components 3
+                   :envelope "peak+instant"
+                   :filter "chroma"
+                   :graticule "green"
+                   :opacity 0.5
+                   :flags "numbers+dots"
+                   :scale "ire"
+                   :bgopacity 0.5
+                   :tint0 -0.5
+                   :tint1 0.5
+                   :fitmode "size"
+                   :input "all"})))
+  (testing "invalid waveform with unknown mode"
+    (is (not (s/valid? ::waveform/waveform {:mode "bogus"}))))
+  (testing "invalid waveform with unknown display"
+    (is (not (s/valid? ::waveform/waveform {:display "bogus"}))))
+  (testing "invalid waveform with unknown envelope"
+    (is (not (s/valid? ::waveform/waveform {:envelope "bogus"}))))
+  (testing "invalid waveform with unknown filter"
+    (is (not (s/valid? ::waveform/waveform {:filter "bogus"}))))
+  (testing "invalid waveform with unknown graticule"
+    (is (not (s/valid? ::waveform/waveform {:graticule "bogus"}))))
+  (testing "invalid waveform with unknown scale"
+    (is (not (s/valid? ::waveform/waveform {:scale "bogus"}))))
+  (testing "invalid waveform with unknown fitmode"
+    (is (not (s/valid? ::waveform/waveform {:fitmode "bogus"}))))
+  (testing "invalid waveform with unknown input"
+    (is (not (s/valid? ::waveform/waveform {:input "bogus"}))))
+  (testing "invalid waveform with unknown flags"
+    (is (not (s/valid? ::waveform/waveform {:flags "numbers+bogus"}))))
+  (testing "waveform intensity boundaries"
+    (is (s/valid? ::waveform/waveform {:intensity 0.0}))
+    (is (s/valid? ::waveform/waveform {:intensity 1.0}))
+    (is (not (s/valid? ::waveform/waveform {:intensity -0.1})))
+    (is (not (s/valid? ::waveform/waveform {:intensity 1.1}))))
+  (testing "waveform tint boundaries"
+    (is (s/valid? ::waveform/waveform {:tint0 -1.0 :tint1 1.0}))
+    (is (not (s/valid? ::waveform/waveform {:tint0 -1.1})))
+    (is (not (s/valid? ::waveform/waveform {:tint1 1.1}))))
+  (testing "waveform components boundaries"
+    (is (s/valid? ::waveform/waveform {:components 1}))
+    (is (s/valid? ::waveform/waveform {:components 15}))
+    (is (not (s/valid? ::waveform/waveform {:components 0})))
+    (is (not (s/valid? ::waveform/waveform {:components 16})))))
