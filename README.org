@@ -430,6 +430,6 @@ voice that interest. Thank you!
 
 
 + ☑ Bioscoop language toolchain
-+ ☑ CLI for the standalone compiler (GraalVM binary)
++ ☑ CLI for the standalone compiler (GraalVM [[https:github.com/danielsz/bioscoop/releases/latest][binary]])
 + ☐ More FFmpeg filters
 
