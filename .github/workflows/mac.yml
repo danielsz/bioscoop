@@ -1,4 +1,4 @@
-name: Build Release - Macos
+name: Build Release - macOS
 on:
   push:
     tags:
@@ -12,7 +12,7 @@ jobs:
 
   build-graalvm:
     name: Graalvm build
-    runs-on: macos-latest
+    runs-on: macos-15-intel
     permissions:
       contents: write
     steps:
@@ -51,11 +51,52 @@ jobs:
       - name: List output
         run: find target -type f
 
+      - name: Import signing certificate
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KEYCHAIN=ci-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+
+          echo "$MACOS_CERT_P12_BASE64" | base64 --decode -o cert.p12
+          security import cert.p12 -k "$KEYCHAIN" -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          rm -f cert.p12
+
+      - name: Codesign binary
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          codesign --timestamp --options runtime --force \
+            --sign "$MACOS_SIGNING_IDENTITY" target/bioscoop
+          codesign --verify --verbose target/bioscoop
+
+      - name: Notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          ditto -c -k --keepParent target/bioscoop target/bioscoop-macos.zip
+          xcrun notarytool submit target/bioscoop-macos.zip \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+
+      - name: Verify notarization
+        run: codesign -vvvv -R="notarized" --check-notarization target/bioscoop
+
       - name: Upload binary
         uses: actions/upload-artifact@v7
         with:
-          name: graalvm-bioscoop-macos
-          path: target/bioscoop
+          name: bioscoop-macos
+          path: target/bioscoop-macos.zip
           retention-days: 15
 
       - name: Draft release
@@ -64,7 +105,8 @@ jobs:
         with:
           draft: true
           name: Release ${{ github.ref_name }}
-          files: target/bioscoop.exe
+          files: target/bioscoop-macos.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
