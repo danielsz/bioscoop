@@ -20,7 +20,7 @@
   (->> ["Bioscoop. FFmpeg compiler for creative coding"
       (version)
       ""
-      "Usage: bioscoop [options] [file]"
+      "Usage: bioscoop [options] | [file]"
       ""
       "Where [file] is a bioscoop program, or [options] is"
       summary
