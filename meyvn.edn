@@ -39,6 +39,16 @@
                                    :phase "verify"
                                    :executable "ditto"
                                    :arguments ["-c" "-k" "--keepParent" "bioscoop" "bioscoop.zip"]
+                                   :skip "${skip.exec}"}
+                                  {:id "notarize"
+                                   :goals ["exec"]
+                                   :phase "verify"
+                                   :executable "xcrun"
+                                   :arguments ["notarytool" "submit"
+                                               "${project.build.directory}/${project.artifactId}.zip"
+                                               "--apple-id" "${notarization.apple.id}"
+                                               "--password" "${notarization.password}"
+                                               "--team-id" "${notarization.team.id}" "--wait"]
                                    :skip "${skip.exec}"}]}}
              :jar {:enabled false}}
  :interactive {:enabled true
