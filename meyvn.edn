@@ -28,7 +28,7 @@
                                    :executable "security"
                                    :arguments ["unlock-keychain" "-p" "${keychain.password}" "${user.home}/Library/Keychains/login.keychain-db"]
                                    :skip "${skip.exec}"}
-                                  {:id "sign-native-binaries"
+                                  {:id "sign-binary"
                                    :goals ["exec"]
                                    :phase "verify"
                                    :executable "codesign"
@@ -38,7 +38,7 @@
                                    :goals ["exec"]
                                    :phase "verify"
                                    :executable "ditto"
-                                   :arguments ["-c" "-k" "--keepParent" "bioscoop" "bioscoop.zip"]
+                                   :arguments ["-c" "-k" "--keepParent" "${project.artifactId}" "${project.artifactId}.zip"]
                                    :skip "${skip.exec}"}
                                   {:id "notarize"
                                    :goals ["exec"]
