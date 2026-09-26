@@ -29,7 +29,7 @@
                                    :arguments ["unlock-keychain" "-p" "${keychain.password}" "${user.home}/Library/Keychains/login.keychain-db"]
                                    :skip "${skip.exec}"}
                                   {:id "sign-native-binaries"
-                                   :goals ["exec"]
+                                   :goals ["verify"]
                                    :phase "prepare-package"
                                    :executable "codesign"
                                    :arguments ["--timestamp"  "--options" "runtime" "--force" "--sign" "${mac.signing.identity}" "${project.build.directory}/${project.artifactId}"]
