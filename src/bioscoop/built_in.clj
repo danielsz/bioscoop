@@ -61,6 +61,8 @@
    [bioscoop.domain.specs.dctdnoiz :as dctdnoiz]
    [bioscoop.domain.specs.deflicker :as deflicker]
    [bioscoop.domain.specs.normalize :as normalize]
+   [bioscoop.domain.specs.maskedmerge :as maskedmerge]
+   [bioscoop.domain.specs.histeq :as histeq]
    [bioscoop.domain.specs.rgbashift :as rgbashift]
    [bioscoop.domain.specs.tinterlace :as tinterlace]
    [bioscoop.domain.specs.shuffleplanes :as shuffleplanes]
@@ -350,6 +352,12 @@
 
 (defn normalize [arg env]
   (template arg ::normalize/normalize env))
+
+(defn maskedmerge [arg env]
+  (template arg ::maskedmerge/maskedmerge env))
+
+(defn histeq [arg env]
+  (template arg ::histeq/histeq env))
 
 (defn rgbashift [arg env]
   (template arg ::rgbashift/rgbashift env))

@@ -17,6 +17,8 @@
             [bioscoop.domain.specs.noise :as noise]
             [bioscoop.domain.specs.edgedetect :as edgedetect]
             [bioscoop.domain.specs.negate :as negate]
+            [bioscoop.domain.specs.maskedmerge :as maskedmerge]
+            [bioscoop.domain.specs.histeq :as histeq]
             [bioscoop.domain.specs.waveform :as waveform]))
 
 (deftest drawtext-spec-test
@@ -420,3 +422,37 @@
     (is (s/valid? ::waveform/waveform {:components 15}))
     (is (not (s/valid? ::waveform/waveform {:components 0})))
     (is (not (s/valid? ::waveform/waveform {:components 16})))))
+
+(deftest maskedmerge-spec-test
+  (testing "valid maskedmerge with no params (all defaults)"
+    (is (s/valid? ::maskedmerge/maskedmerge {})))
+  (testing "valid maskedmerge with planes"
+    (is (s/valid? ::maskedmerge/maskedmerge {:planes 7})))
+  (testing "planes boundaries"
+    (is (s/valid? ::maskedmerge/maskedmerge {:planes 0}))
+    (is (s/valid? ::maskedmerge/maskedmerge {:planes 15}))
+    (is (not (s/valid? ::maskedmerge/maskedmerge {:planes -1})))
+    (is (not (s/valid? ::maskedmerge/maskedmerge {:planes 16}))))
+  (testing "invalid maskedmerge with non-integer planes"
+    (is (not (s/valid? ::maskedmerge/maskedmerge {:planes "7"})))))
+
+(deftest histeq-spec-test
+  (testing "valid histeq with no params (all defaults)"
+    (is (s/valid? ::histeq/histeq {})))
+  (testing "valid histeq with all params"
+    (is (s/valid? ::histeq/histeq
+                  {:strength 0.5
+                   :intensity 0.75
+                   :antibanding "weak"})))
+  (testing "strength boundaries"
+    (is (s/valid? ::histeq/histeq {:strength 0.0}))
+    (is (s/valid? ::histeq/histeq {:strength 1.0}))
+    (is (not (s/valid? ::histeq/histeq {:strength -0.1})))
+    (is (not (s/valid? ::histeq/histeq {:strength 1.1}))))
+  (testing "intensity boundaries"
+    (is (s/valid? ::histeq/histeq {:intensity 0.0}))
+    (is (s/valid? ::histeq/histeq {:intensity 1.0}))
+    (is (not (s/valid? ::histeq/histeq {:intensity -0.1})))
+    (is (not (s/valid? ::histeq/histeq {:intensity 1.1}))))
+  (testing "invalid histeq with unknown antibanding"
+    (is (not (s/valid? ::histeq/histeq {:antibanding "bogus"})))))
