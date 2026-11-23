@@ -96,6 +96,7 @@
    [bioscoop.domain.specs.arnndn :as arnndn]
    [bioscoop.domain.specs.fftdnoiz :as fftdnoiz]
    [bioscoop.domain.specs.atadenoise :as atadenoise]
+   [bioscoop.domain.specs.chromanr :as chromanr]
    [bioscoop.domain.specs.tpad :as tpad]
    [bioscoop.domain.specs.apad :as apad]
    [bioscoop.domain.specs.settb :as settb]
@@ -461,6 +462,9 @@
 
 (defn atadenoise [arg env]
   (template arg ::atadenoise/atadenoise env))
+
+(defn chromanr [arg env]
+  (template arg ::chromanr/chromanr env))
 
 (defn tpad [arg env]
   (template arg ::tpad/tpad env))

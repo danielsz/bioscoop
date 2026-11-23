@@ -20,6 +20,7 @@
             [bioscoop.domain.specs.maskedmerge :as maskedmerge]
             [bioscoop.domain.specs.histeq :as histeq]
             [bioscoop.domain.specs.selectivecolor :as selectivecolor]
+            [bioscoop.domain.specs.chromanr :as chromanr]
             [bioscoop.domain.specs.waveform :as waveform]))
 
 (deftest drawtext-spec-test
@@ -480,3 +481,35 @@
   (testing "invalid selectivecolor with non-string adjustments"
     (is (not (s/valid? ::selectivecolor/selectivecolor {:reds 1})))
     (is (not (s/valid? ::selectivecolor/selectivecolor {:psfile :preset})))))
+
+(deftest chromanr-spec-test
+  (testing "valid chromanr with no params (all defaults)"
+    (is (s/valid? ::chromanr/chromanr {})))
+  (testing "valid chromanr with all params"
+    (is (s/valid? ::chromanr/chromanr
+                  {:thres 30.0
+                   :sizew 5
+                   :sizeh 5
+                   :stepw 1
+                   :steph 1
+                   :threy 200.0
+                   :threu 200.0
+                   :threv 200.0
+                   :distance "euclidean"})))
+  (testing "threshold boundaries"
+    (is (s/valid? ::chromanr/chromanr {:thres 1.0}))
+    (is (s/valid? ::chromanr/chromanr {:thres 200.0}))
+    (is (not (s/valid? ::chromanr/chromanr {:thres 0.9})))
+    (is (not (s/valid? ::chromanr/chromanr {:thres 200.1}))))
+  (testing "patch size boundaries"
+    (is (s/valid? ::chromanr/chromanr {:sizew 1 :sizeh 1}))
+    (is (s/valid? ::chromanr/chromanr {:sizew 100 :sizeh 100}))
+    (is (not (s/valid? ::chromanr/chromanr {:sizew 0})))
+    (is (not (s/valid? ::chromanr/chromanr {:sizeh 101}))))
+  (testing "step boundaries"
+    (is (s/valid? ::chromanr/chromanr {:stepw 1 :steph 1}))
+    (is (s/valid? ::chromanr/chromanr {:stepw 50 :steph 50}))
+    (is (not (s/valid? ::chromanr/chromanr {:stepw 0})))
+    (is (not (s/valid? ::chromanr/chromanr {:steph 51}))))
+  (testing "invalid distance"
+    (is (not (s/valid? ::chromanr/chromanr {:distance "bogus"})))))
