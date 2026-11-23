@@ -19,6 +19,7 @@
             [bioscoop.domain.specs.negate :as negate]
             [bioscoop.domain.specs.maskedmerge :as maskedmerge]
             [bioscoop.domain.specs.histeq :as histeq]
+            [bioscoop.domain.specs.selectivecolor :as selectivecolor]
             [bioscoop.domain.specs.waveform :as waveform]))
 
 (deftest drawtext-spec-test
@@ -456,3 +457,26 @@
     (is (not (s/valid? ::histeq/histeq {:intensity 1.1}))))
   (testing "invalid histeq with unknown antibanding"
     (is (not (s/valid? ::histeq/histeq {:antibanding "bogus"})))))
+
+(deftest selectivecolor-spec-test
+  (testing "valid selectivecolor with no params (all defaults)"
+    (is (s/valid? ::selectivecolor/selectivecolor {})))
+  (testing "valid selectivecolor with all params"
+    (is (s/valid? ::selectivecolor/selectivecolor
+                  {:correction_method "relative"
+                   :reds "0.5 0 -0.33 0"
+                   :yellows "0 0 0 0"
+                   :greens ".5 0 -.33 0"
+                   :cyans "0.1 0.2 0.3 0.4"
+                   :blues "0 .27"
+                   :magentas "-0.1 -0.2 -0.3 -0.4"
+                   :whites "0 0 0 0.1"
+                   :neutrals "0.05 0.05 0.05 0.05"
+                   :blacks "-0.1 0 0 0"
+                   :psfile "/tmp/preset.asv"})))
+  (testing "invalid selectivecolor with unknown correction method"
+    (is (not (s/valid? ::selectivecolor/selectivecolor
+                       {:correction_method "bogus"}))))
+  (testing "invalid selectivecolor with non-string adjustments"
+    (is (not (s/valid? ::selectivecolor/selectivecolor {:reds 1})))
+    (is (not (s/valid? ::selectivecolor/selectivecolor {:psfile :preset})))))

@@ -63,6 +63,7 @@
    [bioscoop.domain.specs.normalize :as normalize]
    [bioscoop.domain.specs.maskedmerge :as maskedmerge]
    [bioscoop.domain.specs.histeq :as histeq]
+   [bioscoop.domain.specs.selectivecolor :as selectivecolor]
    [bioscoop.domain.specs.rgbashift :as rgbashift]
    [bioscoop.domain.specs.tinterlace :as tinterlace]
    [bioscoop.domain.specs.shuffleplanes :as shuffleplanes]
@@ -358,6 +359,9 @@
 
 (defn histeq [arg env]
   (template arg ::histeq/histeq env))
+
+(defn selectivecolor [arg env]
+  (template arg ::selectivecolor/selectivecolor env))
 
 (defn rgbashift [arg env]
   (template arg ::rgbashift/rgbashift env))
