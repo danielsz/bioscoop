@@ -92,6 +92,9 @@
    [bioscoop.domain.specs.treble :as treble]
    [bioscoop.domain.specs.setparams :as setparams]
    [bioscoop.domain.specs.nlmeans :as nlmeans]
+   [bioscoop.domain.specs.nlmeans-vulkan :as nlmeans-vulkan]
+   [bioscoop.domain.specs.hwupload :as hwupload]
+   [bioscoop.domain.specs.hwdownload :as hwdownload]
    [bioscoop.domain.specs.hqdn3d :as hqdn3d]
    [bioscoop.domain.specs.arnndn :as arnndn]
    [bioscoop.domain.specs.fftdnoiz :as fftdnoiz]
@@ -450,6 +453,15 @@
 
 (defn nlmeans [arg env]
   (template arg ::nlmeans/nlmeans env))
+
+(defn nlmeans_vulkan [arg env]
+  (template arg ::nlmeans-vulkan/nlmeans_vulkan env))
+
+(defn hwupload [arg env]
+  (template arg ::hwupload/hwupload env))
+
+(defn hwdownload [arg env]
+  (template arg ::hwdownload/hwdownload env))
 
 (defn hqdn3d [arg env]
   (template arg ::hqdn3d/hqdn3d env))

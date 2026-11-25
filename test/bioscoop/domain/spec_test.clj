@@ -21,6 +21,9 @@
             [bioscoop.domain.specs.histeq :as histeq]
             [bioscoop.domain.specs.selectivecolor :as selectivecolor]
             [bioscoop.domain.specs.chromanr :as chromanr]
+            [bioscoop.domain.specs.nlmeans-vulkan :as nlmeans-vulkan]
+            [bioscoop.domain.specs.hwupload :as hwupload]
+            [bioscoop.domain.specs.hwdownload :as hwdownload]
             [bioscoop.domain.specs.waveform :as waveform]))
 
 (deftest drawtext-spec-test
@@ -513,3 +516,53 @@
     (is (not (s/valid? ::chromanr/chromanr {:steph 51}))))
   (testing "invalid distance"
     (is (not (s/valid? ::chromanr/chromanr {:distance "bogus"})))))
+
+(deftest nlmeans-vulkan-spec-test
+  (testing "valid nlmeans_vulkan with no params (all defaults)"
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {})))
+  (testing "valid nlmeans_vulkan with all params"
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan
+                  {:s 1.0
+                   :p 7
+                   :r 15
+                   :t 8
+                   :s1 2.0
+                   :s2 3.0
+                   :s3 4.0
+                   :s4 5.0
+                   :p1 1
+                   :p2 2
+                   :p3 3
+                   :p4 4})))
+  (testing "strength boundaries"
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s 0.0}))
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s 100.0}))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s -0.1})))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s 100.1})))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s Double/NaN}))))
+  (testing "patch and research window boundaries"
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:p 0 :r 0}))
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:p 99 :r 99}))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:p -1})))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:r 100}))))
+  (testing "parallelism boundaries"
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:t 1}))
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:t 64}))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:t 0})))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:t 65}))))
+  (testing "per-component boundaries"
+    (is (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s1 0.0 :s2 100.0 :p1 0 :p2 99}))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:s3 100.1})))
+    (is (not (s/valid? ::nlmeans-vulkan/nlmeans_vulkan {:p4 100})))))
+
+(deftest hwupload-spec-test
+  (testing "valid hwupload with no params (all defaults)"
+    (is (s/valid? ::hwupload/hwupload {})))
+  (testing "valid hwupload with derive_device"
+    (is (s/valid? ::hwupload/hwupload {:derive_device "vulkan"})))
+  (testing "invalid hwupload with non-string derive_device"
+    (is (not (s/valid? ::hwupload/hwupload {:derive_device :vulkan})))))
+
+(deftest hwdownload-spec-test
+  (testing "valid hwdownload with no params"
+    (is (s/valid? ::hwdownload/hwdownload {}))))

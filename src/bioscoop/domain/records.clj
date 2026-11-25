@@ -14,8 +14,38 @@
              (vec input-labels)
              (vec output-labels))))
 
-(defn get-input-labels  [filter] (:input-labels  filter []))
-(defn get-output-labels [filter] (:output-labels filter []))
+(defprotocol Labeled
+  "Boundary label inspection for filters, filter chains, and filter graphs.
+
+        Boundary labels are the labels entering and leaving the object, not
+        labels on internal connections."
+  (get-input-labels [x])
+  (get-output-labels [x]))
+
+(extend-protocol Labeled
+  nil
+  (get-input-labels [_] [])
+  (get-output-labels [_] [])
+
+  Filter
+  (get-input-labels [filter] (:input-labels filter []))
+  (get-output-labels [filter] (:output-labels filter []))
+
+  FilterChain
+  (get-input-labels [chain]
+    (if-let [filter (first (:filters chain))]
+      (get-input-labels filter)
+      []))
+  (get-output-labels [chain]
+    (if-let [filter (last (:filters chain))]
+      (get-output-labels filter)
+      []))
+
+  FilterGraph
+  (get-input-labels [graph]
+    (vec (mapcat get-input-labels (:chains graph))))
+  (get-output-labels [graph]
+    (vec (mapcat get-output-labels (:chains graph)))))
 
 (defn with-input-labels  [filter labels] (assoc filter :input-labels  (vec labels)))
 (defn with-output-labels [filter labels] (assoc filter :output-labels (vec labels)))

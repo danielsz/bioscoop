@@ -8,6 +8,46 @@
 (def ffplay-bin (System/getProperty "ffplay.bin" "/usr/bin/ffplay"))
 (def ffprobe-bin (System/getProperty "ffprobe.bin" "/usr/bin/ffprobe") )
 
+(defn- device-list [device]
+  (cond
+    (nil? device) []
+    (sequential? device) device
+    :else [device]))
+
+(defn build-command
+  "Build the FFmpeg argument vector without starting a process.
+
+  Global hardware-device options are emitted before inputs, with
+  -init_hw_device preceding -filter_hw_device."
+  [{:keys [filtergraph maps out-filename gop preset
+           init-hw-device filter-hw-device]
+    :or {out-filename "output.mp4"
+         preset []}}
+   inputs]
+  (let [presets {:h264 ["-c:v" "libx264" "-preset" "slow" "-crf" "18" "-pix_fmt" "yuv420p"]
+                 :h265 ["-c:v" "libx265" "-tag:v" "hvc1" "-preset" "slow" "-crf" "18"]
+                 :av1 ["-c:v" "libsvtav1" "-preset" "5" "-crf" "18"]
+                 :progressive ["-movflags" "+faststart"]}
+        resolve-presets (fn [preset]
+                          (let [ks (cond (keyword? preset) [preset]
+                                         (string? preset) [(keyword preset)]
+                                         :else preset)]
+                            (mapcat (fn [k]
+                                      (or (get presets k)
+                                          (throw (ex-info "Unknown preset" {:preset k :known (keys presets)}))))
+                                    ks)))]
+    (-> [ffmpeg-bin "-y" "-nostdin" "-hide_banner"]
+        (into (mapcat (fn [device]
+                        ["-init_hw_device" (str device)])
+                      (device-list init-hw-device)))
+        (into (when filter-hw-device ["-filter_hw_device" (str filter-hw-device)]))
+        (into (interleave (repeat "-i") inputs))
+        (conj "-filter_complex" filtergraph)
+        (into maps)
+        (into (when gop ["-g" (str gop)]))
+        (into (resolve-presets preset))
+        (conj out-filename))))
+
 (defn with-inputs
   "Start an FFmpeg process with inputs and a filtergraph.
 
@@ -39,6 +79,13 @@
                     Presets are applied in order, so for duplicate options the
                     later preset wins. Unknown presets throw ex-info.
     :gop          - Keyframe interval, passed as -g
+    :init-hw-device - Global hardware device declaration, passed as
+                      -init_hw_device. Accepts a string or a collection of
+                      strings, allowing multiple initialized devices.
+    :filter-hw-device - Name of the global filter hardware device, passed as
+                        -filter_hw_device. It must name a device created by
+                        :init-hw-device. FFmpeg allows only one global filter
+                        device.
     :verbose      - Print the full command (as a vector of arguments)
     :blocking     - Wait for ffmpeg to exit before returning
 
@@ -48,33 +95,15 @@
   Returns the java.lang.Process. Stop it with (.destroy p), (.isAlive
   p) to check if running, (.exitValue p) to inspect the outcome."
   
-  [{:keys [filtergraph maps out-dir out-filename verbose blocking preset gop]
+  [{:keys [out-dir verbose blocking]
     :or {out-dir (System/getProperty "java.io.tmpdir")
-         out-filename "output.mp4"
          verbose false
-         blocking false
-         preset []}} & inputs]
+         blocking false}
+    :as opts}
+   & inputs]
   (let [inputs (reduce (fn [acc xs] (if (sequential? xs) (into acc xs) (conj acc xs))) [] inputs)
-        presets {:h264 ["-c:v" "libx264" "-preset" "slow" "-crf" "18" "-pix_fmt" "yuv420p"]
-                 :h265 ["-c:v" "libx265" "-tag:v" "hvc1" "-preset" "slow" "-crf" "18"]
-                 :av1 ["-c:v" "libsvtav1" "-preset" "5" "-crf" "18"]
-                 :progressive ["-movflags" "+faststart"]}
-        resolve-presets (fn [preset]
-                          (let [ks (cond (keyword? preset) [preset]
-                                         (string? preset) [(keyword preset)]
-                                         :else preset)]
-                            (mapcat (fn [k]
-                                      (or (get presets k)
-                                          (throw (ex-info "Unknown preset" {:preset k :known (keys presets)}))))
-                                    ks)))
-        log (io/file (str out-dir "/bioscoop.log"))
-        cmd (-> [ffmpeg-bin "-y" "-nostdin" "-hide_banner"]
-               (into (interleave (repeat "-i") inputs))
-                (conj "-filter_complex" filtergraph)
-                (into maps)
-                (into (when gop ["-g" (str gop)]))
-                (into (resolve-presets preset))
-                (conj out-filename))]
+        cmd (build-command opts inputs)
+        log (io/file (str out-dir "/bioscoop.log"))]
     (when verbose (println (pr-str cmd)))
     (let [pb (doto (ProcessBuilder. ^java.util.List cmd)
                (.redirectErrorStream true)
@@ -108,6 +137,15 @@
     {:filtergraph "[0:a][1:a]amix[out]"
      :maps ["-map" "[out]"]}
     "music.mp3" "voice.mp3")
+
+  ;; Vulkan denoising with hardware frame upload/download
+  (with-inputs
+    {:filtergraph "[0:v]hwupload=derive_device=vulkan,nlmeans_vulkan=s=1.0,hwdownload,format=yuv420p[out]"
+     :maps ["-map" "[out]"]
+     :init-hw-device "vulkan=vk:0"
+     :filter-hw-device "vk"
+     :preset [:h264]}
+    "input.mp4")
   
   ;; Destroy process when done
   (let [proc (with-inputs {} "input1" "input2")]
