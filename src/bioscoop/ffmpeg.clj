@@ -20,7 +20,7 @@
   Global hardware-device options are emitted before inputs, with
   -init_hw_device preceding -filter_hw_device."
   [{:keys [filtergraph maps out-filename gop preset
-           init-hw-device filter-hw-device]
+           init-hw-device filter-hw-device t]
     :or {out-filename "output.mp4"
          preset []}}
    inputs]
@@ -46,6 +46,7 @@
         (into maps)
         (into (when gop ["-g" (str gop)]))
         (into (resolve-presets preset))
+        (into (when (some? t) ["-t" (str t)]))
         (conj out-filename))))
 
 (defn with-inputs
@@ -88,6 +89,9 @@
                         device.
     :verbose      - Print the full command (as a vector of arguments)
     :blocking     - Wait for ffmpeg to exit before returning
+    :t            - Output duration limit, passed as -t before the output
+                    filename. Processing stops once the output reaches this
+                    duration. Accepts a number or a duration string.  
 
   Output files are overwritten (-y). stdout and stderr are merged into
   bioscoop.log inside :out-dir.

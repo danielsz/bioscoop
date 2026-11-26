@@ -46,3 +46,42 @@
                               "qsv=hw@va"]
              :filter-hw-device "hw"}
             ["in.mp4"])))))
+
+(deftest build-command-with-output-duration
+  (testing ":t is emitted once before the output filename"
+    (is (= [ffmpeg/ffmpeg-bin "-y" "-nostdin" "-hide_banner"
+            "-i" "a.mp4"
+            "-i" "b.mp4"
+            "-filter_complex" "hstack=inputs=2[out]"
+            "-map" "[out]"
+            "-t" "2"
+            "output.mp4"]
+           (ffmpeg/build-command
+            {:filtergraph "hstack=inputs=2[out]"
+             :maps ["-map" "[out]"]
+             :t 2}
+            ["a.mp4" "b.mp4"]))))
+
+  (testing ":t accepts duration strings"
+    (is (= [ffmpeg/ffmpeg-bin "-y" "-nostdin" "-hide_banner"
+            "-i" "input.mp4"
+            "-filter_complex" "null"
+            "-t" "00:00:02"
+            "output.mp4"]
+           (ffmpeg/build-command
+            {:filtergraph "null"
+             :t "00:00:02"}
+            ["input.mp4"]))))
+
+  (testing ":t is placed after presets"
+    (is (= [ffmpeg/ffmpeg-bin "-y" "-nostdin" "-hide_banner"
+            "-i" "input.mp4"
+            "-filter_complex" "null"
+            "-c:v" "libx264" "-preset" "slow" "-crf" "18" "-pix_fmt" "yuv420p"
+            "-t" "2"
+            "output.mp4"]
+           (ffmpeg/build-command
+            {:filtergraph "null"
+             :preset [:h264]
+             :t 2}
+            ["input.mp4"])))))
