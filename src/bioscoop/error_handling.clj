@@ -93,3 +93,7 @@
                           (swap! errors conj @(:errors node))
                           node)) @env)
     @errors))
+
+(def last-errors
+  "Errors from the most recent compile-dsl call. Inspect at the REPL after a failed compilation."
+  (atom []))

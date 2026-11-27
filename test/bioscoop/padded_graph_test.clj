@@ -1,6 +1,7 @@
 (ns bioscoop.padded-graph-test
-   (:require [clojure.test :refer [deftest testing is]]
-            [bioscoop.dsl :as dsl :refer [compile-dsl last-errors]]
+  (:require [clojure.test :refer [deftest testing is]]
+            [bioscoop.dsl :as dsl :refer [compile-dsl]]
+            [bioscoop.error-handling :refer [last-errors]]
             [bioscoop.macro :refer [bioscoop defgraph]])
   (:import [bioscoop.domain.records FilterGraph]))
 

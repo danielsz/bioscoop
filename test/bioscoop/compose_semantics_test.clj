@@ -1,7 +1,7 @@
 (ns bioscoop.compose-semantics-test
   (:require [clojure.test :refer [deftest testing is]]
             [bioscoop.macro :refer [bioscoop]]
-            [bioscoop.dsl :refer [last-errors]]))
+            [bioscoop.error-handling :refer [last-errors]]))
 
 (defn- compose-unlabeled-chain-error? []
   (some #(= :compose-unlabeled-chain (:error-type (ex-data %))) @last-errors))

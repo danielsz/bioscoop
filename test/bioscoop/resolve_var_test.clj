@@ -1,7 +1,7 @@
 (ns bioscoop.resolve-var-test
   (:require [clojure.test :refer [deftest testing is]]
             [bioscoop.macro :refer [bioscoop]]
-            [bioscoop.dsl :refer [last-errors]]
+            [bioscoop.error-handling :refer [last-errors]]
             [bioscoop.domain.records :refer [make-filtergraph make-filterchain make-filter]]
             [bioscoop.config :refer [*warn-on-shadowing*]])
   (:import [bioscoop.domain.records FilterGraph]))

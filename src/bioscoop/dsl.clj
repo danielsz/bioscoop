@@ -1,19 +1,17 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
-            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain* ->Lambda get-input-labels get-output-labels]]
+            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels ->Lambda]]
             [bioscoop.parse :refer [dsl-parser]]
             [bioscoop.env :refer [make-env env-put]]
             [bioscoop.resolve :refer [resolve-function reserved-word-type resolve-symbol reserved-word?]]
-            [bioscoop.error-handling :refer [accumulate-error]]
+            [bioscoop.error-handling :refer [accumulate-error last-errors]]
             [bioscoop.trace :refer [trace>]]
-            [clojure.tools.logging :as log])
+            [bioscoop.dsl-helpers :as helper :refer [promote-to-filtergraph promote-to-filterchain]])
   (:import [bioscoop.domain.records Lambda]))
 
 (declare transform-ast compile-dsl)
 
-(def promote-to-filtergraph (promote-to-filtergraph* accumulate-error))
-(def promote-to-filterchain (promote-to-filterchain* (partial accumulate-error []))) ; must return [] since the result feeds into mapcat
 (defmulti transform-ast* (fn [node env] (first node)))
 
 (defmethod transform-ast* :program [[_ & expressions] env]
@@ -40,51 +38,17 @@
          (mapv #(promote-to-filtergraph % env))
          (apply compose-filtergraphs))))
 
-(defn- unlabeled-chain? [chain]
-  (and (empty? (get-input-labels chain))
-       (empty? (get-output-labels chain))))
-
-(defn- validate-compose [graph env]
-  (let [chains (:chains graph)]
-    (if (and (> (count chains) 1)
-             (every? unlabeled-chain? chains))
-      (accumulate-error env graph :compose-unlabeled-chain)
-      graph)))
 
 (defmethod transform-ast* :compose [[_ & content] env]
   (let [children (->> (rest content)
                     (mapv #(transform-ast % env))
                     (mapv #(promote-to-filtergraph % env)))]
     (-> (apply compose-filtergraphs children)
-       (validate-compose env))))
+       (helper/validate-compose env))))
 
-(defn padded-graph-helper
-  "Partition a padded-graph body into input labels, the body expression, and output labels.
-
-   A padded graph has the form [[in-label*] expr [out-label*]].
-   This function walks the AST nodes and collects:
-   - :input  — label nodes before the first non-label expression
-   - :expr   — the single body expression (filter, chain, or graph reference)
-   - :output — label nodes after the body expression
-
-   Uses a boolean flag to track whether the walker has crossed from the
-   input-label region into the body-expression region. Once the first
-   non-label node is encountered, the flag flips and all subsequent
-   labels are classified as output labels."
-  [body]
-  (loop [xs body
-         result {:input [] :expr nil :output []}
-         flag false]
-    (if (empty? xs)
-      result
-      (let [[label _ :as x] (first xs)]
-        (cond
-          (and (= label :label) (not flag)) (recur (next xs) (update result :input conj x) flag)
-          (and (= label :label) flag) (recur (next xs) (update result :output conj x) flag)
-          :else (recur (next xs) (assoc result :expr x) true))))))
 
 (defmethod transform-ast* :padded-graph [[_ & body] env]
-  (let [{:keys [input expr output]} (padded-graph-helper body)
+  (let [{:keys [input expr output]} (helper/padded-graph-partition body)
         filtergraph (-> (transform-ast expr env)
                         (promote-to-filtergraph env))
         f (fn [filters]
@@ -193,9 +157,6 @@
 (defmethod transform-ast* :boolean [[_ b] env]
   (parse-boolean b))
 
-(def last-errors
-  "Errors from the most recent compile-dsl call. Inspect at the REPL after a failed compilation."
-  (atom []))
 
 (defn transform-ast [node env]
   (trace> node env (transform-ast* node env)))

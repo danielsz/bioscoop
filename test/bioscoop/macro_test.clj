@@ -1,6 +1,7 @@
 (ns bioscoop.macro-test
   (:require [bioscoop.macro :refer [bioscoop form->ast defgraph]]
-            [bioscoop.dsl :as dsl :refer [last-errors]]
+            [bioscoop.error-handling :refer [last-errors]]
+            [bioscoop.dsl :as dsl]
             [bioscoop.render :refer [to-ffmpeg]]
             [clojure.test :refer [deftest is testing use-fixtures]]
             [bioscoop.built-in]
@@ -343,7 +344,7 @@
   (testing "a for loop of filters expands in place, in iteration order"
     (is (= (to-ffmpeg (bioscoop (chain (drawtext {:text "0"}) (drawtext {:text "1"}) (drawtext {:text "2"}))))
            (to-ffmpeg (bioscoop (chain (for [n (range 3)] (drawtext {:text (str n)})))))))
-    (is (empty? @dsl/last-errors))))
+    (is (empty? @last-errors))))
 
 (deftest chain-absorbs-a-for-result-among-literal-filters
   (testing "a for loop can sit between ordinary filter calls in the same chain"
@@ -392,7 +393,7 @@
            (to-ffmpeg (bioscoop (chain (crop {:out_w "100"})
                                        (for [n (range 0)] (drawtext {:text (str n)}))
                                        (vignette {:angle "1.0"}))))))
-    (is (empty? @dsl/last-errors))))
+    (is (empty? @last-errors))))
 
 (deftest chain-rejects-parallel-filtergraph-from-for
   (testing "a for iteration that produces a genuinely parallel filtergraph is rejected, not silently linearized"
@@ -401,7 +402,7 @@
                                      (compose [["0:v"] (boxblur {:luma_radius "1"}) ["b"]] [["b"] (vignette {:angle "1.0"}) ["out"]]))
                                    (drawtext {:text "end"})))]
       (is (= "crop=out_w=100,drawtext=text=end" (to-ffmpeg result)))
-      (is (some #(= :chain-parallel-filtergraph (:error-type (ex-data %))) @dsl/last-errors)))))
+      (is (some #(= :chain-parallel-filtergraph (:error-type (ex-data %))) @last-errors)))))
 
 
 (deftest dispatch-matches-a-literal-call
@@ -438,9 +439,9 @@
 (deftest dispatch-fails-like-a-literal-call-on-a-bogus-name
   (testing "dispatch degrades the same way a literal call to an unresolvable name does"
     (let [via-literal (bioscoop (this-filter-does-not-exist {:x "1"}))
-          errors-literal @dsl/last-errors
+          errors-literal @last-errors
           via-dispatch (bioscoop (dispatch "this-filter-does-not-exist" {:x "1"}))
-          errors-dispatch @dsl/last-errors]
+          errors-dispatch @last-errors]
       (is (= "" (to-ffmpeg via-literal) (to-ffmpeg via-dispatch)))
       (is (= :unresolved-function (:error-type (ex-data (first errors-literal)))))
       (is (= :unresolved-function (:error-type (ex-data (first errors-dispatch))))))))
@@ -449,7 +450,7 @@
   (testing "a real but not-yet-coded ffmpeg filter reports :not-implemented, not a generic unresolved error"
     (let [result (bioscoop (dispatch "minterpolate" {}))]
       (is (= "" (to-ffmpeg result)))
-      (is (some #(= :not-implemented (:error-type (ex-data %))) @dsl/last-errors)))))
+      (is (some #(= :not-implemented (:error-type (ex-data %))) @last-errors)))))
 
 (deftest eval-is-a-full-interpreter
   (testing "the classics"
@@ -493,13 +494,13 @@
   (testing "plain number def is valid"
     (intern *ns* 'plain-number 42)
     (bioscoop (scale plain-number 1080))
-    (is (nil? (seq @dsl/last-errors)))
+    (is (nil? (seq @last-errors)))
     (ns-unmap *ns* 'plain-number))
 
   (testing "string def triggers is valid"
     (intern *ns* 'plain-string "hello")
     (bioscoop (scale plain-string 1080))
-    (is (nil? (seq @dsl/last-errors)))
+    (is (nil? (seq @last-errors)))
     (ns-unmap *ns* 'plain-string))
 
   (testing "nil def triggers invalid parameter"
@@ -512,9 +513,9 @@
     (def plain-vec [1 2 3])
     (def plain-map {:width 1 :height 1})
     (bioscoop (scale plain-vec 1080))
-    (is (some #(= :invalid-parameter (:error-type (ex-data %))) @dsl/last-errors))
+    (is (some #(= :invalid-parameter (:error-type (ex-data %))) @last-errors))
     (bioscoop (scale plain-map 1080))
-    (is (nil? (seq @dsl/last-errors)))
+    (is (nil? (seq @last-errors)))
     (ns-unmap *ns* 'plain-vec)
     (ns-unmap *ns* 'plain-map))
 
@@ -522,17 +523,17 @@
     (defgraph my-graph (scale 1920 1080))
     (let [result (bioscoop (compose [["0:v"] my-graph ["i"]] [["i"] (crop "100") ["out"]]))]
       (is (= "[0:v]scale=width=1920:height=1080[i];[i]crop=out_w=100[out]" (to-ffmpeg result)))
-      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors))))
+      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @last-errors))))
     (ns-unmap *ns* 'my-graph))
 
   (testing "shadowing with let at the bioscoop call site avoids the error"
     (let [shadowed-val 42
           result (bioscoop (scale shadowed-val 1080))]
       (is (= "scale=width=42:height=1080" (to-ffmpeg result)))
-      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors)))))
+      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @last-errors)))))
 
   (testing "fn parameter avoids the error (the second suggested fix)"
     (let [my-wrapper (fn [param-val] (bioscoop (scale param-val 1080)))
           result (my-wrapper 99)]
       (is (= "scale=width=99:height=1080" (to-ffmpeg result)))
-      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors))))))
+      (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @last-errors))))))

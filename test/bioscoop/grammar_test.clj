@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest testing is]]
             [clojure.walk :refer [postwalk]]
             [instaparse.core :as insta]
-            [bioscoop.dsl :refer [compile-dsl last-errors]]
+            [bioscoop.dsl :refer [compile-dsl]]
+            [bioscoop.error-handling :refer [last-errors]]
             [bioscoop.parse :refer [dsl-parser dsl-parses]]
             [bioscoop.render :refer [to-ffmpeg]]))
 
