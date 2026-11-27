@@ -500,15 +500,17 @@ New scopes are created with \texttt{(make-env parent)}, establishing the parent 
 
 \subsection{The \texttt{for} Construct}
 
-The \texttt{for} construct is the most significant addition to the filtergraph language. It iterates over any seqable Clojure value and produces a \texttt{FilterGraph} by merging the results of evaluating the body expression for each iteration value:
+The \texttt{for} construct is the most significant addition to the filtergraph language. It iterates over any seqable Clojure value and produces a \texttt{FilterGraph} by merging the results of evaluating the body expression for each iteration value. Like Clojure's \texttt{for}, the body is a single expression. The grammar admits \texttt{expression+} so that both front-ends converge on the same AST, while the evaluator enforces the restriction: additional body expressions produce a \texttt{:for-body-arity} warning and the first body is evaluated.
 
 \begin{lstlisting}[caption={for-binding evaluation}]
 (defmethod transform-ast* :for-binding
-  [[_ [_ sym-name] range-node body] env]
+  [[_ [_ sym-name] range-node & body] env]
   (let [xs (transform-ast range-node env)]
+    (when (not= (count body) 1)
+      (accumulate-error env body :for-body-arity))
     (vec (for [x xs
                :let [loop-env (env-put env sym-name x)]]
-           (transform-ast body loop-env)))))
+           (transform-ast (first body) loop-env)))))
 \end{lstlisting}
 
 The method returns a plain Clojure vector of per-iteration results. Composition into a \texttt{FilterGraph} is handled upstream by \texttt{promote-to-filtergraph}, which contains a \texttt{sequential?} branch that recursively promotes each element and combines them with \texttt{compose-filtergraphs}:

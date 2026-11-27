@@ -441,7 +441,7 @@ The language follows these production rules:
 
 #+begin_src 
 program = expression*
-<expression> = atom | list | let-binding | for-binding | map | compose | graph-definition | padded-graph
+<expression> = atom | list | let-binding | for-binding | map | compose | graph-definition | padded-graph | function-definition | lambda
 let-binding = <'('> <'let'> binding-vector expression+ <')'>
 <binding-vector> = <'['> binding* <']'>
 binding = symbol expression
