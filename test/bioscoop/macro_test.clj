@@ -186,14 +186,14 @@
       (is (= 3 (count (map :filters (:chains result)))))))
   
   (testing "Automatic wrapping of FilterGraph/filterchain"
-    (let [result (bioscoop (compose (scale 1920 1080) (scale 1910 1180) (scale 1920 80)))]
+    (let [result (bioscoop (compose [["0:v"] (scale 1920 1080) ["s"]] [["s"] (scale 1910 1180) ["o"]] [["o"] (scale 1920 80) ["out"]]))]
       (is (instance? FilterGraph result))
       (is (true? (every? #(instance? FilterChain %) (:chains result))))
       (is (= 3 (count (:chains result))))
       (is (= 3 (count (map :filters (:chains result)))))))
 
   (testing "Automatic wrapping of FilterGraph/filterchain"
-    (let [result (bioscoop (compose (chain (scale 1920 1080) (scale 1910 1180)) (scale 1920 80)))]
+    (let [result (bioscoop (compose [["0:v"] (chain (scale 1920 1080) (scale 1910 1180)) ["s"]] [["s"] (scale 1920 80) ["out"]]))]
       (is (instance? FilterGraph result))
       (is (instance? FilterChain (first (:chains result))))
       (is (instance? FilterChain (last (:chains result))))
@@ -233,7 +233,7 @@
   (testing "we can compose filtergraphs"
     (do (defgraph my-scale (scale 1920 1080))
         (defgraph my-crop (scale "1920" "1080"))
-        (let [result (bioscoop (compose my-scale my-crop))]
+        (let [result (bioscoop (compose [["0:v"] my-scale ["s"]] [["s"] my-crop ["out"]]))]
           (is (= 2 (count (.-chains result)))))))
   (testing "we can compose padded filtergraphs"
     (do (defgraph my-scale (scale 1920 1080))
@@ -398,7 +398,7 @@
   (testing "a for iteration that produces a genuinely parallel filtergraph is rejected, not silently linearized"
     (let [result (bioscoop (chain (crop {:out_w "100"})
                                    (for [n (range 2)]
-                                     (compose (boxblur {:luma_radius "1"}) (vignette {:angle "1.0"})))
+                                     (compose [["0:v"] (boxblur {:luma_radius "1"}) ["b"]] [["b"] (vignette {:angle "1.0"}) ["out"]]))
                                    (drawtext {:text "end"})))]
       (is (= "crop=out_w=100,drawtext=text=end" (to-ffmpeg result)))
       (is (some #(= :chain-parallel-filtergraph (:error-type (ex-data %))) @dsl/last-errors)))))
@@ -520,8 +520,8 @@
 
   (testing "defgraph FilterGraph does NOT trigg"
     (defgraph my-graph (scale 1920 1080))
-    (let [result (bioscoop (compose my-graph (crop "100")))]
-      (is (= "scale=width=1920:height=1080;crop=out_w=100" (to-ffmpeg result)))
+    (let [result (bioscoop (compose [["0:v"] my-graph ["i"]] [["i"] (crop "100") ["out"]]))]
+      (is (= "[0:v]scale=width=1920:height=1080[i];[i]crop=out_w=100[out]" (to-ffmpeg result)))
       (is (not (some #(= :unscoped-top-level-var (:error-type (ex-data %))) @dsl/last-errors))))
     (ns-unmap *ns* 'my-graph))
 

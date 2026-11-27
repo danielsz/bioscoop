@@ -49,6 +49,10 @@
                                                            {:value       sym
                                                             :error-type  :chain-parallel-filtergraph
                                                             :explanation "chain requires linear filter sequences. A filtergraph with multiple chains represents parallel structure that cannot be flattened into a single chain. Use compose instead."}))
+             :compose-unlabeled-chain (fn [graph] (ex-info "compose requires boundary labels"
+                                                          {:error-type :compose-unlabeled-chain
+                                                           :chain-count (count (:chains graph))
+                                                           :explanation "compose builds a parallel filtergraph. A multi-chain compose with no input or output labels has no defined connections between its chains. Use chain for sequential composition, or add input/output labels to wire each chain."}))
              :for-body-arity (fn [body] (ex-info "for expects exactly one body expression"
                                                 {:value body
                                                  :body-count (count body)

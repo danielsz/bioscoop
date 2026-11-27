@@ -67,11 +67,11 @@
     :dsl "(defgraph a (scale 1920 1080)) a"
     :expected "scale=width=1920:height=1080"}
    {:title "Compose I"
-    :dsl "(defgraph a (scale 1920 1080)) (defgraph b (crop \"640\" \"480\")) (compose a b)"
-    :expected "scale=width=1920:height=1080;crop=out_w=640:w=480"}
+    :dsl "(defgraph a (scale 1920 1080)) (defgraph b (crop \"640\" \"480\")) (compose [[\"0:v\"] a [\"p\"]] [[\"p\"] b [\"out\"]])"
+    :expected "[0:v]scale=width=1920:height=1080[p];[p]crop=out_w=640:w=480[out]"}
    {:title "Compose II"
-    :dsl "(defgraph x (chain (scale 1920 1080) (hflip))) (defgraph y (vflip)) (compose x y)"
-    :expected "scale=width=1920:height=1080,hflip;vflip"}
+    :dsl "(defgraph x (chain (scale 1920 1080) (hflip))) (defgraph y (vflip)) (compose [[\"0:v\"] x [\"s\"]] [[\"s\"] y [\"out\"]])"
+    :expected "[0:v]scale=width=1920:height=1080,hflip[s];[s]vflip[out]"}
    {:title "Compose III"
     :dsl "(compose [[0] (chain (scale 133 220)) [1]] [[0] (crop \"111\") [1]])"
     :expected "[0]scale=width=133:height=220[1];[0]crop=out_w=111[1]"}
@@ -234,9 +234,9 @@
           result (compile-dsl dsl)]
       (is (and (nil? (seq (.-chains result))) (instance? FilterGraph result)))))
   (testing "we can compose filtergraphs"
-    (let [result (compile-dsl "(defgraph my-scale (scale 1920 1080))\n(defgraph my-crop (crop \"1920\" \"1080\"))\n(compose my-scale my-crop)")]
+    (let [result (compile-dsl "(defgraph my-scale (scale 1920 1080))\n(defgraph my-crop (crop \"1920\" \"1080\"))\n(compose [[\"0:v\"] my-scale [\"s\"]] [[\"s\"] my-crop [\"out\"]])")]
       (is (= 2 (count (:chains result))))
-      (is (= "scale=width=1920:height=1080;crop=out_w=1920:w=1080" (to-ffmpeg result))))))
+      (is (= "[0:v]scale=width=1920:height=1080[s];[s]crop=out_w=1920:w=1080[out]" (to-ffmpeg result))))))
 
 (deftest name-shadowing
   (testing "When we use the name of built-in function in a let binding, we shadow the built-in function so reject it"
@@ -332,6 +332,6 @@
     (let [result (compile-dsl "(defgraph dupe-graph (scale 1920 1080))\n(defgraph dupe-graph (crop \"640\" \"480\"))\ndupe-graph")]
       (is (= "crop" (:name (first (:filters (first (:chains result))))))))
     (testing "a graph can refer to a previously defined graph"
-      (let [result (compile-dsl "(defgraph foo (scale 1920 1080))\n(defgraph bar (compose foo (crop \"640\" \"480\")))\nbar")]
-        (is (= "scale=width=1920:height=1080;crop=out_w=640:w=480" (to-ffmpeg result)))))))
+      (let [result (compile-dsl "(defgraph foo (scale 1920 1080))\n(defgraph bar (compose [[\"0:v\"] foo [\"s\"]] [[\"s\"] (crop \"640\" \"480\") [\"out\"]]))\nbar")]
+        (is (= "[0:v]scale=width=1920:height=1080[s];[s]crop=out_w=640:w=480[out]" (to-ffmpeg result)))))))
 

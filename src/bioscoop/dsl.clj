@@ -1,7 +1,7 @@
 (ns bioscoop.dsl
   (:require [instaparse.core :as insta]
             [clojure.string :as str]
-            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain* ->Lambda]]
+            [bioscoop.domain.records :refer [make-filtergraph make-filterchain compose-filtergraphs with-input-labels with-output-labels promote-to-filtergraph* promote-to-filterchain* ->Lambda get-input-labels get-output-labels]]
             [bioscoop.parse :refer [dsl-parser]]
             [bioscoop.env :refer [make-env env-put]]
             [bioscoop.resolve :refer [resolve-function reserved-word-type resolve-symbol reserved-word?]]
@@ -40,11 +40,23 @@
          (mapv #(promote-to-filtergraph % env))
          (apply compose-filtergraphs))))
 
+(defn- unlabeled-chain? [chain]
+  (and (empty? (get-input-labels chain))
+       (empty? (get-output-labels chain))))
+
+(defn- validate-compose [graph env]
+  (let [chains (:chains graph)]
+    (if (and (> (count chains) 1)
+             (every? unlabeled-chain? chains))
+      (accumulate-error env graph :compose-unlabeled-chain)
+      graph)))
+
 (defmethod transform-ast* :compose [[_ & content] env]
   (let [children (->> (rest content)
-                      (mapv #(transform-ast % env))
-                      (mapv #(promote-to-filtergraph % env)))]
-    (apply compose-filtergraphs children)))
+                    (mapv #(transform-ast % env))
+                    (mapv #(promote-to-filtergraph % env)))]
+    (-> (apply compose-filtergraphs children)
+       (validate-compose env))))
 
 (defn padded-graph-helper
   "Partition a padded-graph body into input labels, the body expression, and output labels.
