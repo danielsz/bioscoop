@@ -49,6 +49,11 @@
                                                            {:value       sym
                                                             :error-type  :chain-parallel-filtergraph
                                                             :explanation "chain requires linear filter sequences. A filtergraph with multiple chains represents parallel structure that cannot be flattened into a single chain. Use compose instead."}))
+             :for-body-arity (fn [body] (ex-info "for expects exactly one body expression"
+                                                {:value body
+                                                 :body-count (count body)
+                                                 :error-type :for-body-arity
+                                                 :explanation "Bioscoop's for is aligned with Clojure and takes exactly one body expression."}))
              :arity-mismatch (fn [{:keys [fn expected got]}]
                                (ex-info "Arity mismatch" {:error-type :arity-mismatch
                                                           :explanation (str "Function expected " expected ", got " got "arguments")

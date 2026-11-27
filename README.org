@@ -156,7 +156,7 @@ It produces a filtergraph by iterating over a range and merging the
 results, all within the DSL itself.
 
 #+begin_src clojure
-(for [binding range] body...)
+(for [binding range] body)
 #+end_src
 
 ~range~ is a sequence of positive integers. ~body~ is a DSL expression

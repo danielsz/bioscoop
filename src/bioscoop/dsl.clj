@@ -152,11 +152,12 @@
   (let [xs (map #(transform-ast % env) (rest m))]
     (into {} (map vec (partition 2 xs)))))
 
-(defmethod transform-ast* :for-binding [[_ [_ sym-name] range-node body] env]
+(defmethod transform-ast* :for-binding [[_ [_ sym-name] range-node & body] env]
   (let [xs (transform-ast range-node env)]
+    (when (not= (count body) 1) (accumulate-error env body :for-body-arity))
     (vec (for [x xs
                :let [loop-env (env-put env sym-name x)]]
-           (transform-ast body loop-env)))))
+           (transform-ast (first body) loop-env)))))
 
 (defmethod transform-ast* :symbol [[_ sym] env]
   (resolve-symbol sym env))
